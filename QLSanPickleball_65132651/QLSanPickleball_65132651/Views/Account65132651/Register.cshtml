@@ -182,29 +182,57 @@
                     <div class="row">
                         <div class="col-md-12 mb-3">
                             <label class="small fw-600 mb-1">Họ và tên</label>
-                            @Html.TextBoxFor(m => m.HOTENKH, new { @class = "form-control", placeholder = "VD: Nguyễn Văn A", required = "required" })
+                            @Html.TextBoxFor(m => m.HOTENKH, new { @class = "form-control", placeholder = "VD: Nguyễn Văn A" })
+                            @Html.ValidationMessageFor(m => m.HOTENKH, "", new { @class = "text-danger small" })
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="small fw-600 mb-1">Số điện thoại</label>
-                            @Html.TextBoxFor(m => m.SODIENTHOAIKH, new { @class = "form-control", placeholder = "09xxx...", required = "required" })
+                            @Html.TextBoxFor(m => m.SODIENTHOAIKH, new { @class = "form-control", placeholder = "09xxx..." })
+                            @Html.ValidationMessageFor(m => m.SODIENTHOAIKH, "", new { @class = "text-danger small" })
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="small fw-600 mb-1">Email</label>
-                            @Html.TextBoxFor(m => m.EMAILKH, new { @class = "form-control", placeholder = "example@gmail.com", type = "email" })
+                            @Html.TextBoxFor(m => m.EMAILKH, new { @class = "form-control", placeholder = "example@gmail.com" })
+                            @Html.ValidationMessageFor(m => m.EMAILKH, "", new { @class = "text-danger small" })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="small fw-600 mb-1">Ngày sinh</label>
+                            @Html.TextBoxFor(m => m.NGAYSINH, new
+                            {
+                                @class = "form-control",
+                                type = "date",
+                                @Value = (Model != null && Model.NGAYSINH != DateTime.MinValue) ? Model.NGAYSINH.ToString("yyyy-MM-dd") : ""
+                            })
+                            @Html.ValidationMessageFor(m => m.NGAYSINH, "", new { @class = "text-danger small" })
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small fw-600 mb-1">Giới tính</label>
+                            <select name="GIOITINH" class="form-select">
+                                <option value="">-- Chọn giới tính --</option>
+                                <option value="Nam">Nam</option>
+                                <option value="Nữ">Nữ</option>
+                                <option value="Khác">Khác</option>
+                            </select>
+                            @Html.ValidationMessageFor(m => m.GIOITINH, "", new { @class = "text-danger small" })
                         </div>
                     </div>
 
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label class="small fw-600 mb-1">Mật khẩu</label>
-                            @Html.PasswordFor(m => m.MATKHAUKH, new { @class = "form-control", placeholder = "••••••••", required = "required" })
+                            @Html.PasswordFor(m => m.MATKHAUKH, new { @class = "form-control", placeholder = "••••••••" })
+                            @Html.ValidationMessageFor(m => m.MATKHAUKH, "", new { @class = "text-danger small" })
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="small fw-600 mb-1">Xác nhận mật khẩu</label>
-                            <input type="password" name="XacNhanMatKhau" class="form-control" placeholder="••••••••" required />
+                            <input type="password" name="XacNhanMatKhau" class="form-control" placeholder="••••••••" />
+                            @Html.ValidationMessage("XacNhanMatKhau", new { @class = "text-danger small" })
                         </div>
                     </div>
 

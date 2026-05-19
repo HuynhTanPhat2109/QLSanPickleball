@@ -1,13 +1,290 @@
 ﻿<!DOCTYPE html>
-
 <html>
 <head>
-    <meta name="viewport" content="width=device-width" />
-    <title>@ViewBag.Title</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title - Army Pickleball</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --primary-green: #1e5631;
+            --accent-lime: #a4eb5d;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #f4f7f5;
+            color: #2d3436;
+        }
+
+        /* Navbar Modern */
+        .navbar-custom {
+            background: rgba(30, 86, 49, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar-brand {
+            font-weight: 800;
+            font-size: 1.4rem;
+            color: var(--accent-lime) !important;
+        }
+
+        .nav-link {
+            font-weight: 500;
+            margin: 0 10px;
+            transition: 0.3s;
+        }
+
+            .nav-link:hover {
+                color: var(--accent-lime) !important;
+            }
+
+        /* Nút user */
+        .user-glass {
+            padding: 8px 14px;
+            border-radius: 18px;
+            backdrop-filter: blur(14px);
+            background: rgba(255,255,255,0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+        }
+
+            .user-glass:hover {
+                transform: translateY(-2px);
+                background: rgba(255,255,255,0.18);
+                box-shadow: 0 8px 25px rgba(0,0,0,0.18);
+            }
+
+        /* Avatar */
+        .avatar-wrapper {
+            position: relative;
+        }
+
+            .avatar-wrapper img {
+                border: 2px solid rgba(255,255,255,0.5);
+                object-fit: cover;
+            }
+
+        /* Dropdown kính */
+        .glass-menu {
+            width: 280px;
+            border-radius: 22px;
+            overflow: hidden;
+            background: rgba(255,255,255);
+            backdrop-filter: blur(18px);
+            border: 1px solid rgba(255,255,255,0.25);
+            animation: dropdownFade 0.25s ease;
+        }
+
+        /* Item */
+        .custom-item {
+            margin: 4px 10px;
+            border-radius: 12px;
+            transition: all 0.25s ease;
+            font-weight: 500;
+        }
+
+            .custom-item:hover {
+                background: rgba(76, 175, 80, 0.12);
+                transform: translateX(4px);
+            }
+
+        /* Logout */
+        .logout-item {
+            color: #dc3545;
+        }
+
+            .logout-item:hover {
+                background: rgba(220,53,69,0.1);
+                color: #dc3545;
+            }
+
+        /* Animation */
+        @@keyframes dropdownFade {
+            from {
+                opacity: 0;
+                transform: translateY(10px) scale(0.96);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Footer Modern */
+        footer {
+            background: #121412;
+            color: #888;
+            padding: 60px 0 30px;
+        }
+
+        .footer-title {
+            color: #fff;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+
+        .footer-link {
+            color: #888;
+            text-decoration: none;
+            transition: 0.3s;
+            display: block;
+            margin-bottom: 10px;
+        }
+
+            .footer-link:hover {
+                color: var(--accent-lime);
+                transform: translateX(5px);
+            }
+    </style>
 </head>
 <body>
-    <div>
-        @RenderBody()
-    </div>
+    <nav class="navbar navbar-expand-lg navbar-dark navbar-custom">
+        <div class="container">
+            <a class="navbar-brand" href="@Url.Action("Index", "Home")">
+                <i class="fas fa-bolt me-2"></i>ARMY
+            </a>
+
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+
+            <div class="collapse navbar-collapse justify-content-center" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "Home")">Trang chủ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Lịch đặt sân</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Bản đồ</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">Dịch vụ</a></li>
+                </ul>
+            </div>
+
+            <div class="d-flex align-items-center">
+                @if (Session["MaUser"] == null)
+                {
+                    <div class="auth-group bg-white bg-opacity-10 rounded-pill p-1">
+                        <a class="btn btn-link text-white text-decoration-none px-3 sm" href="@Url.Action("Login", "Account65132651")">Đăng nhập</a>
+                        <a class="btn btn-lime rounded-pill px-4 shadow-sm" href="@Url.Action("Register", "Account65132651")" style="background: var(--accent-lime); color: var(--primary-green); font-weight: 700;">Đăng ký</a>
+                    </div>
+                }
+                else
+                {
+                <div class="dropdown">
+                    <a class="nav-link dropdown-toggle user-glass d-flex align-items-center"
+                       href="#"
+                       id="userDrop"
+                       data-bs-toggle="dropdown"
+                       aria-expanded="false">
+
+                        <div class="avatar-wrapper me-2">
+                            <img src="https://ui-avatars.com/api/?name=@Session["TenUser"]&background=a4eb5d&color=1e5631"
+                                 class="rounded-circle"
+                                 width="38"
+                                 height="38">
+                        </div>
+
+                        <div class="d-flex flex-column lh-sm me-2">
+                            <span class="text-white fw-semibold">@Session["TenUser"]</span>
+                        </div>
+                    </a>
+
+                    <ul class="dropdown-menu dropdown-menu-end glass-menu border-0 shadow-lg mt-3">
+
+                        <li class="px-3 py-2">
+                            <div class="d-flex align-items-center">
+                                <img src="https://ui-avatars.com/api/?name=@Session["TenUser"]&background=a4eb5d&color=1e5631"
+                                     class="rounded-circle me-2"
+                                     width="45">
+
+                                <div>
+                                    <div class="fw-bold text-dark">@Session["TenUser"]</div>
+                                </div>
+                            </div>
+                        </li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                            <a class="dropdown-item custom-item py-2" href="#">
+                                <i class="fas fa-id-card me-2 text-success"></i>
+                                Hồ sơ cá nhân
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item custom-item py-2" href="#">
+                                <i class="fas fa-history me-2 text-primary"></i>
+                                Lịch sử đặt sân
+                            </a>
+                        </li>
+
+                        <li>
+                            <a class="dropdown-item custom-item py-2" href="#">
+                                <i class="fas fa-crown me-2 text-warning"></i>
+                                Đăng ký hội viên
+                            </a>
+                        </li>
+
+                        <li><hr class="dropdown-divider"></li>
+
+                        <li>
+                            <a class="dropdown-item custom-item logout-item py-2"
+                               href="@Url.Action("Logout", "Account65132651")">
+                                <i class="fas fa-sign-out-alt me-2"></i>
+                                Đăng xuất
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                }
+            </div>
+        </div>
+    </nav>
+
+    <main>@RenderBody()</main>
+
+    <footer>
+        <div class="container">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h5 class="footer-title">ARMY PICKLEBALL</h5>
+                    <p class="small">Hệ thống sân bãi hiện đại, dịch vụ chuyên nghiệp. Nơi khơi nguồn đam mê Pickleball tại Việt Nam.</p>
+                    <div class="d-flex gap-3 mt-3">
+                        <a href="#" class="text-white"><i class="fab fa-facebook-f"></i></a>
+                        <a href="#" class="text-white"><i class="fab fa-tiktok"></i></a>
+                    </div>
+                </div>
+                <div class="col-md-2 mb-4">
+                    <h6 class="footer-title">Liên kết</h6>
+                    <a href="#" class="footer-link">Về chúng tôi</a>
+                    <a href="#" class="footer-link">Bảng giá</a>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h6 class="footer-title">Hỗ trợ</h6>
+                    <a href="#" class="footer-link">Hướng dẫn đặt sân</a>
+                    <a href="#" class="footer-link">Chính sách hủy</a>
+                </div>
+                <div class="col-md-3 mb-4">
+                    <h6 class="footer-title">Liên hệ</h6>
+                    <p class="small mb-1"><i class="fas fa-map-marker-alt me-2"></i> 123 Đường Số 1, Nha Trang</p>
+                    <p class="small mb-1"><i class="fas fa-phone me-2"></i> 090 123 4567</p>
+                </div>
+            </div>
+            <hr class="mt-4 opacity-25">
+            <p class="text-center small mb-0">&copy; @DateTime.Now.Year Army Pickleball. Designed with ❤️</p>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

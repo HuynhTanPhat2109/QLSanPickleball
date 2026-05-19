@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Web;
 using System.Web.Mvc;
 
@@ -32,31 +33,34 @@ namespace QLSanPickleball_65132651.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Login(string username, string password)
         {
-            // ... (Phần kiểm tra rỗng vẫn giữ nguyên) ...
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            {
+                ViewBag.Error = "Vui lòng nhập số điện thoại và mật khẩu!";
+                return View();
+            }
 
-            // KỊCH BẢN 1: Khách hàng
+            // 1. Kiểm tra bảng KHACHHANG bằng Số điện thoại
             var kh = db.KHACHHANG.FirstOrDefault(k => k.SODIENTHOAIKH == username && k.MATKHAUKH == password);
             if (kh != null)
             {
                 Session["MaUser"] = kh.MAKH;
                 Session["TenUser"] = kh.HOTENKH;
                 Session["Role"] = "KhachHang";
-
                 return RedirectToAction("Index", "Home");
             }
 
-            // KỊCH BẢN 2: Cán bộ/Nhân viên
-            var nv = db.NHANVIEN.FirstOrDefault(n => n.TENDANGNHAP == username && n.MATKHAUNV == password);
+            // 2. Kiểm tra bảng NHANVIEN bằng Số điện thoại (Giả sử bảng NHANVIEN có cột SODIENTHOAINV)
+            // Nếu bảng Nhân viên của bạn dùng TENDANGNHAP, bạn có thể cho phép họ nhập 1 trong 2
+            var nv = db.NHANVIEN.FirstOrDefault(n => (n.SODIENTHOAINV == username || n.TENDANGNHAP == username) && n.MATKHAUNV == password);
             if (nv != null)
             {
                 Session["MaUser"] = nv.MANV;
                 Session["TenUser"] = nv.HOTENNV;
                 Session["Role"] = nv.VAITRO;
-
                 return RedirectToAction("Index", "Home");
             }
 
-            ViewBag.Error = "Tài khoản hoặc mật khẩu không chính xác!";
+            ViewBag.Error = "Thông tin đăng nhập không chính xác!";
             return View();
         }
 
@@ -73,33 +77,53 @@ namespace QLSanPickleball_65132651.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Register(KHACHHANG model, string XacNhanMatKhau)
         {
+            // 1. Kiểm tra khớp mật khẩu (vì XacNhanMatKhau không nằm trong Model)
+            if (model.MATKHAUKH != XacNhanMatKhau)
+            {
+                ModelState.AddModelError("XacNhanMatKhau", "Mật khẩu xác nhận không khớp!");
+            }
+
+            // ModelState.IsValid tự động kiểm tra các ràng buộc từ Metadata
             if (ModelState.IsValid)
             {
-                if (model.MATKHAUKH != XacNhanMatKhau)
-                {
-                    ViewBag.Error = "Mật khẩu xác nhận không khớp!";
-                    return View(model);
-                }
-
-                // Kiểm tra trùng SĐT hoặc Email
+                // 2. Kiểm tra trùng Số điện thoại hoặc Email
                 var checkUser = db.KHACHHANG.FirstOrDefault(k => k.SODIENTHOAIKH == model.SODIENTHOAIKH || k.EMAILKH == model.EMAILKH);
                 if (checkUser != null)
                 {
-                    ViewBag.Error = "Số điện thoại hoặc Email đã được đăng ký!";
+                    ViewBag.Error = "Số điện thoại hoặc Email đã tồn tại trong hệ thống!";
                     return View(model);
                 }
 
-                // Khởi tạo các giá trị mặc định cho khách hàng mới
+                // 3. Khởi tạo mã khóa chính tự động
                 model.MAKH = "KH" + DateTime.Now.Ticks.ToString().Substring(10);
-                model.SOLANBUNG = 0;
-                model.TRANGTHAITK = "Hoạt động";
 
-                db.KHACHHANG.Add(model);
-                db.SaveChanges();
+                // 4. Thiết lập các giá trị mặc định theo yêu cầu nghiệp vụ
+                model.SOLANBUNG = 0;              // Mặc định ban đầu là 0 lần bùng lịch
+                model.TRANGTHAITK = "Hoạt động";   // Mặc định tài khoản mở ngay khi đăng ký
 
-                TempData["Success"] = "Đăng ký thành công! Vui lòng đăng nhập.";
-                return RedirectToAction("Login");
+                try
+                {
+                    db.KHACHHANG.Add(model);
+                    db.SaveChanges();
+
+                    TempData["Success"] = "Đăng ký thành công! Vui lòng đăng nhập tài khoản.";
+                    return RedirectToAction("Login");
+                }
+                catch (System.Data.Entity.Validation.DbEntityValidationException ex)
+                {
+                    string errorMsg = "Lỗi cấu trúc dữ liệu CSDL: <br/>";
+                    foreach (var validationErrors in ex.EntityValidationErrors)
+                    {
+                        foreach (var validationError in validationErrors.ValidationErrors)
+                        {
+                            errorMsg += $"- Trường <b>{validationError.PropertyName}</b>: {validationError.ErrorMessage}<br/>";
+                        }
+                    }
+                    ViewBag.Error = errorMsg;
+                    return View(model);
+                }
             }
+
             return View(model);
         }
 
@@ -109,7 +133,7 @@ namespace QLSanPickleball_65132651.Controllers
         public ActionResult Logout()
         {
             Session.Clear(); // Xóa toàn bộ Session
-            return RedirectToAction("Login", "Account");
+            return RedirectToAction("Index", "Home");
         }
     
     }

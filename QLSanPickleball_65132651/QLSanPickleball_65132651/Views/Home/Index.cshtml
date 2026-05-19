@@ -1,21 +1,637 @@
-﻿@{
-    // Mặc định là layout khách hàng
-    Layout = "~/Views/Shared/_LayoutCustomer.cshtml";
+﻿@model IEnumerable<QLSanPickleball_65132651.Models.SAN>
 
-    // Nếu Role là Admin/Nhân viên/Quản lý thì đổi sang layout Admin
-    if (Session["Role"] != null && Session["Role"].ToString() != "KhachHang")
-    {
-        Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
-    }
+@{
+    bool isAdmin = (Session["Role"] != null && Session["Role"].ToString() != "KhachHang");
+    Layout = isAdmin ? "~/Views/Shared/_LayoutAdmin.cshtml" : "~/Views/Shared/_LayoutKhachHang.cshtml";
 
+    var danhSachLoai = ViewBag.MaLoaiSan as List<QLSanPickleball_65132651.Models.LOAISAN>;
     ViewBag.Title = "Trang chủ - Army Pickleball";
 }
 
-@if (Session["Role"].ToString() == "KhachHang")
-{
-    <h2>Chào mừng Khách hàng @Session["TenUser"]</h2>
-}
-else
-{
-    <h2>Chào mừng Cán bộ @Session["TenUser"]</h2>
-}
+<style>
+    html {
+        scroll-behavior: smooth;
+    }
+    /* HERO BANNER */
+    .hero-banner {
+        position: relative;
+        overflow: hidden;
+        padding: 70px 60px;
+        border-radius: 36px;
+        background: linear-gradient( 135deg, #0f172a, #14532d, #16a34a );
+        box-shadow: 0 25px 60px rgba(0,0,0,0.18);
+        transition: all 0.5s ease;
+    }
+
+        /* Hover Gradient Animation */
+        .hero-banner::before {
+            content: "";
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient( 130deg, rgba(255,255,255,0.15), transparent, rgba(255,255,255,0.08) );
+            opacity: 0;
+            transition: 0.5s;
+        }
+
+        .hero-banner:hover::before {
+            opacity: 1;
+        }
+
+    /* Glow */
+    .hero-glow {
+        position: absolute;
+        border-radius: 50%;
+        filter: blur(80px);
+        opacity: 0.35;
+    }
+
+    .hero-glow-1 {
+        width: 250px;
+        height: 250px;
+        background: #22c55e;
+        top: -60px;
+        right: -60px;
+        animation: floatGlow 6s ease-in-out infinite;
+    }
+
+    .hero-glow-2 {
+        width: 180px;
+        height: 180px;
+        background: #84cc16;
+        bottom: -40px;
+        left: -40px;
+        animation: floatGlow 8s ease-in-out infinite;
+    }
+
+    /* Content */
+    .hero-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Badge */
+    .hero-badge {
+        display: inline-flex;
+        align-items: center;
+        padding: 10px 18px;
+        margin-bottom: 24px;
+        border-radius: 999px;
+        background: rgba(255,255,255,0.12);
+        border: 1px solid rgba(255,255,255,0.15);
+        color: #fff;
+        font-weight: 600;
+        font-size: 0.9rem;
+        backdrop-filter: blur(10px);
+    }
+
+    /* Title */
+    .hero-title {
+        font-size: 3.4rem;
+        font-weight: 800;
+        line-height: 1.15;
+        color: white;
+        margin-bottom: 22px;
+    }
+
+        .hero-title span {
+            color: #bef264;
+            position: relative;
+        }
+
+    /* Description */
+    .hero-desc {
+        color: rgba(255,255,255,0.8);
+        font-size: 1.05rem;
+        line-height: 1.8;
+        max-width: 620px;
+        margin-bottom: 30px;
+    }
+
+    /* Buttons */
+    .hero-btn-main {
+        padding: 14px 26px;
+        border-radius: 16px;
+        background: white;
+        color: #166534;
+        font-weight: 700;
+        border: none;
+        transition: all 0.3s ease;
+    }
+
+        .hero-btn-main:hover {
+            transform: translateY(-3px);
+            background: #bef264;
+            color: #14532d;
+            box-shadow: 0 15px 30px rgba(190,242,100,0.25);
+        }
+
+    /* Outline Button */
+    .hero-btn-outline {
+        padding: 14px 26px;
+        border-radius: 16px;
+        border: 1px solid rgba(255,255,255,0.25);
+        color: white;
+        font-weight: 700;
+        backdrop-filter: blur(10px);
+        transition: all 0.3s ease;
+    }
+
+        .hero-btn-outline:hover {
+            background: rgba(255,255,255,0.12);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+    /* Stats */
+    .hero-stats {
+        display: flex;
+        gap: 45px;
+        margin-top: 45px;
+    }
+
+    .hero-stat-item h3 {
+        color: white;
+        font-weight: 800;
+        margin-bottom: 4px;
+    }
+
+    .hero-stat-item span {
+        color: rgba(255,255,255,0.7);
+        font-size: 0.92rem;
+    }
+
+    /* Image */
+    .hero-image-wrapper {
+        position: relative;
+        z-index: 2;
+    }
+
+    .hero-image {
+        width: 100%;
+        border-radius: 30px;
+        transform: rotate(-2deg);
+        transition: 0.5s ease;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    }
+
+    .hero-banner:hover .hero-image {
+        transform: rotate(0deg) scale(1.03);
+    }
+
+    /* Floating Cards */
+    .floating-card {
+        position: absolute;
+        padding: 12px 18px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.15);
+        backdrop-filter: blur(14px);
+        color: white;
+        font-weight: 700;
+        border: 1px solid rgba(255,255,255,0.18);
+        z-index: 5;
+        animation: floatCard 4s ease-in-out infinite;
+    }
+
+    .card-1 {
+        top: -15px;
+        left: -20px;
+    }
+
+    .card-2 {
+        bottom: 20px;
+        right: -15px;
+        animation-delay: 1.5s;
+    }
+
+    /* Animations */
+    @@keyframes floatCard {
+        0%,100% {
+            transform: translateY(0px);
+        }
+
+        50% {
+            transform: translateY(-10px);
+        }
+    }
+
+    @@keyframes floatGlow {
+        0%,100% {
+            transform: scale(1);
+        }
+
+        50% {
+            transform: scale(1.15);
+        }
+    }
+
+    /* Responsive */
+    @@media(max-width: 992px) {
+
+        .hero-banner {
+            padding: 45px 30px;
+        }
+
+        .hero-title {
+            font-size: 2.4rem;
+        }
+
+        .hero-stats {
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+    }
+
+    /* Wrapper */
+    .search-wrapper {
+        margin-bottom: 30px;
+    }
+
+    /* Container */
+    .search-container-modern {
+        padding: 28px;
+        border-radius: 28px;
+        background: rgba(255,255,255,0.72);
+        backdrop-filter: blur(18px);
+        border: 1px solid rgba(255,255,255,0.25);
+        box-shadow: 0 10px 35px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.35);
+    }
+
+    /* Header */
+    .search-header h4 {
+        color: #1f2937;
+        font-size: 1.4rem;
+    }
+
+    .search-header p {
+        font-size: 0.92rem;
+    }
+
+    /* Input Group */
+    .modern-input-group {
+        position: relative;
+    }
+
+    /* Icon */
+    .input-icon {
+        position: absolute;
+        top: 50%;
+        left: 16px;
+        transform: translateY(-50%);
+        z-index: 5;
+        color: #6b7280;
+        font-size: 0.95rem;
+    }
+
+    /* Input */
+    .modern-input {
+        height: 45px;
+        padding-left: 48px;
+        border: 1px solid rgba(0,0,0,0.06);
+        border-radius: 18px;
+        background: rgba(255,255,255,0.85);
+        font-weight: 500;
+        transition: all 0.25s ease;
+        box-shadow: none;
+    }
+
+        /* Focus */
+        .modern-input:focus {
+            border-color: #4ade80;
+            box-shadow: 0 0 0 4px rgba(74,222,128,0.12), 0 8px 25px rgba(74,222,128,0.08);
+            transform: translateY(-1px);
+        }
+
+    /* Select fix */
+    select.modern-input {
+        cursor: pointer;
+    }
+
+    /* Button */
+    .search-btn {
+        height: 45px;
+        border: none;
+        border-radius: 18px;
+        font-weight: 700;
+        font-size: 0.95rem;
+        color: white;
+        background: linear-gradient( 135deg, #22c55e, #16a34a );
+        box-shadow: 0 10px 25px rgba(34,197,94,0.28);
+        transition: all 0.3s ease;
+    }
+
+        /* Hover button */
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(34,197,94,0.35);
+            background: linear-gradient( 135deg, #16a34a, #15803d );
+        }
+
+    /* Responsive */
+    @@media(max-width: 768px) {
+
+        .search-container-modern {
+            padding: 20px;
+            border-radius: 22px;
+        }
+
+        .modern-input {
+            height: 50px;
+        }
+
+        .search-btn {
+            height: 50px;
+        }
+    }
+
+    /* Square Mini Cards */
+    .court-box {
+        background: #fff;
+        border-radius: 20px;
+        border: 1px solid #edf2ef;
+        transition: 0.3s;
+        height: 100%;
+    }
+
+        .court-box:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        }
+
+    .img-container {
+        height: 150px; /* Nhỏ lại cho gọn */
+        overflow: hidden;
+        border-radius: 18px 18px 0 0;
+        position: relative;
+    }
+
+        .img-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .badge-float {
+        position: absolute;
+        top: 12px;
+        right: 12px;
+        font-size: 0.7rem;
+        padding: 5px 10px;
+        border-radius: 8px;
+        backdrop-filter: blur(5px);
+    }
+
+    .btn-book-mini {
+        background: #1e5631;
+        color: #fff;
+        border: none;
+        padding: 8px 0;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.85rem;
+        width: 100%;
+        transition: 0.3s;
+    }
+
+        .btn-book-mini:hover {
+            background: var(--accent-lime);
+            color: #1e5631;
+        }
+
+    .court-name {
+        font-size: 1rem;
+        font-weight: 700;
+        color: #1e5631;
+    }
+
+    .court-info-text {
+        font-size: 0.75rem;
+        color: #7f8c8d;
+    }
+</style>
+
+<div class="container py-5">
+    @if (!isAdmin)
+    {
+        <div class="hero-banner mb-5">
+
+            <!-- Background Glow -->
+            <div class="hero-glow hero-glow-1"></div>
+            <div class="hero-glow hero-glow-2"></div>
+
+            <div class="row align-items-center">
+
+                <!-- Left Content -->
+                <div class="col-lg-7">
+                    <div class="hero-content">
+
+                        <span class="hero-badge">
+                            <i class="fas fa-fire me-2"></i>
+                            Hệ thống đặt sân hiện đại
+                        </span>
+
+                        <h1 class="hero-title">
+                            Trải nghiệm
+                            <span>Pickleball</span>
+                            đẳng cấp tại Army
+                        </h1>
+
+                        <p class="hero-desc">
+                            Đặt sân nhanh chóng, giao diện hiện đại,
+                            sân chất lượng cao cùng trải nghiệm chuyên nghiệp.
+                        </p>
+
+                        <div class="d-flex gap-3 flex-wrap">
+                            <a href="#tk"
+                               class="btn hero-btn-main">
+                                <i class="fas fa-calendar-check me-2"></i>
+                                Đặt sân ngay
+                            </a>
+                        </div>
+
+                        <!-- Stats -->
+                        <div class="hero-stats">
+
+                            <div class="hero-stat-item">
+                                <h3>20+</h3>
+                                <span>Sân hiện đại</span>
+                            </div>
+
+                            <div class="hero-stat-item">
+                                <h3>5K+</h3>
+                                <span>Khách hàng</span>
+                            </div>
+
+                            <div class="hero-stat-item">
+                                <h3>4.9★</h3>
+                                <span>Đánh giá</span>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right -->
+                <div class="col-lg-5 d-none d-lg-block">
+
+                    <div class="hero-image-wrapper">
+
+                        <div class="floating-card card-1">
+                            <i class="fas fa-trophy"></i>
+                            Sân VIP
+                        </div>
+
+                        <div class="floating-card card-2">
+                            <i class="fas fa-bolt"></i>
+                            Booking nhanh
+                        </div>
+
+                        <img src="~/Content/Images/anhsan.jpg"
+                             class="hero-image"
+                             alt="Banner">
+
+                    </div>
+
+                </div>
+
+            </div>
+        </div>
+
+        <div class="search-wrapper">
+            @using (Html.BeginForm("Index", "Home", FormMethod.Get)) // Dùng GET để người dùng có thể copy link kết quả tìm kiếm
+            {
+                <div class="search-container-modern">
+
+                    <!-- Header -->
+                    <div class="search-header mb-4">
+                        <h4 class="fw-bold mb-1">
+                            <i class="fas fa-search-location me-2 text-success"></i>
+                            Tìm kiếm sân bóng
+                        </h4>
+                    </div>
+
+                    <!-- Search Form -->
+                    <div class="row g-3 align-items-center">
+
+                        <!-- Search Input -->
+                        <div class="col-lg-5">
+                            <div class="modern-input-group">
+                                <div class="input-icon">
+                                    <i class="fas fa-search"></i>
+                                </div>
+
+                                <input type="text" name="searchString" value="@ViewBag.CurrentSearch"
+                                       class="form-control modern-input"
+                                       placeholder="Tìm tên sân hoặc vị trí...">
+                            </div>
+                        </div>
+
+                        <!-- Select -->
+                        <div class="col-lg-4">
+                            <div class="modern-input-group">
+                                <div class="input-icon">
+                                    <i class="fas fa-futbol"></i>
+                                </div>
+
+                                <select name="maLoai" class="form-select modern-input">
+                                    <option value="">Tất cả loại sân</option>
+
+                                    @if (danhSachLoai != null)
+                                    {
+                                        foreach (var loai in danhSachLoai)
+                                        {
+                                            <option value="@loai.MALOAISAN" @(ViewBag.CurrentFilter == loai.MALOAISAN ? "selected" : "")>
+                                                @loai.TENLOAISAN
+                                            </option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                        </div>
+
+                        <!-- Button -->
+                        <div  id="tk" class="col-lg-3">
+                            <button class="btn search-btn w-100">
+                                <i class="fas fa-sliders-h me-2"></i>
+                                Lọc kết quả
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            }
+        </div>
+        <div id="danh-sach-san-section"></div>
+        <div id="courtSection" class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold m-0 text-success"><i class="fas fa-th-large me-2"></i>Hệ thống sân tập</h5>
+            <div class="small text-muted">Có @Model.Count() sân sẵn sàng</div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var item in Model)
+            {
+                <div class="col-xl-3 col-lg-4 col-md-6">
+                    <div class="court-box p-2">
+                        <div class="img-container">
+                            <img src="~/Content/Images/anhsan.jpg" alt="Sân">
+                        </div>
+                        <div class="p-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <div class="court-name">@item.TENSAN</div>
+                                <span class="badge
+                                    @(item.LOAISAN.TENLOAISAN == "Sân VIP"
+                                        ? "bg-light text-danger"
+                                        : "bg-light text-success")
+                                    border-0 small"
+                                      style="font-size: 0.65rem;">
+
+                                    @item.LOAISAN.TENLOAISAN
+                                </span>
+                            </div>
+                            <p class="court-info-text d-flex align-items-center mb-3">
+                                <i class="fas fa-star text-warning me-1"></i> 4.9/5 <small class="mx-2">|</small> <i class="fas fa-map-marker-alt me-1"></i> Khu A
+                            </p>
+
+                            @if (item.TRANGTHAISAN != "Bảo trì")
+                            {
+                                <a href="@Url.Action("DatSan", "Home", new { id = item.MASAN })" class="btn btn-book-mini d-flex align-items-center justify-content-center px-3">
+                                    Đặt sân <i class="fas fa-chevron-right ms-auto"></i>
+                                </a>
+                            }
+                            else
+                            {
+                                <button class="btn btn-light w-100 btn-book-mini text-muted" disabled>Bảo trì</button>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="p-5 bg-white rounded-4 shadow-sm text-center">
+            <i class="fas fa-user-cog fs-1 text-success mb-3"></i>
+            <h3>Quản trị viên: @Session["TenUser"]</h3>
+            <p>Vui lòng sử dụng thanh menu Admin để quản lý sân và doanh thu.</p>
+        </div>
+    }
+</div>
+
+<script>document.addEventListener("DOMContentLoaded", function () {
+        // 1. Kiểm tra xem có vị trí cũ đã lưu không
+        var scrollPos = sessionStorage.getItem("scrollPos");
+        if (scrollPos) {
+            window.scrollTo(0, scrollPos);
+            sessionStorage.removeItem("scrollPos"); // Xóa đi để lần sau vào trang chủ không bị cuộn tự động
+        }
+
+        // 2. Khi bấm nút Lọc, lưu lại vị trí hiện tại
+        var searchBtn = document.querySelector(".search-btn");
+        if (searchBtn) {
+            searchBtn.addEventListener("click", function () {
+                // Lưu vị trí của phần danh sách sân (hoặc vị trí hiện tại của màn hình)
+                var section = document.getElementById("danh-sach-san-section");
+                sessionStorage.setItem("scrollPos", section.offsetTop - 100);
+            });
+        }
+    });</script>
