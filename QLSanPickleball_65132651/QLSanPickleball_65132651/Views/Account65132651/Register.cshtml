@@ -1,0 +1,230 @@
+﻿@model QLSanPickleball_65132651.Models.KHACHHANG
+
+@{
+    Layout = null; // Tắt layout chung để tạo trang chuyên biệt
+}
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Đăng ký thành viên - Army Pickleball</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            /* Nền gradient di chuyển tạo cảm giác mượt mà */
+            background: linear-gradient(-45deg, #1e5631, #2d7a45, #a4eb5d, #1e5631);
+            background-size: 400% 400%;
+            animation: gradient 15s ease infinite;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        @@keyframes gradient {
+            0% {
+                background-position: 0% 50%;
+            }
+
+            50% {
+                background-position: 100% 50%;
+            }
+
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        .register-card {
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            overflow: hidden;
+            width: 100%;
+            max-width: 900px;
+            display: flex;
+            animation: slideUp 0.6s ease-out;
+        }
+
+        @@keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .register-info {
+            background: url('https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?q=80&w=2070&auto=format&fit=crop') center/cover;
+            color: white;
+            padding: 40px;
+            width: 40%;
+            position: relative;
+        }
+
+            .register-info::before {
+                content: "";
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(30, 86, 49, 0.7);
+            }
+
+        .register-form {
+            padding: 40px;
+            width: 60%;
+        }
+
+        .form-control {
+            border-radius: 10px;
+            padding: 10x 15px;
+            border: 1px solid #ddd;
+            margin-bottom: 5px;
+        }
+
+            .form-control:focus {
+                box-shadow: 0 0 0 3px rgba(164, 235, 93, 0.3);
+                border-color: #1e5631;
+            }
+
+        .btn-register {
+            background-color: #1e5631;
+            color: white;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+            .btn-register:hover {
+                background-color: #153e23;
+                transform: translateY(-2px);
+                color: #a4eb5d;
+            }
+
+        .social-btn {
+            border-radius: 10px;
+            border: 1px solid #ddd;
+            padding: 8px;
+            transition: 0.3s;
+        }
+
+            .social-btn:hover {
+                background-color: #f8f9fa;
+            }
+
+        @@media (max-width: 768px) {
+            .register-info {
+                display: none;
+            }
+
+            .register-form {
+                width: 100%;
+            }
+        }
+
+        .login-link {
+            color: forestgreen;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+            .login-link:hover {
+                text-decoration: underline;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="container d-flex justify-content-center p-3">
+        <div class="register-card">
+            <div class="register-info d-flex flex-column justify-content-center position-relative">
+                <div style="z-index: 1;">
+                    <h2 class="fw-bold">Gia nhập cộng đồng Army Pickleball</h2>
+                    <p class="mt-3">Đăng ký để trải nghiệm dịch vụ đặt sân hiện đại, theo dõi lịch sử và nhận ưu đãi hội viên hấp dẫn.</p>
+                    <ul class="list-unstyled mt-4">
+                        <li><i class="fas fa-check-circle me-2"></i> Đặt sân nhanh chóng</li>
+                        <li><i class="fas fa-check-circle me-2"></i> Tích điểm hội viên</li>
+                        <li><i class="fas fa-check-circle me-2"></i> Thanh toán online tiện lợi</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="register-form">
+                <div class="text-center mb-4">
+                    <h3 class="fw-bold text-success">ĐĂNG KÝ</h3>
+                    <p class="text-muted small">Hãy cung cấp thông tin để tạo tài khoản</p>
+                </div>
+
+                @using (Html.BeginForm("Register", "Account65132651", FormMethod.Post, new { id = "regForm" }))
+                {
+                    @Html.AntiForgeryToken()
+
+                    if (ViewBag.Error != null)
+                    {
+                        <div class="alert alert-danger p-2 small">@ViewBag.Error</div>
+                    }
+
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="small fw-600 mb-1">Họ và tên</label>
+                            @Html.TextBoxFor(m => m.HOTENKH, new { @class = "form-control", placeholder = "VD: Nguyễn Văn A", required = "required" })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="small fw-600 mb-1">Số điện thoại</label>
+                            @Html.TextBoxFor(m => m.SODIENTHOAIKH, new { @class = "form-control", placeholder = "09xxx...", required = "required" })
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small fw-600 mb-1">Email</label>
+                            @Html.TextBoxFor(m => m.EMAILKH, new { @class = "form-control", placeholder = "example@gmail.com", type = "email" })
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="small fw-600 mb-1">Mật khẩu</label>
+                            @Html.PasswordFor(m => m.MATKHAUKH, new { @class = "form-control", placeholder = "••••••••", required = "required" })
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="small fw-600 mb-1">Xác nhận mật khẩu</label>
+                            <input type="password" name="XacNhanMatKhau" class="form-control" placeholder="••••••••" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="terms" required>
+                        <label class="form-check-label small text-muted" for="terms">Tôi đồng ý với các điều khoản của Army Pickleball</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-register w-100 mb-3 shadow-sm">
+                        Đăng ký ngay <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+
+                    <div class="text-center">
+                        <p class="small text-muted">Đã có tài khoản? <a href="@Url.Action("Login", "Account65132651")" class="login-link">Đăng nhập</a></p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,21 @@
+﻿@{
+    // Mặc định là layout khách hàng
+    Layout = "~/Views/Shared/_LayoutCustomer.cshtml";
+
+    // Nếu Role là Admin/Nhân viên/Quản lý thì đổi sang layout Admin
+    if (Session["Role"] != null && Session["Role"].ToString() != "KhachHang")
+    {
+        Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    }
+
+    ViewBag.Title = "Trang chủ - Army Pickleball";
+}
+
+@if (Session["Role"].ToString() == "KhachHang")
+{
+    <h2>Chào mừng Khách hàng @Session["TenUser"]</h2>
+}
+else
+{
+    <h2>Chào mừng Cán bộ @Session["TenUser"]</h2>
+}

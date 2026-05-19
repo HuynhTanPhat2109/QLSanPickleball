@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<edmx:Edmx Version="3.0" xmlns:edmx="http://schemas.microsoft.com/ado/2009/11/edmx">
+ <!-- EF Designer content (DO NOT EDIT MANUALLY BELOW HERE) -->
+  <edmx:Designer xmlns="http://schemas.microsoft.com/ado/2009/11/edmx">
+    <!-- Diagram content (shape and connector positions) -->
+    <edmx:Diagrams>
+      <Diagram DiagramId="567c7f6914de49b0b4d986ceb64088b2" Name="Diagram1">
+        <EntityTypeShape EntityType="QLSanModel.BANGGIA" Width="1.5" PointX="3.75" PointY="17.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="QLSanModel.CHITIETDICHVUDAT" Width="1.5" PointX="5.25" PointY="1.625" IsExpanded="true" />
+        <EntityTypeShape EntityType="QLSanModel.DICHVU" Width="1.5" PointX="3" PointY="10.5" IsExpanded="true" />
+        <EntityTypeShape EntityType="QLSanModel.HOADON" Width="1.5" PointX="3" PointY="6.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="QLSanModel.HOIVIEN" Width="1.5" PointX="6" PointY="6.375" IsExpanded="true" />
+        <EntityTypeShape EntityType="QLSanModel.KHACHHANG" Width="1.5" PointX="0.75" PointY="10.875" IsExpanded="true" />
+        <EntityTypeShape EntityType="QLSanModel.LOAISAN" Width="1.5" PointX="1.5" PointY="18.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="QLSanModel.NHANVIEN" Width="1.5" PointX="0.75" PointY="6.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="QLSanModel.PHIEUDATSAN" Width="1.5" PointX="3" PointY="0.75" IsExpanded="true" />
+        <EntityTypeShape EntityType="QLSanModel.SAN" Width="1.5" PointX="0.75" PointY="15" IsExpanded="true" />
+        <EntityTypeShape EntityType="QLSanModel.sysdiagrams" Width="1.5" PointX="7.75" PointY="1.25" IsExpanded="true" />
+        <EntityTypeShape EntityType="QLSanModel.THAMSO" Width="1.5" PointX="8.75" PointY="4.25" IsExpanded="true" />
+        <AssociationConnector Association="QLSanModel.FK_BANGGIA_CO_LOAISAN" ManuallyRouted="false" />
+        <AssociationConnector Association="QLSanModel.FK_CHITIETD_CHITIETDI_DICHVU" ManuallyRouted="false" />
+        <AssociationConnector Association="QLSanModel.FK_CHITIETD_CHITIETDI_PHIEUDAT" ManuallyRouted="false" />
+        <AssociationConnector Association="QLSanModel.FK_HOADON_COSS_PHIEUDAT" ManuallyRouted="false" />
+        <AssociationConnector Association="QLSanModel.FK_HOADON_LAP_NHANVIEN" ManuallyRouted="false" />
+        <AssociationConnector Association="QLSanModel.FK_HOIVIEN_DUYETS_NHANVIEN" ManuallyRouted="false" />
+        <AssociationConnector Association="QLSanModel.FK_HOIVIEN_LAPS_KHACHHAN" ManuallyRouted="false" />
+        <AssociationConnector Association="QLSanModel.FK_PHIEUDAT_TAO_KHACHHAN" ManuallyRouted="false" />
+        <AssociationConnector Association="QLSanModel.FK_SAN_THUOC_LOAISAN" ManuallyRouted="false" />
+        <AssociationConnector Association="QLSanModel.FK_PHIEUDAT_DUYET_NHANVIEN" ManuallyRouted="false" />
+        <AssociationConnector Association="QLSanModel.FK_PHIEUDAT_THUOCS_SAN" ManuallyRouted="false" />
+      </Diagram>
+    </edmx:Diagrams>
+  </edmx:Designer>
+</edmx:Edmx>
