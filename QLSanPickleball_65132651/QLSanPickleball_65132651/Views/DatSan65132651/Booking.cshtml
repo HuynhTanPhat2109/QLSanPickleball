@@ -1,232 +1,415 @@
-﻿@model IEnumerable<QLSanPickleball_65132651.Models.SAN>
+﻿@using System.Globalization
+@model IEnumerable<QLSanPickleball_65132651.Models.SAN>
 
 @{
     Layout = "~/Views/Shared/_LayoutKhachHang.cshtml";
-    var dsPhieu = ViewBag.DanhSachPhieu as List<QLSanPickleball_65132651.Models.PHIEUDATSAN>;
-    DateTime ngayDat = ViewBag.NgayDat;
-    ViewBag.Title = "Đặt lịch ngày trực quan";
+
+    var dsSan = Model == null
+        ? new List<QLSanPickleball_65132651.Models.SAN>()
+        : Model.ToList();
+
+    var dsPhieu = ViewBag.DanhSachPhieu as List<QLSanPickleball_65132651.Models.PHIEUDATSAN>
+        ?? new List<QLSanPickleball_65132651.Models.PHIEUDATSAN>();
+
+    var dsBangGia = ViewBag.DanhSachBangGia as List<QLSanPickleball_65132651.Models.BANGGIA>
+        ?? new List<QLSanPickleball_65132651.Models.BANGGIA>();
+
+    DateTime ngayDat = ViewBag.NgayDat == null ? DateTime.Today : (DateTime)ViewBag.NgayDat;
+    bool laVangLai = ViewBag.LaVangLai == null ? true : (bool)ViewBag.LaVangLai;
+
+    ViewBag.Title = "Đặt sân Pickleball";
+
+    Func<string, TimeSpan, decimal> tinhGia30Phut = (maLoaiSan, gioBD) =>
+    {
+        var bg = dsBangGia
+            .Where(x => x.MALOAISAN == maLoaiSan
+                     && x.NGAYDIEUCHINH.Date <= ngayDat.Date
+                     && gioBD >= x.GIOBATDAU
+                     && gioBD < x.GIOKETTHUC)
+            .OrderByDescending(x => x.NGAYDIEUCHINH)
+            .FirstOrDefault();
+
+        if (bg == null)
+            return 0;
+
+        decimal giaMotGio = laVangLai ? bg.GIAVANGLAI : bg.GIACODINH;
+
+        return giaMotGio / 2;
+    };
 }
 
 <style>
     body {
-        background-color: #f4f7f6;
+        background: #eef7f1;
+    }
+
+    .booking-page {
+        padding: 32px 22px;
     }
 
     .booking-top-bar {
-        background: #1e5631;
-        border-radius: 20px 20px 0 0;
-        padding: 25px 30px;
+        background: linear-gradient(135deg, #065f46, #047857);
+        border-radius: 24px 24px 0 0;
+        padding: 24px 28px;
         color: white;
+        box-shadow: 0 12px 28px rgba(6, 95, 70, 0.22);
+    }
+
+        .booking-top-bar h3 {
+            font-size: 1.45rem;
+            letter-spacing: 0.2px;
+        }
+
+    .date-box {
+        display: flex;
+        gap: 10px;
+        align-items: center;
     }
 
     .legend-container {
         display: flex;
-        gap: 20px;
+        flex-wrap: wrap;
+        gap: 16px;
         align-items: center;
-        background: #eefbf2;
-        padding: 12px 30px;
-        border-bottom: 2px solid #e2e8f0;
+        background: #ecfdf5;
+        padding: 14px 28px;
+        border-left: 1px solid #d1fae5;
+        border-right: 1px solid #d1fae5;
+        border-bottom: 1px solid #d1fae5;
     }
 
     .legend-item {
         display: flex;
         align-items: center;
         gap: 8px;
-        font-size: 0.9rem;
-        font-weight: 600;
-        color: #333;
+        font-size: 0.88rem;
+        font-weight: 700;
+        color: #064e3b;
     }
 
     .legend-box {
         width: 24px;
         height: 24px;
-        border-radius: 6px;
-        border: 1px solid rgba(0,0,0,0.1);
+        border-radius: 8px;
+        border: 1px solid rgba(0,0,0,0.12);
     }
-
-    /* =========================
-       BẢNG LỊCH
-    ========================== */
 
     .schedule-container {
         background: white;
-        border-radius: 0 0 20px 20px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border-radius: 0 0 24px 24px;
+        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
         overflow-x: auto;
-        padding-bottom: 20px;
+        border: 1px solid #dbeafe;
+        border-top: none;
     }
 
-    /* 1 cột sân + 33 ô thời gian */
     .schedule-grid {
         display: grid;
-        grid-template-columns: 180px repeat(33, minmax(110px, 1fr));
-        min-width: 3900px;
+        grid-template-columns: 145px repeat(34, 40px);
+        min-width: 1505px;
     }
 
-    .time-header-row {
-        background: #f8fafc;
-        border-bottom: 2px solid #e2e8f0;
+    .time-ruler {
         position: sticky;
         top: 0;
-        z-index: 10;
+        z-index: 20;
+        display: grid;
+        grid-template-columns: 145px 1360px; /* 34 ô * 48px = 1632 */
+        min-width: 1505px; 
+        background: #bfeaf0;
+        border-bottom: 1px solid #94a3b8;
     }
 
-    .time-cell {
-        padding: 10px 5px;
-        text-align: center;
-        font-weight: 700;
-        color: #475569;
-        border-right: 1px solid #e2e8f0;
-        font-size: 0.75rem;
+    .time-ruler-left {
+        background: #bfeaf0;
+        border-right: 1px solid #94a3b8;
+    }
+
+    .time-ruler-track {
+        position: relative;
+        height: 44px;
+        background: #bfeaf0;
+        overflow: visible;
+    }
+
+    .time-marker {
+        position: absolute;
+        top: 0;
+        width: 0;
+        height: 44px;
+        overflow: visible;
+    }
+
+    .time-label {
+        position: absolute;
+        top: 6px;
+        left: 0;
+        transform: translateX(-50%);
+        font-size: 0.68rem;
+        font-weight: 800;
+        color: #24525f;
         white-space: nowrap;
     }
 
+    .time-tick {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        transform: translateX(-50%);
+        width: 2px;
+        height: 10px;
+        background: #f59e0b;
+        border-radius: 999px;
+    }
+
     .court-header {
-        background: white;
-        padding: 15px;
+        background: #ecfdf5;
+        padding: 8px 10px;
         font-weight: 800;
-        color: #1e5631;
-        border-right: 2px solid #e2e8f0;
-        border-bottom: 1px solid #e2e8f0;
+        color: #064e3b;
+        border-right: 1px solid #94a3b8;
+        border-bottom: 1px solid #94a3b8;
         position: sticky;
         left: 0;
-        z-index: 5;
+        z-index: 10;
+        min-height: 42px;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        box-shadow: 6px 0 12px rgba(15, 23, 42, 0.04);
+        font-size: 0.76rem;
     }
 
         .court-header small {
-            font-size: 0.75rem;
             color: #64748b;
-            font-weight: 500;
+            font-size: 0.75rem;
+            margin-top: 2px;
+            font-weight: 700;
         }
 
-    /* =========================
-       SLOT
-    ========================== */
+    .court-status {
+        display: inline-block;
+        width: fit-content;
+        margin-top: 6px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        font-size: 0.68rem;
+        font-weight: 900;
+    }
+
+    .st-free {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .st-booking {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .st-maintenance {
+        background: #e5e7eb;
+        color: #475569;
+    }
+
+    .st-using {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
 
     .slot {
-        height: 60px;
-        border-right: 1px solid #e2e8f0;
-        border-bottom: 1px solid #e2e8f0;
+        height: 42px;
+        border-right: 1px solid #8b8b8b;
+        border-bottom: 1px solid #8b8b8b;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.75rem;
-        font-weight: 600;
-        transition: all 0.2s;
+        font-size: 0.7rem;
+        font-weight: 800;
+        transition: 0.18s ease;
         position: relative;
         user-select: none;
     }
 
     .slot-empty {
-        background: white;
-        color: transparent;
+        background: linear-gradient(180deg, #ffffff, #f8fffb);
+        color: #16a34a;
         cursor: pointer;
     }
 
         .slot-empty:hover {
-            background: #eefbf2;
-            color: #16a34a;
+            background: #dcfce7;
             box-shadow: inset 0 0 0 2px #22c55e;
+            transform: translateY(-1px);
+            z-index: 3;
         }
 
     .slot-booked {
-        background: #ff4d4f;
+        background: linear-gradient(135deg, #ef4444, #b91c1c);
         color: white;
         cursor: not-allowed;
     }
 
     .slot-maintenance {
-        background: #a0aec0;
+        background: repeating-linear-gradient( 45deg, #94a3b8, #94a3b8 8px, #64748b 8px, #64748b 16px );
         color: white;
         cursor: not-allowed;
     }
 
-    .slot-selected {
-        background: #16a34a !important;
-        color: white !important;
-        box-shadow: 0 5px 15px rgba(22, 163, 74, 0.4);
-        transform: scale(0.92);
-        border-radius: 8px;
-        z-index: 2;
+    .slot-past {
+        background: #e5e7eb;
+        color: #6b7280;
+        cursor: not-allowed;
     }
 
-    /* =========================
-       SIDEBAR
-    ========================== */
+    .slot-closed {
+        background: #f8fafc;
+        color: #cbd5e1;
+        cursor: not-allowed;
+    }
+
+    .slot-selected {
+        background: linear-gradient(135deg, #22c55e, #15803d) !important;
+        color: white !important;
+        box-shadow: 0 8px 18px rgba(22, 163, 74, 0.35);
+        transform: scale(0.9);
+        border-radius: 12px;
+        z-index: 4;
+    }
+
+    .slot-price {
+        font-size: 0.68rem;
+        font-weight: 900;
+    }
 
     .summary-card {
         background: white;
-        border-radius: 20px;
-        padding: 25px;
-        box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.1);
         position: sticky;
         top: 20px;
+        border: 1px solid #e2e8f0;
+    }
+
+    .summary-item {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
     }
 
     .selection-list {
-        max-height: 250px;
+        max-height: 330px;
         overflow-y: auto;
-        margin-bottom: 15px;
+        margin: 16px 0;
+        padding-right: 4px;
     }
 
     .selection-item {
-        background: #f8fafc;
+        background: linear-gradient(180deg, #f8fafc, #ffffff);
         border: 1px solid #e2e8f0;
-        padding: 12px;
-        border-radius: 12px;
+        padding: 13px;
+        border-radius: 16px;
         margin-bottom: 10px;
     }
 
+    .money-box {
+        background: #f0fdf4;
+        border: 1px solid #bbf7d0;
+        border-radius: 18px;
+        padding: 16px;
+        text-align: center;
+        margin-bottom: 18px;
+    }
+
     .btn-next {
-        background: #eab308;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
         color: white;
-        font-weight: 800;
-        font-size: 1.1rem;
+        font-weight: 900;
+        font-size: 1.03rem;
         padding: 15px;
-        border-radius: 12px;
+        border-radius: 16px;
         border: none;
         width: 100%;
-        transition: 0.3s;
+        transition: 0.25s ease;
     }
 
         .btn-next:hover {
-            background: #ca8a04;
             transform: translateY(-2px);
+            box-shadow: 0 12px 20px rgba(217, 119, 6, 0.28);
+        }
+
+    .btn-reload {
+        background: #facc15;
+        color: #422006;
+        border: none;
+        font-weight: 900;
+        border-radius: 12px;
+        padding-left: 18px;
+        padding-right: 18px;
+    }
+
+    .empty-state {
+        color: #64748b;
+        font-size: 0.86rem;
+        text-align: center;
+        border: 1px dashed #cbd5e1;
+        border-radius: 16px;
+        padding: 16px;
+        background: #f8fafc;
+    }
+
+    @@media (max-width: 1199px) {
+        .summary-card {
+            position: static;
+        }
+    }
+    .booking-action-bar {
+        margin-top: 18px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .btn-next-only {
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        font-weight: 900;
+        font-size: 1rem;
+        padding: 13px 34px;
+        border-radius: 999px;
+        border: none;
+        transition: 0.25s ease;
+        box-shadow: 0 10px 22px rgba(217, 119, 6, 0.25);
+    }
+
+        .btn-next-only:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 26px rgba(217, 119, 6, 0.35);
         }
 </style>
 
-<div class="container-fluid px-4 py-5">
+<div class="container-fluid booking-page">
     <div class="row g-4">
 
-        <!-- LEFT -->
-        <div class="col-xl-9">
+        <div class="col-12">
 
-            <div class="booking-top-bar d-flex justify-content-between align-items-center">
+            <div class="booking-top-bar d-flex justify-content-between align-items-center flex-wrap gap-3">
                 <div>
                     <h3 class="fw-bold mb-1">
                         <i class="fas fa-calendar-alt me-2"></i>
                         Đặt lịch ngày / Sự kiện
                     </h3>
-
-                    <p class="mb-0 opacity-75">
-                        Mỗi ô tương ứng 30 phút.
-                    </p>
                 </div>
 
-                <div class="d-flex gap-2">
+                <div class="date-box">
                     <input type="date"
                            id="ngayDat"
                            value="@ngayDat.ToString("yyyy-MM-dd")"
+                           min="@DateTime.Today.ToString("yyyy-MM-dd")"
                            class="form-control fw-bold border-0 shadow-sm"
-                           style="width: 180px; height: 45px;">
-
-                    <button class="btn btn-warning fw-bold px-4 shadow-sm"
-                            onclick="locNgay()">
-                        TẢI LẠI
-                    </button>
+                           style="width: 170px; height: 40px;"
+                           onchange="locNgay()">
                 </div>
             </div>
 
@@ -237,351 +420,333 @@
                 </div>
 
                 <div class="legend-item">
-                    <div class="legend-box"
-                         style="background:#16a34a;border-color:#16a34a;"></div>
+                    <div class="legend-box" style="background:#16a34a;border-color:#16a34a;"></div>
                     Đang chọn
                 </div>
 
                 <div class="legend-item">
-                    <div class="legend-box"
-                         style="background:#ff4d4f;border-color:#ff4d4f;"></div>
+                    <div class="legend-box" style="background:#ef4444;border-color:#ef4444;"></div>
                     Đã đặt
                 </div>
 
                 <div class="legend-item">
-                    <div class="legend-box"
-                         style="background:#a0aec0;border-color:#a0aec0;"></div>
+                    <div class="legend-box" style="background:#e5e7eb;border-color:#d1d5db;"></div>
+                    Đã qua giờ
+                </div>
+
+                <div class="legend-item">
+                    <div class="legend-box" style="background:#94a3b8;border-color:#64748b;"></div>
                     Bảo trì
                 </div>
             </div>
 
             <div class="schedule-container">
 
-                <!-- HEADER -->
-                <div class="schedule-grid time-header-row">
+                <div class="time-ruler">
+                    <div class="time-ruler-left"></div>
 
-                    <div class="time-cell bg-white border-end-0"></div>
-
-                    @for (int h = 5; h <= 21; h++)
-                    {
-                        <div class="time-cell">
-                            @($"{h}:00 - {h}:30")
-                        </div>
-
-                        if (h < 21)
+                    <div class="time-ruler-track">
+                        @for (int i = 0; i <= 34; i++)
                         {
-                            <div class="time-cell">
-                                @($"{h}:30 - {h + 1}:00")
+                            int tongPhut = 5 * 60 + i * 30;
+                            int gio = tongPhut / 60;
+                            int phut = tongPhut % 60;
+                            string timeText = string.Format("{0}:{1:00}", gio, phut);
+                            int left = i * 40;   // 48 phải khớp với độ rộng mỗi ô slot
+
+                            <div class="time-marker" style="left:@(left)px;">
+                                <span class="time-label">@timeText</span>
+                                <span class="time-tick"></span>
                             </div>
                         }
-                    }
-
+                    </div>
                 </div>
 
-                <!-- ROW -->
-                @foreach (var san in Model)
+                @if (!dsSan.Any())
                 {
-                    <div class="schedule-grid">
+                    <div class="p-4 text-center text-muted">
+                        Chưa có sân để hiển thị.
+                    </div>
+                }
+                else
+                {
+                    foreach (var san in dsSan)
+                    {
+                        string tt = san.TRANGTHAISAN ?? "Trống";
+                        string statusClass = "st-free";
 
-                        <div class="court-header">
-                            @san.TENSAN
-                            <small>@san.LOAISAN.TENLOAISAN</small>
-                        </div>
-
-                        @for (int h = 5; h <= 21; h++)
+                        if (tt == "Bảo trì")
                         {
-                            for (int m = 0; m <= 30; m += 30)
-                            {
-                                if (h == 21 && m == 30)
-                                {
-                                    break;
-                                }
-
-                                TimeSpan gioBD = new TimeSpan(h, m, 0);
-                                TimeSpan gioKT = gioBD.Add(new TimeSpan(0, 30, 0));
-
-                                decimal gia30Phut = 75000;
-
-                                bool daDat = dsPhieu.Any(x =>
-                                    x.MASAN == san.MASAN
-                                    && gioBD < x.GIOKETTHUC
-                                    && gioKT > x.GIOBATDAU
-                                );
-
-                                if (san.TRANGTHAISAN == "Bảo trì")
-                                {
-                                    <div class="slot slot-maintenance">
-                                        <i class="fas fa-wrench"></i>
-                                    </div>
-                                }
-                                else if (daDat)
-                                {
-                                    <div class="slot slot-booked">
-                                        X
-                                    </div>
-                                }
-                                else
-                                {
-                                    <div class="slot slot-empty"
-                                         data-masan="@san.MASAN"
-                                         data-tensan="@san.TENSAN"
-                                         data-start="@gioBD.ToString(@"hh\:mm")"
-                                         data-end="@gioKT.ToString(@"hh\:mm")"
-                                         data-price="@gia30Phut">
-
-                                        +
-
-                                    </div>
-                                }
-                            }
+                            statusClass = "st-maintenance";
+                        }
+                        else if (tt == "Đang đặt")
+                        {
+                            statusClass = "st-booking";
+                        }
+                        else if (tt == "Đang sử dụng")
+                        {
+                            statusClass = "st-using";
                         }
 
-                    </div>
+                        string tenLoaiSan = san.LOAISAN == null ? "Chưa phân loại" : san.LOAISAN.TENLOAISAN;
+
+                        <div class="schedule-grid">
+
+                            <div class="court-header">
+                                <span>@san.TENSAN</span>
+                                <small>@tenLoaiSan</small>
+                            </div>
+
+                            @for (int h = 5; h < 22; h++)
+                            {
+                                for (int m = 0; m <= 30; m += 30)
+                                {
+                                    TimeSpan gioBD = new TimeSpan(h, m, 0);
+                                    TimeSpan gioKT = gioBD.Add(TimeSpan.FromMinutes(30));
+
+                                    decimal gia30Phut = tinhGia30Phut(san.MALOAISAN, gioBD);
+
+                                    bool daDat = dsPhieu.Any(x =>
+                                        x.MASAN == san.MASAN
+                                        && gioBD < x.GIOKETTHUC
+                                        && gioKT > x.GIOBATDAU
+                                    );
+
+                                    bool quaGio =
+                                        ngayDat.Date < DateTime.Today ||
+                                        (ngayDat.Date == DateTime.Today && gioBD <= DateTime.Now.TimeOfDay);
+
+                                    bool baoTri = san.TRANGTHAISAN == "Bảo trì";
+                                    bool khongCoGia = gia30Phut <= 0;
+
+                                    string startText = gioBD.ToString(@"hh\:mm");
+                                    string endText = gioKT.ToString(@"hh\:mm");
+                                    string giaData = gia30Phut.ToString("0.##", CultureInfo.InvariantCulture);
+                                    string giaText = gia30Phut.ToString("N0", CultureInfo.GetCultureInfo("vi-VN"));
+
+                                    if (baoTri)
+                                    {
+                                        <div class="slot slot-maintenance" title="Sân đang bảo trì">
+                                            <i class="fas fa-tools"></i>
+                                        </div>
+                                    }
+                                    else if (quaGio)
+                                    {
+                                        <div class="slot slot-past" title="Khung giờ đã qua">
+                                        </div>
+                                    }
+                                    else if (daDat)
+                                    {
+                                        <div class="slot slot-booked" title="Khung giờ đã có người đặt">
+                                        </div>
+                                    }
+                                    else if (khongCoGia)
+                                    {
+                                        <div class="slot slot-closed" title="Chưa có bảng giá">
+                                            -
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="slot slot-empty"
+                                             title="Trống - @giaText đ"
+                                             data-masan="@san.MASAN"
+                                             data-tensan="@san.TENSAN"
+                                             data-start="@startText"
+                                             data-end="@endText"
+                                             data-price="@giaData">
+
+                                            <span class="slot-price">
+                                            </span>
+
+                                        </div>
+                                    }
+                                }
+                            }
+
+                        </div>
+                    }
                 }
 
             </div>
-
-        </div>
-
-        <!-- RIGHT -->
-        <div class="col-xl-3">
-
-            <div class="summary-card">
-
-                <h4 class="fw-bold mb-4 text-success border-bottom pb-2">
-                    <i class="fas fa-receipt me-2"></i>
-                    Chi tiết đặt sân
-                </h4>
-
-                <div class="summary-item mb-2 border-0 pb-0">
-                    <span class="text-muted">Ngày chơi:</span>
-                    <strong class="text-dark">
-                        @ngayDat.ToString("dd/MM/yyyy")
-                    </strong>
-                </div>
-
-                <div class="selection-list" id="selectionList">
-
-                    <div class="text-muted small text-center my-3 border rounded p-3">
-                        Bạn chưa chọn khung giờ nào.
-                    </div>
-
-                </div>
-
-                <div class="mt-2 p-3 bg-light rounded-3 text-center mb-4 border">
-
-                    <span class="text-muted d-block mb-1">
-                        Tạm tính tiền sân
-                    </span>
-
-                    <span id="tongTien"
-                          class="fs-2 fw-bold text-success">
-                        0đ
-                    </span>
-
-                </div>
-
-                <button class="btn-next shadow"
+            <div class="booking-action-bar">
+                <button type="button"
+                        id="btnTiepTuc"
+                        class="btn-next-only"
                         onclick="xacNhanDatNhieuSan()">
-
-                    TIẾP THEO
+                    TIẾP TỤC
                     <i class="fas fa-arrow-right ms-2"></i>
-
                 </button>
-
             </div>
-
         </div>
 
     </div>
 </div>
 
 <script>
-
     let selectedSlots = [];
 
     const formatCurrency = (amount) => {
-        return new Intl.NumberFormat(
-            'vi-VN',
-            {
-                style: 'currency',
-                currency: 'VND'
-            }
-        ).format(amount);
+        return new Intl.NumberFormat('vi-VN', {
+            style: 'currency',
+            currency: 'VND'
+        }).format(amount);
+    };
+
+    const formatNumber = (amount) => {
+        return new Intl.NumberFormat('vi-VN').format(amount);
     };
 
     const timeToMinutes = (timeStr) => {
-
         let parts = timeStr.split(':');
-
         return parseInt(parts[0]) * 60 + parseInt(parts[1]);
     };
 
-    // CLICK SLOT
     document.querySelectorAll('.slot-empty').forEach(cell => {
-
         cell.addEventListener('click', function () {
-
             let slotInfo = {
-
                 maSan: this.dataset.masan,
                 tenSan: this.dataset.tensan,
                 start: this.dataset.start,
                 end: this.dataset.end,
                 price: parseFloat(this.dataset.price)
-
             };
 
-            // BỎ CHỌN
             if (this.classList.contains('slot-selected')) {
-
                 this.classList.remove('slot-selected');
 
-                this.innerText = "+";
+                this.innerHTML = '<span class="slot-price"></span>';
 
                 selectedSlots = selectedSlots.filter(s =>
-                    !(s.maSan === slotInfo.maSan
-                        && s.start === slotInfo.start)
+                    !(s.maSan === slotInfo.maSan && s.start === slotInfo.start)
                 );
             }
-
-            // CHỌN
             else {
-
                 this.classList.add('slot-selected');
-
                 this.innerHTML = '<i class="fas fa-check"></i>';
 
                 selectedSlots.push(slotInfo);
             }
 
             renderSummary();
-
         });
-
     });
 
-    // RENDER SUMMARY
     function renderSummary() {
+        let btn = document.getElementById("btnTiepTuc");
 
-        let listContainer = document.getElementById("selectionList");
-        let tongTienEl = document.getElementById("tongTien");
+        if (!btn) return;
 
         if (selectedSlots.length === 0) {
-
-            listContainer.innerHTML =
-                `<div class="text-muted small text-center my-3 border rounded p-3">
-                    Bạn chưa chọn khung giờ nào.
-                </div>`;
-
-            tongTienEl.innerText = "0đ";
-
+            btn.innerHTML = 'TIẾP TỤC <i class="fas fa-arrow-right ms-2"></i>';
             return;
         }
 
+        let mergedBlocks = getMergedSlots();
+        let totalAmount = 0;
+
+        mergedBlocks.forEach(block => {
+            totalAmount += block.price;
+        });
+
+        btn.innerHTML =
+            'TIẾP TỤC - ' + formatCurrency(totalAmount) +
+            ' <i class="fas fa-arrow-right ms-2"></i>';
+    }
+
+    function getMergedSlots() {
         let groupedByCourt = {};
 
         selectedSlots.forEach(slot => {
-
             if (!groupedByCourt[slot.maSan]) {
                 groupedByCourt[slot.maSan] = [];
             }
 
             groupedByCourt[slot.maSan].push(slot);
-
         });
 
-        let htmlContent = "";
-        let totalAmount = 0;
+        let result = [];
 
         for (let maSan in groupedByCourt) {
-
             let courts = groupedByCourt[maSan];
 
-            courts.sort((a, b) =>
-                timeToMinutes(a.start)
-                - timeToMinutes(b.start)
-            );
+            courts.sort((a, b) => timeToMinutes(a.start) - timeToMinutes(b.start));
 
-            let mergedBlocks = [];
             let currentBlock = null;
 
             courts.forEach(slot => {
-
                 if (!currentBlock) {
-
                     currentBlock = { ...slot };
-
                 }
                 else if (currentBlock.end === slot.start) {
-
                     currentBlock.end = slot.end;
-
                     currentBlock.price += slot.price;
-
                 }
                 else {
-
-                    mergedBlocks.push(currentBlock);
-
+                    result.push(currentBlock);
                     currentBlock = { ...slot };
-
                 }
-
             });
 
             if (currentBlock) {
-                mergedBlocks.push(currentBlock);
+                result.push(currentBlock);
             }
-
-            mergedBlocks.forEach(block => {
-
-                totalAmount += block.price;
-
-                htmlContent += `
-
-                    <div class="selection-item">
-
-                        <div class="d-flex justify-content-between mb-1">
-
-                            <strong class="text-dark">
-                                ${block.tenSan}
-                            </strong>
-
-                            <span class="text-success fw-bold">
-                                ${formatCurrency(block.price)}
-                            </span>
-
-                        </div>
-
-                        <div class="text-primary fw-bold small">
-
-                            <i class="far fa-clock me-1"></i>
-
-                            ${block.start} - ${block.end}
-
-                        </div>
-
-                    </div>
-
-                `;
-
-            });
-
         }
 
-        listContainer.innerHTML = htmlContent;
+        result.sort((a, b) => {
+            if (a.tenSan === b.tenSan) {
+                return timeToMinutes(a.start) - timeToMinutes(b.start);
+            }
 
-        tongTienEl.innerText = formatCurrency(totalAmount);
+            return a.tenSan.localeCompare(b.tenSan);
+        });
 
+        return result;
     }
 
     function locNgay() {
-
         let ngay = document.getElementById("ngayDat").value;
 
-        window.location.href =
-            '/DatSan65132651/Booking?ngay=' + ngay;
+        if (!ngay) {
+            alert("Vui lòng chọn ngày đặt sân.");
+            return;
+        }
+
+        window.location.href = '@Url.Action("Booking", "DatSan65132651")' + '?ngay=' + encodeURIComponent(ngay);
     }
 
+    function xacNhanDatNhieuSan() {
+        if (selectedSlots.length === 0) {
+            alert("Bạn chưa chọn khung giờ nào.");
+            return;
+        }
+
+        let danhSachGui = getMergedSlots();
+        let ngayDat = document.getElementById("ngayDat").value;
+
+        fetch('@Url.Action("TaoNhieuPhieuDat", "DatSan65132651")', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json; charset=utf-8'
+            },
+            body: JSON.stringify({
+                ngayDat: ngayDat,
+                danhSachChon: danhSachGui
+            })
+        })
+        .then(response => response.json())
+        .then(res => {
+            if (res.success) {
+                window.location.href =
+                    '@Url.Action("ThanhToan", "DatSan65132651")' + '?id=' + encodeURIComponent(res.maNhom);
+            }
+            else {
+                alert(res.message);
+                location.reload();
+            }
+        })
+        .catch(() => {
+            alert("Có lỗi khi giữ chỗ. Vui lòng thử lại.");
+        });
+    }
 </script>
