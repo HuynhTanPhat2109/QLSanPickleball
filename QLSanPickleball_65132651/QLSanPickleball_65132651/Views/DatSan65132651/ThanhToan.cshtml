@@ -1,0 +1,537 @@
+﻿@model QLSanPickleball_65132651.Models.SAN
+
+@{
+    Layout = "~/Views/Shared/_LayoutKhachHang.cshtml";
+
+    var lichDat = ViewBag.LichDat
+        as List<QLSanPickleball_65132651.Models.PHIEUDATSAN>;
+
+    ViewBag.Title = "Đặt sân";
+}
+
+<style>
+
+    :root {
+        --green: #16a34a;
+        --green2: #22c55e;
+        --dark: #111827;
+        --gray: #6b7280;
+    }
+
+    body {
+        background: linear-gradient(to bottom,#f3fdf6,#eff7f1);
+    }
+
+    .booking-page {
+        padding: 50px 0;
+    }
+
+    /* HEADER */
+
+    .booking-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 35px;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .booking-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--dark);
+    }
+
+    .booking-sub {
+        color: var(--gray);
+        margin-top: 8px;
+    }
+
+    .live-box {
+        background: white;
+        padding: 14px 20px;
+        border-radius: 18px;
+        box-shadow: 0 10px 30px rgba(0,0,0,.06);
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .live-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #22c55e;
+        animation: pulse 1.3s infinite;
+    }
+
+    @@keyframes pulse {
+
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        50% {
+            transform: scale(1.5);
+            opacity: .5;
+        }
+
+        100% {
+            transform: scale(1);
+            opacity: 1;
+        }
+    }
+
+    /* LAYOUT */
+
+    .booking-layout {
+        display: grid;
+        grid-template-columns: 1fr 350px;
+        gap: 24px;
+    }
+
+    /* GRID */
+
+    .schedule-wrapper {
+        background: rgba(255,255,255,.75);
+        backdrop-filter: blur(16px);
+        border-radius: 30px;
+        padding: 25px;
+        box-shadow: 0 15px 40px rgba(0,0,0,.06);
+        overflow-x: auto;
+    }
+
+    .schedule-header,
+    .schedule-row {
+        display: grid;
+        grid-template-columns: 180px repeat(17,1fr);
+        gap: 12px;
+        min-width: 1500px;
+    }
+
+    .schedule-header {
+        margin-bottom: 18px;
+    }
+
+    .time-label {
+        background: #f3f4f6;
+        border-radius: 14px;
+        padding: 14px;
+        text-align: center;
+        font-weight: 700;
+        color: #374151;
+    }
+
+    .court-box {
+        border-radius: 20px;
+        padding: 20px;
+        background: linear-gradient(135deg,#14532d,#166534);
+        color: white;
+        font-weight: 700;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+    }
+
+    .court-type {
+        margin-top: 8px;
+        font-size: .8rem;
+        opacity: .9;
+    }
+
+    .schedule-row {
+        margin-bottom: 14px;
+        align-items: center;
+    }
+
+    /* CELL */
+
+    .booking-cell {
+        height: 74px;
+        border-radius: 18px;
+        cursor: pointer;
+        transition: .25s;
+        position: relative;
+    }
+
+    .cell-empty {
+        background: #dcfce7;
+    }
+
+        .cell-empty:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 25px rgba(34,197,94,.25);
+        }
+
+    .cell-booked {
+        background: #fecaca;
+        cursor: not-allowed;
+    }
+
+    .cell-selected {
+        background: linear-gradient(135deg,#16a34a,#22c55e);
+        transform: scale(1.05);
+        box-shadow: 0 15px 30px rgba(34,197,94,.3);
+    }
+
+        .cell-selected::after {
+            content: "✓";
+            color: white;
+            font-weight: 800;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%,-50%);
+            font-size: 1.2rem;
+        }
+
+    /* SIDEBAR */
+
+    .sidebar-card {
+        background: rgba(255,255,255,.85);
+        backdrop-filter: blur(14px);
+        border-radius: 30px;
+        padding: 28px;
+        box-shadow: 0 15px 40px rgba(0,0,0,.06);
+        position: sticky;
+        top: 100px;
+    }
+
+    .sidebar-title {
+        font-size: 1.3rem;
+        font-weight: 800;
+        margin-bottom: 25px;
+    }
+
+    .info-box {
+        background: #f9fafb;
+        border-radius: 18px;
+        padding: 18px;
+        margin-bottom: 18px;
+    }
+
+        .info-box span {
+            display: block;
+            color: #6b7280;
+            font-size: .85rem;
+            margin-bottom: 6px;
+        }
+
+        .info-box strong {
+            color: #111827;
+            font-size: 1rem;
+        }
+
+    .total-price {
+        font-size: 2rem;
+        font-weight: 800;
+        color: var(--green);
+    }
+
+    .btn-book {
+        width: 100%;
+        height: 56px;
+        border: none;
+        border-radius: 18px;
+        background: linear-gradient(135deg,#16a34a,#22c55e);
+        color: white;
+        font-weight: 700;
+        transition: .3s;
+    }
+
+        .btn-book:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 15px 30px rgba(34,197,94,.3);
+        }
+
+    @@media(max-width:1200px) {
+
+        .booking-layout {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="container booking-page">
+
+    <div class="booking-top">
+
+        <div>
+
+            <div class="booking-title">
+                Đặt sân @Model.TENSAN
+            </div>
+
+            <div class="booking-sub">
+                Chọn khung giờ còn trống để đặt sân nhanh chóng
+            </div>
+
+        </div>
+
+        <div class="live-box">
+
+            <div class="live-dot"></div>
+
+            Đang cập nhật realtime
+
+        </div>
+
+    </div>
+
+    <div class="booking-layout">
+
+        <!-- LEFT -->
+
+        <div class="schedule-wrapper">
+
+            <!-- HEADER -->
+
+            <div class="schedule-header">
+
+                <div></div>
+
+                @for (int h = 6; h <= 22; h++)
+                {
+                    <div class="time-label">
+                        @h:00
+                    </div>
+                }
+
+            </div>
+
+            <!-- ROW -->
+
+            <div class="schedule-row">
+
+                <div class="court-box">
+
+                    <div>@Model.TENSAN</div>
+
+                    <div class="court-type">
+                        @Model.LOAISAN.TENLOAISAN
+                    </div>
+
+                </div>
+
+                @for (int h = 6; h <= 22; h++)
+                {
+                    var start = new TimeSpan(h, 0, 0);
+
+                    var end = new TimeSpan(h + 1, 0, 0);
+
+                    bool daDat = lichDat.Any(x =>
+                        start < x.GIOKETTHUC &&
+                        end > x.GIOBATDAU
+                    );
+
+                    <div class="booking-cell @(daDat ? "cell-booked" : "cell-empty")"
+                         data-start="@start"
+                         data-end="@end">
+
+                    </div>
+                }
+
+            </div>
+
+        </div>
+
+        <!-- RIGHT -->
+
+        <div>
+
+            <div class="sidebar-card">
+
+                <div class="sidebar-title">
+                    Thông tin đặt sân
+                </div>
+
+                <div class="info-box">
+
+                    <span>Sân đã chọn</span>
+
+                    <strong id="courtName">
+                        @Model.TENSAN
+                    </strong>
+
+                </div>
+
+                <div class="info-box">
+
+                    <span>Khung giờ</span>
+
+                    <strong id="selectedTime">
+                        Chưa chọn
+                    </strong>
+
+                </div>
+
+                <div class="info-box">
+
+                    <span>Số giờ</span>
+
+                    <strong id="selectedHours">
+                        0 giờ
+                    </strong>
+
+                </div>
+
+                <div class="info-box">
+
+                    <span>Tổng thanh toán</span>
+
+                    <div class="total-price"
+                         id="totalPrice">
+
+                        0đ
+
+                    </div>
+
+                </div>
+
+                <button class="btn-book"
+                        id="btnBooking">
+
+                    <i class="fas fa-credit-card me-2"></i>
+
+                    Đặt sân ngay
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+
+    let selectedCell = null;
+
+    let selectedStart = null;
+
+    let selectedEnd = null;
+
+    let tongTien = 0;
+
+    const donGia = 150000;
+
+    // ==========================
+    // CHỌN Ô
+    // ==========================
+
+    document.querySelectorAll('.cell-empty')
+
+        .forEach(cell => {
+
+        cell.addEventListener('click', function () {
+
+            document.querySelectorAll('.booking-cell')
+                .forEach(c =>
+                    c.classList.remove('cell-selected'));
+
+            this.classList.add('cell-selected');
+
+            selectedCell = this;
+
+            selectedStart = this.dataset.start;
+
+            selectedEnd = this.dataset.end;
+
+            document.getElementById('selectedTime')
+                .innerText =
+                selectedStart + " - " + selectedEnd;
+
+            document.getElementById('selectedHours')
+                .innerText = "1 giờ";
+
+            tongTien = donGia;
+
+            document.getElementById('totalPrice')
+                .innerText =
+                tongTien.toLocaleString('vi-VN') + "đ";
+
+        });
+
+    });
+
+    // ==========================
+    // ĐẶT SÂN AJAX
+    // ==========================
+
+    document.getElementById('btnBooking')
+
+        .addEventListener('click', function () {
+
+        if (selectedStart == null)
+        {
+            alert("Vui lòng chọn khung giờ");
+            return;
+        }
+
+        fetch('/DatSan65132651/TaoPhieuDat',
+        {
+            method: 'POST',
+
+            headers:
+            {
+                'Content-Type': 'application/json'
+            },
+
+            body: JSON.stringify({
+
+                maSan: '@Model.MASAN',
+
+                ngayDat: new Date().toISOString(),
+
+                gioBatDau: selectedStart,
+
+                gioKetThuc: selectedEnd
+
+            })
+        })
+
+        .then(res => res.json())
+
+        .then(data => {
+
+            if (data.success)
+            {
+                alert("Đặt sân thành công");
+
+                window.location.href =
+                    "/DatSan65132651/ThanhToan/" +
+                    data.maPhieu;
+            }
+            else
+            {
+                alert(data.message);
+            }
+
+        })
+
+        .catch(err => {
+
+            console.log(err);
+
+            alert("Có lỗi xảy ra");
+
+        });
+
+    });
+
+    // ==========================
+    // AUTO REFRESH REALTIME
+    // ==========================
+
+    setInterval(() => {
+
+        location.reload();
+
+    }, 30000);
+
+</script>

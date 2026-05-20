@@ -16,7 +16,7 @@
     .hero-banner {
         position: relative;
         overflow: hidden;
-        padding: 70px 60px;
+        padding: 45px 60px;
         border-radius: 36px;
         background: linear-gradient( 135deg, #0f172a, #14532d, #16a34a );
         box-shadow: 0 25px 60px rgba(0,0,0,0.18);
@@ -241,171 +241,34 @@
         }
     }
 
-    /* Wrapper */
-    .search-wrapper {
-        margin-bottom: 30px;
-    }
-
-    /* Container */
-    .search-container-modern {
-        padding: 28px;
-        border-radius: 28px;
-        background: rgba(255,255,255,0.72);
-        backdrop-filter: blur(18px);
-        border: 1px solid rgba(255,255,255,0.25);
-        box-shadow: 0 10px 35px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.35);
-    }
-
-    /* Header */
-    .search-header h4 {
-        color: #1f2937;
-        font-size: 1.4rem;
-    }
-
-    .search-header p {
-        font-size: 0.92rem;
-    }
-
-    /* Input Group */
-    .modern-input-group {
-        position: relative;
-    }
-
-    /* Icon */
-    .input-icon {
-        position: absolute;
-        top: 50%;
-        left: 16px;
-        transform: translateY(-50%);
-        z-index: 5;
-        color: #6b7280;
-        font-size: 0.95rem;
-    }
-
-    /* Input */
-    .modern-input {
-        height: 45px;
-        padding-left: 48px;
-        border: 1px solid rgba(0,0,0,0.06);
-        border-radius: 18px;
-        background: rgba(255,255,255,0.85);
-        font-weight: 500;
-        transition: all 0.25s ease;
-        box-shadow: none;
-    }
-
-        /* Focus */
-        .modern-input:focus {
-            border-color: #4ade80;
-            box-shadow: 0 0 0 4px rgba(74,222,128,0.12), 0 8px 25px rgba(74,222,128,0.08);
-            transform: translateY(-1px);
-        }
-
-    /* Select fix */
-    select.modern-input {
-        cursor: pointer;
-    }
-
-    /* Button */
-    .search-btn {
-        height: 45px;
-        border: none;
-        border-radius: 18px;
-        font-weight: 700;
-        font-size: 0.95rem;
-        color: white;
-        background: linear-gradient( 135deg, #22c55e, #16a34a );
-        box-shadow: 0 10px 25px rgba(34,197,94,0.28);
-        transition: all 0.3s ease;
-    }
-
-        /* Hover button */
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(34,197,94,0.35);
-            background: linear-gradient( 135deg, #16a34a, #15803d );
-        }
-
-    /* Responsive */
-    @@media(max-width: 768px) {
-
-        .search-container-modern {
-            padding: 20px;
-            border-radius: 22px;
-        }
-
-        .modern-input {
-            height: 50px;
-        }
-
-        .search-btn {
-            height: 50px;
-        }
-    }
-
-    /* Square Mini Cards */
-    .court-box {
+    .feature-box {
+        padding: 40px 30px;
         background: #fff;
-        border-radius: 20px;
-        border: 1px solid #edf2ef;
+        border-radius: 24px;
+        text-align: center;
         transition: 0.3s;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.03);
         height: 100%;
+        border: 1px solid #edf2ef;
     }
 
-        .court-box:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+        .feature-box:hover {
+            transform: translateY(-10px);
+            box-shadow: 0 20px 40px rgba(34,197,94,0.1);
+            border-color: #a4eb5d;
         }
 
-    .img-container {
-        height: 150px; /* Nhỏ lại cho gọn */
-        overflow: hidden;
-        border-radius: 18px 18px 0 0;
-        position: relative;
-    }
-
-        .img-container img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-
-    .badge-float {
-        position: absolute;
-        top: 12px;
-        right: 12px;
-        font-size: 0.7rem;
-        padding: 5px 10px;
-        border-radius: 8px;
-        backdrop-filter: blur(5px);
-    }
-
-    .btn-book-mini {
-        background: #1e5631;
-        color: #fff;
-        border: none;
-        padding: 8px 0;
-        border-radius: 10px;
-        font-weight: 600;
-        font-size: 0.85rem;
-        width: 100%;
-        transition: 0.3s;
-    }
-
-        .btn-book-mini:hover {
-            background: var(--accent-lime);
-            color: #1e5631;
-        }
-
-    .court-name {
-        font-size: 1rem;
-        font-weight: 700;
-        color: #1e5631;
-    }
-
-    .court-info-text {
-        font-size: 0.75rem;
-        color: #7f8c8d;
+    .icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: #eef8f1;
+        color: #16a34a;
+        border-radius: 50%;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+        margin-bottom: 20px;
     }
 </style>
 
@@ -441,7 +304,7 @@
                         </p>
 
                         <div class="d-flex gap-3 flex-wrap">
-                            <a href="#tk"
+                            <a href="@Url.Action("ChonHinhThucDat", "DatSan65132651")"
                                class="btn hero-btn-main">
                                 <i class="fas fa-calendar-check me-2"></i>
                                 Đặt sân ngay
@@ -496,115 +359,34 @@
             </div>
         </div>
 
-        <div class="search-wrapper">
-            @using (Html.BeginForm("Index", "Home", FormMethod.Get)) // Dùng GET để người dùng có thể copy link kết quả tìm kiếm
-            {
-                <div class="search-container-modern">
-
-                    <!-- Header -->
-                    <div class="search-header mb-4">
-                        <h4 class="fw-bold mb-1">
-                            <i class="fas fa-search-location me-2 text-success"></i>
-                            Tìm kiếm sân bóng
-                        </h4>
-                    </div>
-
-                    <!-- Search Form -->
-                    <div class="row g-3 align-items-center">
-
-                        <!-- Search Input -->
-                        <div class="col-lg-5">
-                            <div class="modern-input-group">
-                                <div class="input-icon">
-                                    <i class="fas fa-search"></i>
-                                </div>
-
-                                <input type="text" name="searchString" value="@ViewBag.CurrentSearch"
-                                       class="form-control modern-input"
-                                       placeholder="Tìm tên sân hoặc vị trí...">
-                            </div>
-                        </div>
-
-                        <!-- Select -->
-                        <div class="col-lg-4">
-                            <div class="modern-input-group">
-                                <div class="input-icon">
-                                    <i class="fas fa-futbol"></i>
-                                </div>
-
-                                <select name="maLoai" class="form-select modern-input">
-                                    <option value="">Tất cả loại sân</option>
-
-                                    @if (danhSachLoai != null)
-                                    {
-                                        foreach (var loai in danhSachLoai)
-                                        {
-                                            <option value="@loai.MALOAISAN" @(ViewBag.CurrentFilter == loai.MALOAISAN ? "selected" : "")>
-                                                @loai.TENLOAISAN
-                                            </option>
-                                        }
-                                    }
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Button -->
-                        <div  id="tk" class="col-lg-3">
-                            <button class="btn search-btn w-100">
-                                <i class="fas fa-sliders-h me-2"></i>
-                                Lọc kết quả
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-            }
-        </div>
-        <div id="danh-sach-san-section"></div>
-        <div id="courtSection" class="d-flex justify-content-between align-items-center mb-4">
-            <h5 class="fw-bold m-0 text-success"><i class="fas fa-th-large me-2"></i>Hệ thống sân tập</h5>
-            <div class="small text-muted">Có @Model.Count() sân sẵn sàng</div>
+        <div class="text-center mb-5 mt-5 pt-4">
+            <h6 class="text-success fw-bold text-uppercase tracking-wider">Về Army Pickleball</h6>
+            <h2 class="fw-bold mb-3" style="color: #0f172a;">Tiên Phong Chất Lượng & Dịch Vụ</h2>
+            <p class="text-muted mx-auto" style="max-width: 600px;">Hệ thống sân tập quy mô lớn, đáp ứng mọi nhu cầu từ người mới bắt đầu đến vận động viên chuyên nghiệp.</p>
         </div>
 
-        <div class="row g-4">
-            @foreach (var item in Model)
-            {
-                <div class="col-xl-3 col-lg-4 col-md-6">
-                    <div class="court-box p-2">
-                        <div class="img-container">
-                            <img src="~/Content/Images/anhsan.jpg" alt="Sân">
-                        </div>
-                        <div class="p-3">
-                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                <div class="court-name">@item.TENSAN</div>
-                                <span class="badge
-                                    @(item.LOAISAN.TENLOAISAN == "Sân VIP"
-                                        ? "bg-light text-danger"
-                                        : "bg-light text-success")
-                                    border-0 small"
-                                      style="font-size: 0.65rem;">
-
-                                    @item.LOAISAN.TENLOAISAN
-                                </span>
-                            </div>
-                            <p class="court-info-text d-flex align-items-center mb-3">
-                                <i class="fas fa-star text-warning me-1"></i> 4.9/5 <small class="mx-2">|</small> <i class="fas fa-map-marker-alt me-1"></i> Khu A
-                            </p>
-
-                            @if (item.TRANGTHAISAN != "Bảo trì")
-                            {
-                                <a href="@Url.Action("DatSan", "Home", new { id = item.MASAN })" class="btn btn-book-mini d-flex align-items-center justify-content-center px-3">
-                                    Đặt sân <i class="fas fa-chevron-right ms-auto"></i>
-                                </a>
-                            }
-                            else
-                            {
-                                <button class="btn btn-light w-100 btn-book-mini text-muted" disabled>Bảo trì</button>
-                            }
-                        </div>
-                    </div>
+        <div class="row g-4 mb-5 pb-4">
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="icon-wrapper"><i class="fas fa-layer-group"></i></div>
+                    <h5 class="fw-bold">Mặt Sân Chuẩn Quốc Tế</h5>
+                    <p class="text-muted small">Được thi công bằng vật liệu cao cấp, độ ma sát hoàn hảo, bảo vệ xương khớp cho người chơi.</p>
                 </div>
-            }
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="icon-wrapper"><i class="fas fa-lightbulb"></i></div>
+                    <h5 class="fw-bold">Chiếu Sáng Đỉnh Cao</h5>
+                    <p class="text-muted small">Dàn đèn LED chống chói phân bổ đều, đảm bảo tầm nhìn hoàn hảo cho các trận đấu buổi tối.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="feature-box">
+                    <div class="icon-wrapper"><i class="fas fa-mobile-alt"></i></div>
+                    <h5 class="fw-bold">Đặt Sân Thông Minh</h5>
+                    <p class="text-muted small">Kiểm tra lịch trống, chọn sân và thanh toán trực tuyến dễ dàng chỉ trong 3 bước.</p>
+                </div>
+            </div>
         </div>
     }
     else
@@ -616,22 +398,3 @@
         </div>
     }
 </div>
-
-<script>document.addEventListener("DOMContentLoaded", function () {
-        // 1. Kiểm tra xem có vị trí cũ đã lưu không
-        var scrollPos = sessionStorage.getItem("scrollPos");
-        if (scrollPos) {
-            window.scrollTo(0, scrollPos);
-            sessionStorage.removeItem("scrollPos"); // Xóa đi để lần sau vào trang chủ không bị cuộn tự động
-        }
-
-        // 2. Khi bấm nút Lọc, lưu lại vị trí hiện tại
-        var searchBtn = document.querySelector(".search-btn");
-        if (searchBtn) {
-            searchBtn.addEventListener("click", function () {
-                // Lưu vị trí của phần danh sách sân (hoặc vị trí hiện tại của màn hình)
-                var section = document.getElementById("danh-sach-san-section");
-                sessionStorage.setItem("scrollPos", section.offsetTop - 100);
-            });
-        }
-    });</script>
