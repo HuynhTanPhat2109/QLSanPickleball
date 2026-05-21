@@ -4,7 +4,7 @@
   <edmx:Runtime>
     <!-- SSDL content -->
     <edmx:StorageModels>
-      <Schema Namespace="QLSanModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
+    <Schema Namespace="QLSanModel.Store" Provider="System.Data.SqlClient" ProviderManifestToken="2012" Alias="Self" xmlns:store="http://schemas.microsoft.com/ado/2007/12/edm/EntityStoreSchemaGenerator" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm/ssdl">
         <EntityType Name="BANGGIA">
           <Key>
             <PropertyRef Name="MAGIA" />
@@ -108,9 +108,9 @@
             <PropertyRef Name="MAPHIEUDAT" />
           </Key>
           <Property Name="MAPHIEUDAT" Type="nvarchar" MaxLength="10" Nullable="false" />
-          <Property Name="MAKH" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="MAKH" Type="nvarchar" MaxLength="10" />
           <Property Name="MASAN" Type="nvarchar" MaxLength="10" Nullable="false" />
-          <Property Name="MANV" Type="nvarchar" MaxLength="10" Nullable="false" />
+          <Property Name="MANV" Type="nvarchar" MaxLength="10" />
           <Property Name="NGAYDAT" Type="datetime" Nullable="false" />
           <Property Name="GIOBATDAU" Type="time" Precision="7" Nullable="false" />
           <Property Name="GIOKETTHUC" Type="time" Precision="7" Nullable="false" />
@@ -234,7 +234,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_PHIEUDAT_DUYET_NHANVIEN">
-          <End Role="NHANVIEN" Type="Self.NHANVIEN" Multiplicity="1" />
+          <End Role="NHANVIEN" Type="Self.NHANVIEN" Multiplicity="0..1" />
           <End Role="PHIEUDATSAN" Type="Self.PHIEUDATSAN" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="NHANVIEN">
@@ -246,7 +246,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_PHIEUDAT_TAO_KHACHHAN">
-          <End Role="KHACHHANG" Type="Self.KHACHHANG" Multiplicity="1" />
+          <End Role="KHACHHANG" Type="Self.KHACHHANG" Multiplicity="0..1" />
           <End Role="PHIEUDATSAN" Type="Self.PHIEUDATSAN" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="KHACHHANG">
@@ -339,8 +339,7 @@
             <End Role="SAN" EntitySet="SAN" />
           </AssociationSet>
         </EntityContainer>
-      </Schema>
-    </edmx:StorageModels>
+      </Schema></edmx:StorageModels>
     <!-- CSDL content -->
     <edmx:ConceptualModels>
       <Schema Namespace="QLSanModel" Alias="Self" annotation:UseStrongSpatialTypes="false" xmlns:annotation="http://schemas.microsoft.com/ado/2009/02/edm/annotation" xmlns:customannotation="http://schemas.microsoft.com/ado/2013/11/edm/customannotation" xmlns="http://schemas.microsoft.com/ado/2009/11/edm">
@@ -462,9 +461,9 @@
             <PropertyRef Name="MAPHIEUDAT" />
           </Key>
           <Property Name="MAPHIEUDAT" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="MAKH" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="MAKH" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="true" />
           <Property Name="MASAN" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="false" />
-          <Property Name="MANV" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="false" />
+          <Property Name="MANV" Type="String" MaxLength="10" FixedLength="false" Unicode="true" Nullable="true" />
           <Property Name="NGAYDAT" Type="DateTime" Nullable="false" Precision="3" />
           <Property Name="GIOBATDAU" Type="Time" Nullable="false" Precision="7" />
           <Property Name="GIOKETTHUC" Type="Time" Nullable="false" Precision="7" />
@@ -595,7 +594,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_PHIEUDAT_TAO_KHACHHAN">
-          <End Role="KHACHHANG" Type="Self.KHACHHANG" Multiplicity="1" />
+          <End Role="KHACHHANG" Type="Self.KHACHHANG" Multiplicity="0..1" />
           <End Role="PHIEUDATSAN" Type="Self.PHIEUDATSAN" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="KHACHHANG">
@@ -619,7 +618,7 @@
           </ReferentialConstraint>
         </Association>
         <Association Name="FK_PHIEUDAT_DUYET_NHANVIEN">
-          <End Role="NHANVIEN" Type="Self.NHANVIEN" Multiplicity="1" />
+          <End Role="NHANVIEN" Type="Self.NHANVIEN" Multiplicity="0..1" />
           <End Role="PHIEUDATSAN" Type="Self.PHIEUDATSAN" Multiplicity="*" />
           <ReferentialConstraint>
             <Principal Role="NHANVIEN">

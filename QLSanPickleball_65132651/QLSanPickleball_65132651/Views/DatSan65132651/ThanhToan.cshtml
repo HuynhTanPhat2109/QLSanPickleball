@@ -1,537 +1,489 @@
-﻿@model QLSanPickleball_65132651.Models.SAN
+﻿@using QLSanPickleball_65132651.Models
+@using System.Globalization
 
 @{
     Layout = "~/Views/Shared/_LayoutKhachHang.cshtml";
+    ViewBag.Title = "Thanh toán đặt sân";
 
-    var lichDat = ViewBag.LichDat
-        as List<QLSanPickleball_65132651.Models.PHIEUDATSAN>;
+    var dsPhieu = ViewBag.DanhSachPhieuDat as List<PHIEUDATSAN> ?? new List<PHIEUDATSAN>();
+    var dsPhieuSapXep = dsPhieu
+    .Select(p => new
+    {
+        Phieu = p,
+        TenSan = p.SAN == null ? p.MASAN : p.SAN.TENSAN,
+        LoaiSan = p.SAN == null || p.SAN.LOAISAN == null
+            ? "Chưa phân loại"
+            : p.SAN.LOAISAN.TENLOAISAN
+    })
+    .OrderBy(x => x.Phieu.GIOBATDAU)
+    .ThenBy(x => x.TenSan)
+    .ToList();
 
-    ViewBag.Title = "Đặt sân";
+    string thoiGianHetHanThanhToan = ViewBag.ThoiGianHetHanThanhToan as string;
+
+    string maNhomDatSan = ViewBag.MaNhomDatSan as string;
+    decimal tienSan = ViewBag.TienSan == null ? 0 : (decimal)ViewBag.TienSan;
+    decimal tienDichVu = ViewBag.TienDichVu == null ? 0 : (decimal)ViewBag.TienDichVu;
+    decimal tongThanhToan = ViewBag.TongThanhToan == null ? 0 : (decimal)ViewBag.TongThanhToan;
+
+    string tenChuTK = ViewBag.TenChuTaiKhoan as string ?? "ARMY PICKLEBALL";
+    string soTaiKhoan = ViewBag.SoTaiKhoan as string ?? "0123456789";
+    string maNganHang = ViewBag.MaNganHang as string ?? "MB";
+    string noiDungCK = ViewBag.NoiDungCK as string ?? ("DAT SAN " + maNhomDatSan);
+
+    string qrUrl = "https://img.vietqr.io/image/"
+        + maNganHang + "-"
+        + soTaiKhoan
+        + "-compact2.png?amount="
+        + ((long)tongThanhToan).ToString()
+        + "&addInfo="
+        + HttpUtility.UrlEncode(noiDungCK)
+        + "&accountName="
+        + HttpUtility.UrlEncode(tenChuTK);
+
+    Func<TimeSpan, string> fmtTime = t => t.ToString(@"hh\:mm");
 }
 
 <style>
-
-    :root {
-        --green: #16a34a;
-        --green2: #22c55e;
-        --dark: #111827;
-        --gray: #6b7280;
-    }
-
     body {
-        background: linear-gradient(to bottom,#f3fdf6,#eff7f1);
+        background: #eef7f1;
     }
 
-    .booking-page {
-        padding: 50px 0;
+    .payment-page {
+        padding: 34px 22px;
     }
 
-    /* HEADER */
+    .payment-hero {
+        background: linear-gradient(135deg, #065f46, #047857);
+        color: white;
+        border-radius: 28px;
+        padding: 28px 32px;
+        box-shadow: 0 18px 42px rgba(6, 95, 70, 0.22);
+        margin-bottom: 24px;
+    }
 
-    .booking-top {
+        .payment-hero h2 {
+            font-weight: 1000;
+            margin: 0;
+        }
+
+        .payment-hero p {
+            opacity: 0.85;
+            margin: 8px 0 0;
+            font-weight: 600;
+        }
+
+    .modern-card {
+        background: white;
+        border-radius: 24px;
+        padding: 24px;
+        box-shadow: 0 14px 34px rgba(15, 23, 42, 0.08);
+        border: 1px solid #e2e8f0;
+        margin-bottom: 22px;
+    }
+
+    .section-title {
+        font-size: 1.12rem;
+        font-weight: 900;
+        color: #064e3b;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 18px;
+        padding-bottom: 12px;
+        border-bottom: 1px solid #e2e8f0;
+    }
+
+    .booking-item {
+        display: grid;
+        grid-template-columns: 1.3fr 1fr 1fr 1fr;
+        gap: 14px;
+        align-items: center;
+        padding: 15px;
+        border: 1px solid #dbeafe;
+        border-radius: 18px;
+        background: linear-gradient(180deg, #f8fafc, #ffffff);
+        margin-bottom: 12px;
+    }
+
+    .mini-label {
+        color: #64748b;
+        font-size: 0.78rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 4px;
+    }
+
+    .mini-value {
+        font-weight: 900;
+        color: #064e3b;
+    }
+
+    .qr-card {
+        background: white;
+        border-radius: 28px;
+        padding: 26px;
+        box-shadow: 0 18px 42px rgba(15, 23, 42, 0.1);
+        border: 1px solid #e2e8f0;
+        position: sticky;
+        top: 20px;
+        text-align: center;
+    }
+
+    .qr-box {
+        background: #f8fafc;
+        border: 1px dashed #cbd5e1;
+        border-radius: 22px;
+        padding: 16px;
+        margin-bottom: 18px;
+    }
+
+        .qr-box img {
+            max-width: 100%;
+            width: 280px;
+            border-radius: 16px;
+            background: white;
+        }
+
+    .bank-info {
+        text-align: left;
+        background: #ecfdf5;
+        border: 1px solid #bbf7d0;
+        border-radius: 18px;
+        padding: 16px;
+        margin-bottom: 18px;
+    }
+
+    .bank-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 8px 0;
+        border-bottom: 1px dashed #bbf7d0;
+        font-weight: 800;
+    }
+
+        .bank-row:last-child {
+            border-bottom: none;
+        }
+
+        .bank-row span {
+            color: #64748b;
+        }
+
+        .bank-row strong {
+            color: #064e3b;
+            text-align: right;
+        }
+
+
+    .upload-box {
+        text-align: left;
+        border: 1px solid #e2e8f0;
+        border-radius: 18px;
+        padding: 16px;
+        background: #f8fafc;
+    }
+
+        .upload-box label {
+            font-weight: 900;
+            color: #0f172a;
+            margin-bottom: 8px;
+        }
+
+    .upload-input {
+        height: 46px;
+        border-radius: 14px;
+        font-weight: 700;
+    }
+
+    .btn-submit-proof {
+        width: 100%;
+        border: none;
+        border-radius: 18px;
+        padding: 15px;
+        margin-top: 16px;
+        background: linear-gradient(135deg, #16a34a, #047857);
+        color: white;
+        font-weight: 1000;
+        font-size: 1.02rem;
+        box-shadow: 0 14px 26px rgba(4, 120, 87, 0.28);
+        transition: 0.2s ease;
+    }
+
+        .btn-submit-proof:hover {
+            transform: translateY(-2px);
+        }
+
+    .money-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 35px;
-        flex-wrap: wrap;
-        gap: 20px;
-    }
-
-    .booking-title {
-        font-size: 2.2rem;
+        padding: 11px 0;
+        border-bottom: 1px dashed #d1d5db;
+        color: #475569;
         font-weight: 800;
-        color: var(--dark);
     }
 
-    .booking-sub {
-        color: var(--gray);
-        margin-top: 8px;
-    }
+        .money-row strong {
+            color: #0f172a;
+        }
 
-    .live-box {
-        background: white;
-        padding: 14px 20px;
+    .alert-modern {
         border-radius: 18px;
-        box-shadow: 0 10px 30px rgba(0,0,0,.06);
-        font-weight: 700;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-    }
-
-    .live-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        background: #22c55e;
-        animation: pulse 1.3s infinite;
-    }
-
-    @@keyframes pulse {
-
-        0% {
-            transform: scale(1);
-            opacity: 1;
-        }
-
-        50% {
-            transform: scale(1.5);
-            opacity: .5;
-        }
-
-        100% {
-            transform: scale(1);
-            opacity: 1;
-        }
-    }
-
-    /* LAYOUT */
-
-    .booking-layout {
-        display: grid;
-        grid-template-columns: 1fr 350px;
-        gap: 24px;
-    }
-
-    /* GRID */
-
-    .schedule-wrapper {
-        background: rgba(255,255,255,.75);
-        backdrop-filter: blur(16px);
-        border-radius: 30px;
-        padding: 25px;
-        box-shadow: 0 15px 40px rgba(0,0,0,.06);
-        overflow-x: auto;
-    }
-
-    .schedule-header,
-    .schedule-row {
-        display: grid;
-        grid-template-columns: 180px repeat(17,1fr);
-        gap: 12px;
-        min-width: 1500px;
-    }
-
-    .schedule-header {
+        padding: 14px 18px;
+        font-weight: 800;
         margin-bottom: 18px;
     }
 
-    .time-label {
-        background: #f3f4f6;
-        border-radius: 14px;
-        padding: 14px;
-        text-align: center;
-        font-weight: 700;
-        color: #374151;
-    }
-
-    .court-box {
-        border-radius: 20px;
-        padding: 20px;
-        background: linear-gradient(135deg,#14532d,#166534);
-        color: white;
-        font-weight: 700;
-        display: flex;
-        flex-direction: column;
-        justify-content: center;
-    }
-
-    .court-type {
-        margin-top: 8px;
-        font-size: .8rem;
-        opacity: .9;
-    }
-
-    .schedule-row {
-        margin-bottom: 14px;
-        align-items: center;
-    }
-
-    /* CELL */
-
-    .booking-cell {
-        height: 74px;
-        border-radius: 18px;
-        cursor: pointer;
-        transition: .25s;
-        position: relative;
-    }
-
-    .cell-empty {
-        background: #dcfce7;
-    }
-
-        .cell-empty:hover {
-            transform: scale(1.05);
-            box-shadow: 0 12px 25px rgba(34,197,94,.25);
-        }
-
-    .cell-booked {
-        background: #fecaca;
-        cursor: not-allowed;
-    }
-
-    .cell-selected {
-        background: linear-gradient(135deg,#16a34a,#22c55e);
-        transform: scale(1.05);
-        box-shadow: 0 15px 30px rgba(34,197,94,.3);
-    }
-
-        .cell-selected::after {
-            content: "✓";
-            color: white;
-            font-weight: 800;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%,-50%);
-            font-size: 1.2rem;
-        }
-
-    /* SIDEBAR */
-
-    .sidebar-card {
-        background: rgba(255,255,255,.85);
-        backdrop-filter: blur(14px);
-        border-radius: 30px;
-        padding: 28px;
-        box-shadow: 0 15px 40px rgba(0,0,0,.06);
-        position: sticky;
-        top: 100px;
-    }
-
-    .sidebar-title {
-        font-size: 1.3rem;
-        font-weight: 800;
-        margin-bottom: 25px;
-    }
-
-    .info-box {
-        background: #f9fafb;
-        border-radius: 18px;
-        padding: 18px;
-        margin-bottom: 18px;
-    }
-
-        .info-box span {
-            display: block;
-            color: #6b7280;
-            font-size: .85rem;
-            margin-bottom: 6px;
-        }
-
-        .info-box strong {
-            color: #111827;
-            font-size: 1rem;
-        }
-
-    .total-price {
-        font-size: 2rem;
-        font-weight: 800;
-        color: var(--green);
-    }
-
-    .btn-book {
-        width: 100%;
-        height: 56px;
-        border: none;
-        border-radius: 18px;
-        background: linear-gradient(135deg,#16a34a,#22c55e);
-        color: white;
-        font-weight: 700;
-        transition: .3s;
-    }
-
-        .btn-book:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 30px rgba(34,197,94,.3);
-        }
-
-    @@media(max-width:1200px) {
-
-        .booking-layout {
+    @@media (max-width: 992px) {
+        .booking-item {
             grid-template-columns: 1fr;
         }
+
+        .qr-card {
+            position: static;
+        }
     }
-</style>
-
-<div class="container booking-page">
-
-    <div class="booking-top">
-
-        <div>
-
-            <div class="booking-title">
-                Đặt sân @Model.TENSAN
-            </div>
-
-            <div class="booking-sub">
-                Chọn khung giờ còn trống để đặt sân nhanh chóng
-            </div>
-
-        </div>
-
-        <div class="live-box">
-
-            <div class="live-dot"></div>
-
-            Đang cập nhật realtime
-
-        </div>
-
-    </div>
-
-    <div class="booking-layout">
-
-        <!-- LEFT -->
-
-        <div class="schedule-wrapper">
-
-            <!-- HEADER -->
-
-            <div class="schedule-header">
-
-                <div></div>
-
-                @for (int h = 6; h <= 22; h++)
-                {
-                    <div class="time-label">
-                        @h:00
-                    </div>
-                }
-
-            </div>
-
-            <!-- ROW -->
-
-            <div class="schedule-row">
-
-                <div class="court-box">
-
-                    <div>@Model.TENSAN</div>
-
-                    <div class="court-type">
-                        @Model.LOAISAN.TENLOAISAN
-                    </div>
-
-                </div>
-
-                @for (int h = 6; h <= 22; h++)
-                {
-                    var start = new TimeSpan(h, 0, 0);
-
-                    var end = new TimeSpan(h + 1, 0, 0);
-
-                    bool daDat = lichDat.Any(x =>
-                        start < x.GIOKETTHUC &&
-                        end > x.GIOBATDAU
-                    );
-
-                    <div class="booking-cell @(daDat ? "cell-booked" : "cell-empty")"
-                         data-start="@start"
-                         data-end="@end">
-
-                    </div>
-                }
-
-            </div>
-
-        </div>
-
-        <!-- RIGHT -->
-
-        <div>
-
-            <div class="sidebar-card">
-
-                <div class="sidebar-title">
-                    Thông tin đặt sân
-                </div>
-
-                <div class="info-box">
-
-                    <span>Sân đã chọn</span>
-
-                    <strong id="courtName">
-                        @Model.TENSAN
-                    </strong>
-
-                </div>
-
-                <div class="info-box">
-
-                    <span>Khung giờ</span>
-
-                    <strong id="selectedTime">
-                        Chưa chọn
-                    </strong>
-
-                </div>
-
-                <div class="info-box">
-
-                    <span>Số giờ</span>
-
-                    <strong id="selectedHours">
-                        0 giờ
-                    </strong>
-
-                </div>
-
-                <div class="info-box">
-
-                    <span>Tổng thanh toán</span>
-
-                    <div class="total-price"
-                         id="totalPrice">
-
-                        0đ
-
-                    </div>
-
-                </div>
-
-                <button class="btn-book"
-                        id="btnBooking">
-
-                    <i class="fas fa-credit-card me-2"></i>
-
-                    Đặt sân ngay
-
-                </button>
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<script>
-
-    let selectedCell = null;
-
-    let selectedStart = null;
-
-    let selectedEnd = null;
-
-    let tongTien = 0;
-
-    const donGia = 150000;
-
-    // ==========================
-    // CHỌN Ô
-    // ==========================
-
-    document.querySelectorAll('.cell-empty')
-
-        .forEach(cell => {
-
-        cell.addEventListener('click', function () {
-
-            document.querySelectorAll('.booking-cell')
-                .forEach(c =>
-                    c.classList.remove('cell-selected'));
-
-            this.classList.add('cell-selected');
-
-            selectedCell = this;
-
-            selectedStart = this.dataset.start;
-
-            selectedEnd = this.dataset.end;
-
-            document.getElementById('selectedTime')
-                .innerText =
-                selectedStart + " - " + selectedEnd;
-
-            document.getElementById('selectedHours')
-                .innerText = "1 giờ";
-
-            tongTien = donGia;
-
-            document.getElementById('totalPrice')
-                .innerText =
-                tongTien.toLocaleString('vi-VN') + "đ";
-
-        });
-
-    });
-
-    // ==========================
-    // ĐẶT SÂN AJAX
-    // ==========================
-
-    document.getElementById('btnBooking')
-
-        .addEventListener('click', function () {
-
-        if (selectedStart == null)
-        {
-            alert("Vui lòng chọn khung giờ");
-            return;
+    .payment-hero-grid {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+    }
+
+    .payment-countdown-box {
+        min-width: 160px;
+        padding: 10px 16px;
+        border-radius: 18px;
+        background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.28);
+        text-align: center;
+        color: white;
+    }
+
+        .payment-countdown-box span {
+            display: block;
+            font-size: 0.76rem;
+            font-weight: 800;
+            opacity: 0.86;
+            margin-bottom: 4px;
         }
 
-        fetch('/DatSan65132651/TaoPhieuDat',
-        {
-            method: 'POST',
+        .payment-countdown-box strong {
+            display: block;
+            font-size: 1.35rem;
+            font-weight: 1000;
+            color: #fef08a;
+        }
 
-            headers:
-            {
-                'Content-Type': 'application/json'
-            },
+        .payment-countdown-box.danger {
+            background: rgba(239, 68, 68, 0.24);
+            border-color: rgba(248, 113, 113, 0.65);
+        }
 
-            body: JSON.stringify({
-
-                maSan: '@Model.MASAN',
-
-                ngayDat: new Date().toISOString(),
-
-                gioBatDau: selectedStart,
-
-                gioKetThuc: selectedEnd
-
-            })
-        })
-
-        .then(res => res.json())
-
-        .then(data => {
-
-            if (data.success)
-            {
-                alert("Đặt sân thành công");
-
-                window.location.href =
-                    "/DatSan65132651/ThanhToan/" +
-                    data.maPhieu;
+            .payment-countdown-box.danger strong {
+                color: #fecaca;
             }
-            else
-            {
-                alert(data.message);
+</style>
+
+<div class="container-fluid payment-page">
+
+    <div class="payment-hero payment-hero-grid">
+        <div>
+            <h2>
+                <i class="fas fa-qrcode me-2"></i>
+                Thanh toán đặt sân
+            </h2>
+            <p>Quét mã QR để chuyển khoản, sau đó tải ảnh minh chứng thanh toán.</p>
+        </div>
+
+        <div class="payment-countdown-box">
+            <span>Thời gian thanh toán</span>
+            <strong id="paymentCountdown">06:00</strong>
+        </div>
+    </div>
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert alert-danger alert-modern">
+            @TempData["Error"]
+        </div>
+    }
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+
+            <div class="modern-card">
+                <div class="section-title">
+                    <i class="fas fa-table-tennis-paddle-ball"></i>
+                    Lịch sân cần thanh toán
+                </div>
+
+                @foreach (var item in dsPhieuSapXep)
+                {
+                    var p = item.Phieu;
+                    string tenSan = item.TenSan;
+                    string loaiSan = item.LoaiSan;
+
+                    <div class="booking-item">
+                        <div>
+                            <div class="mini-label">Sân</div>
+                            <div class="mini-value">@tenSan</div>
+                            <div style="color:#64748b;font-weight:700;font-size:0.85rem;">@loaiSan</div>
+                        </div>
+
+                        <div>
+                            <div class="mini-label">Ngày chơi</div>
+                            <div class="mini-value">@p.NGAYDAT.ToString("dd/MM/yyyy")</div>
+                        </div>
+
+                        <div>
+                            <div class="mini-label">Khung giờ</div>
+                            <div class="mini-value">@fmtTime(p.GIOBATDAU) - @fmtTime(p.GIOKETTHUC)</div>
+                        </div>
+
+                        <div>
+                            <div class="mini-label">Tiền sân</div>
+                            <div class="mini-value">@p.TONGTIENTAMTINH.ToString("N0")đ</div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div class="modern-card">
+                <div class="section-title">
+                    <i class="fas fa-receipt"></i>
+                    Chi tiết thanh toán
+                </div>
+
+                <div class="money-row">
+                    <span>Tiền sân</span>
+                    <strong>@tienSan.ToString("N0")đ</strong>
+                </div>
+                
+                <div class="money-row">
+                    <span>Tiền dịch vụ</span>
+                    <strong>@tienDichVu.ToString("N0")đ</strong>
+                </div>
+
+                <div class="money-row">
+                    <span>Tổng thanh toán</span>
+                    <strong>@tongThanhToan.ToString("N0")đ</strong>
+                </div>
+
+                <div class="money-row">
+                    <span>Nội dung chuyển khoản</span>
+                    <strong>@noiDungCK</strong>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-lg-4">
+            <div class="qr-card">
+                <div class="section-title justify-content-center">
+                    <i class="fas fa-qrcode"></i>
+                    Quét mã chuyển khoản
+                </div>
+
+                <div class="qr-box">
+                    <img src="@qrUrl" alt="QR thanh toán">
+                </div>
+
+                <div class="bank-info">
+                    <div class="bank-row">
+                        <span>Ngân hàng</span>
+                        <strong>@maNganHang</strong>
+                    </div>
+
+                    <div class="bank-row">
+                        <span>Số tài khoản</span>
+                        <strong>@soTaiKhoan</strong>
+                    </div>
+
+                    <div class="bank-row">
+                        <span>Chủ tài khoản</span>
+                        <strong>@tenChuTK</strong>
+                    </div>
+
+                    <div class="bank-row">
+                        <span>Nội dung</span>
+                        <strong>@noiDungCK</strong>
+                    </div>
+                </div>
+
+                @using (Html.BeginForm("GuiMinhChungThanhToan", "DatSan65132651", FormMethod.Post, new { enctype = "multipart/form-data" }))
+                {
+                    <input type="hidden" name="maNhomDatSan" value="@maNhomDatSan" />
+
+                    <div class="upload-box">
+                        <label>Ảnh minh chứng chuyển khoản</label>
+                        <input type="file"
+                               name="anhMinhChung"
+                               accept="image/*"
+                               class="form-control upload-input"
+                               required />
+                    </div>
+
+                    <button type="submit" class="btn-submit-proof">
+                        GỬI MINH CHỨNG
+                        <i class="fas fa-paper-plane ms-2"></i>
+                    </button>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+<script>
+    const maNhomDatSan = '@maNhomDatSan';
+    const thoiGianHetHanThanhToan = '@thoiGianHetHanThanhToan';
+
+    function batDauDemNguocThanhToan() {
+        const el = document.getElementById("paymentCountdown");
+        const box = document.querySelector(".payment-countdown-box");
+
+        if (!el || !box || !thoiGianHetHanThanhToan) return;
+
+        const hetHan = new Date(thoiGianHetHanThanhToan);
+
+        const timer = setInterval(function () {
+            const now = new Date();
+            const diff = hetHan - now;
+
+            if (diff <= 0) {
+                clearInterval(timer);
+                el.innerText = "00:00";
+
+                fetch('@Url.Action("HuyTamGiu", "DatSan65132651")', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                    },
+                    body: 'maNhomDatSan=' + encodeURIComponent(maNhomDatSan),
+                    keepalive: true
+                })
+                .finally(() => {
+                    window.location.replace('@Url.Action("Booking", "DatSan65132651")');
+                });
+
+                return;
             }
 
-        })
+            const totalSeconds = Math.floor(diff / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
 
-        .catch(err => {
+            el.innerText =
+                String(minutes).padStart(2, "0") + ":" +
+                String(seconds).padStart(2, "0");
 
-            console.log(err);
+            if (totalSeconds <= 60) {
+                box.classList.add("danger");
+            }
+        }, 1000);
+    }
 
-            alert("Có lỗi xảy ra");
-
-        });
-
-    });
-
-    // ==========================
-    // AUTO REFRESH REALTIME
-    // ==========================
-
-    setInterval(() => {
-
-        location.reload();
-
-    }, 30000);
-
+    batDauDemNguocThanhToan();
 </script>

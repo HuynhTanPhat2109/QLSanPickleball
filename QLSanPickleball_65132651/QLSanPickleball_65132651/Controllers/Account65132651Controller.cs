@@ -43,9 +43,21 @@ namespace QLSanPickleball_65132651.Controllers
             var kh = db.KHACHHANG.FirstOrDefault(k => k.SODIENTHOAIKH == username && k.MATKHAUKH == password);
             if (kh != null)
             {
+                if (kh.TRANGTHAITK != "Hoạt động")
+                {
+                    ViewBag.Error = "Tài khoản khách hàng đang bị khóa hoặc không hoạt động!";
+                    return View();
+                }
+
                 Session["MaUser"] = kh.MAKH;
                 Session["TenUser"] = kh.HOTENKH;
                 Session["Role"] = "KhachHang";
+
+                // Session riêng cho đặt sân
+                Session["MaKH"] = kh.MAKH;
+                Session["TenKH"] = kh.HOTENKH;
+                Session["SDTKH"] = kh.SODIENTHOAIKH;
+
                 return RedirectToAction("Index", "Home");
             }
 
@@ -54,9 +66,21 @@ namespace QLSanPickleball_65132651.Controllers
             var nv = db.NHANVIEN.FirstOrDefault(n => (n.SODIENTHOAINV == username || n.TENDANGNHAP == username) && n.MATKHAUNV == password);
             if (nv != null)
             {
+                if (nv.TRANGTHAI != "Đang hoạt động")
+                {
+                    ViewBag.Error = "Tài khoản nhân viên đang bị khóa hoặc không hoạt động!";
+                    return View();
+                }
+
                 Session["MaUser"] = nv.MANV;
                 Session["TenUser"] = nv.HOTENNV;
                 Session["Role"] = nv.VAITRO;
+
+                // Nhân viên không phải khách hàng, tránh bị nhận nhầm là khách đặt sân
+                Session.Remove("MaKH");
+                Session.Remove("TenKH");
+                Session.Remove("SDTKH");
+
                 return RedirectToAction("Index", "Home");
             }
 
@@ -82,6 +106,11 @@ namespace QLSanPickleball_65132651.Controllers
             {
                 ModelState.AddModelError("XacNhanMatKhau", "Mật khẩu xác nhận không khớp!");
             }
+            if (string.IsNullOrWhiteSpace(model.SODIENTHOAIKH) ||
+                !Regex.IsMatch(model.SODIENTHOAIKH, @"^[0-9]{10}$"))
+            {
+                ModelState.AddModelError("SODIENTHOAIKH", "Số điện thoại phải gồm đúng 10 chữ số!");
+            }
 
             // ModelState.IsValid tự động kiểm tra các ràng buộc từ Metadata
             if (ModelState.IsValid)
@@ -95,7 +124,7 @@ namespace QLSanPickleball_65132651.Controllers
                 }
 
                 // 3. Khởi tạo mã khóa chính tự động
-                model.MAKH = "KH" + DateTime.Now.Ticks.ToString().Substring(10);
+                model.MAKH = "KH" + DateTime.Now.ToString("HHmmssff");
 
                 // 4. Thiết lập các giá trị mặc định theo yêu cầu nghiệp vụ
                 model.SOLANBUNG = 0;              // Mặc định ban đầu là 0 lần bùng lịch

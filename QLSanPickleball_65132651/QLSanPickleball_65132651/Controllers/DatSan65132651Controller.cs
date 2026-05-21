@@ -6,6 +6,8 @@ using System.Globalization;
 using System.Linq;
 using System.Web;
 using System.Web.Mvc;
+using System.Data.Entity.Validation;
+using System.IO;
 
 namespace QLSanPickleball_65132651.Controllers
 {
@@ -16,6 +18,11 @@ namespace QLSanPickleball_65132651.Controllers
         public string start { get; set; }
         public string end { get; set; }
         public decimal price { get; set; }
+    }
+    public class DichVuChonDTO
+    {
+        public string maDV { get; set; }
+        public int soLuong { get; set; }
     }
 
     public class DatSan65132651Controller : Controller
@@ -40,7 +47,7 @@ namespace QLSanPickleball_65132651.Controllers
         }
 
         // =========================================================
-        // DỌN PHIẾU TẠM GIỮ QUÁ 10 PHÚT
+        // DỌN PHIẾU TẠM GIỮ QUÁ 5 PHÚT
         // =========================================================
         private void DonRacTamGiu()
         {
@@ -68,7 +75,7 @@ namespace QLSanPickleball_65132651.Controllers
                         out thoiGianTao
                     );
 
-                    if (hopLe && DateTime.Now > thoiGianTao.AddMinutes(10))
+                    if (hopLe && DateTime.Now > thoiGianTao.AddMinutes(5))
                     {
                         db.PHIEUDATSAN.Remove(p);
                         hasExpired = true;
@@ -98,6 +105,101 @@ namespace QLSanPickleball_65132651.Controllers
             }
 
             return false;
+        }
+
+        private bool NhomDatSanDaQuaGio(List<PHIEUDATSAN> dsPhieu)
+        {
+            if (dsPhieu == null || !dsPhieu.Any())
+            {
+                return true;
+            }
+
+            foreach (var p in dsPhieu)
+            {
+                if (p.NGAYDAT.Date < DateTime.Today)
+                {
+                    return true;
+                }
+
+                if (p.NGAYDAT.Date == DateTime.Today &&
+                    p.GIOBATDAU <= DateTime.Now.TimeOfDay)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private DateTime? LayThoiGianTaoTuMaNhom(string maNhomDatSan)
+        {
+            if (string.IsNullOrWhiteSpace(maNhomDatSan)
+                || !maNhomDatSan.StartsWith("GRP")
+                || maNhomDatSan.Length < 17)
+            {
+                return null;
+            }
+
+            string timeStr = maNhomDatSan.Substring(3, 14);
+
+            DateTime thoiGianTao;
+
+            bool hopLe = DateTime.TryParseExact(
+                timeStr,
+                "yyyyMMddHHmmss",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out thoiGianTao
+            );
+
+            if (!hopLe)
+            {
+                return null;
+            }
+
+            return thoiGianTao;
+        }
+
+        private bool NhomTamGiuDaHetHan(string maNhomDatSan, int soPhut)
+        {
+            DateTime? thoiGianTao = LayThoiGianTaoTuMaNhom(maNhomDatSan);
+
+            if (thoiGianTao == null)
+            {
+                return true;
+            }
+
+            return DateTime.Now > thoiGianTao.Value.AddMinutes(soPhut);
+        }
+
+        private void XoaGiuChoTheoNhom(string maNhomDatSan, List<PHIEUDATSAN> dsPhieu = null)
+        {
+            if (string.IsNullOrWhiteSpace(maNhomDatSan))
+            {
+                return;
+            }
+
+            if (dsPhieu == null)
+            {
+                dsPhieu = db.PHIEUDATSAN
+                    .Where(p => p.GHICHU == maNhomDatSan
+                             && (p.TRANGTHAIPHIEU == "Tam_Giu"
+                                 || p.TRANGTHAIPHIEU == "Cho_Thanh_Toan"))
+                    .ToList();
+            }
+
+            if (dsPhieu.Any())
+            {
+                db.PHIEUDATSAN.RemoveRange(dsPhieu);
+                db.SaveChanges();
+            }
+
+            Session.Remove("DichVuChon_" + maNhomDatSan);
+            Session.Remove("ThanhToanHetHan_" + maNhomDatSan);
+        }
+        private void XoaTamGiuTheoNhom(string maNhomDatSan, List<PHIEUDATSAN> dsPhieu = null)
+        {
+            XoaGiuChoTheoNhom(maNhomDatSan, dsPhieu);
         }
 
         // =========================================================
@@ -134,6 +236,49 @@ namespace QLSanPickleball_65132651.Controllers
             return giaMotGio / 2;
         }
 
+        [HttpPost]
+        public JsonResult HuyTamGiu(string maNhomDatSan)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(maNhomDatSan))
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Mã giữ chỗ không hợp lệ."
+                    });
+                }
+
+                XoaTamGiuTheoNhom(maNhomDatSan);
+
+                return Json(new
+                {
+                    success = true
+                });
+            }
+            catch (Exception ex)
+            {
+                string loi = ex.Message;
+
+                if (ex.InnerException != null)
+                {
+                    loi += " | Inner: " + ex.InnerException.Message;
+
+                    if (ex.InnerException.InnerException != null)
+                    {
+                        loi += " | SQL: " + ex.InnerException.InnerException.Message;
+                    }
+                }
+
+                return Json(new
+                {
+                    success = false,
+                    message = loi
+                });
+            }
+        }
+
         // =========================================================
         // TẠO MÃ PHIẾU ĐẶT
         // =========================================================
@@ -168,6 +313,34 @@ namespace QLSanPickleball_65132651.Controllers
             }
 
             return nv.MANV;
+        }
+        private string LayMaKhachHangDangNhap()
+        {
+            if (Session["MaKH"] != null)
+            {
+                string maKH = Session["MaKH"].ToString();
+
+                bool tonTai = db.KHACHHANG.Any(k => k.MAKH == maKH);
+
+                if (tonTai)
+                {
+                    return maKH;
+                }
+            }
+
+            if (Session["MaUser"] != null)
+            {
+                string maUser = Session["MaUser"].ToString();
+
+                bool tonTai = db.KHACHHANG.Any(k => k.MAKH == maUser);
+
+                if (tonTai)
+                {
+                    return maUser;
+                }
+            }
+
+            return null;
         }
 
         // =========================================================
@@ -206,7 +379,7 @@ namespace QLSanPickleball_65132651.Controllers
             ViewBag.NgayDat = ngayDat;
             ViewBag.DanhSachPhieu = dsPhieu;
             ViewBag.DanhSachBangGia = dsBangGia;
-            ViewBag.LaVangLai = Session["MaUser"] == null;
+            ViewBag.LaVangLai = string.IsNullOrEmpty(LayMaKhachHangDangNhap());
 
             return View(dsSan);
         }
@@ -269,15 +442,10 @@ namespace QLSanPickleball_65132651.Controllers
                 DateTime ngayKetThuc = ngayBatDau.AddDays(1);
 
                 string maNhomDatSan = "GRP" + DateTime.Now.ToString("yyyyMMddHHmmss");
-                string maKhachHang = null;
 
-                if (Session["MaUser"] != null)
-                {
-                    maKhachHang = Session["MaUser"].ToString();
-                }
+                string maKhachHang = LayMaKhachHangDangNhap();
 
-                string maNhanVien = LayNhanVienHeThong();
-                bool laKhachVangLai = Session["MaUser"] == null;
+                bool laKhachVangLai = string.IsNullOrEmpty(maKhachHang);
 
                 foreach (var item in danhSachChon)
                 {
@@ -418,7 +586,7 @@ namespace QLSanPickleball_65132651.Controllers
                     phieu.MAPHIEUDAT = TaoMaPhieuDat();
                     phieu.MAKH = maKhachHang;
                     phieu.MASAN = san.MASAN;
-                    phieu.MANV = maNhanVien;
+                    phieu.MANV = null;
                     phieu.NGAYDAT = ngay;
                     phieu.GIOBATDAU = batDau;
                     phieu.GIOKETTHUC = ketThuc;
@@ -440,11 +608,227 @@ namespace QLSanPickleball_65132651.Controllers
             }
             catch (Exception ex)
             {
+                string loi = ex.Message;
+
+                if (ex.InnerException != null)
+                {
+                    loi += " | Inner: " + ex.InnerException.Message;
+
+                    if (ex.InnerException.InnerException != null)
+                    {
+                        loi += " | SQL: " + ex.InnerException.InnerException.Message;
+                    }
+                }
+
                 return Json(new
                 {
                     success = false,
-                    message = ex.Message
+                    message = loi
                 });
+            }
+        }
+
+        public ActionResult XacNhanDatSan(string id)
+        {
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return RedirectToAction("Booking");
+            }
+
+            DonRacTamGiu();
+
+            var danhSachPhieu = db.PHIEUDATSAN
+                .Include(p => p.SAN)
+                .Include(p => p.SAN.LOAISAN)
+                .Where(p => p.GHICHU == id && p.TRANGTHAIPHIEU == "Tam_Giu")
+                .ToList();
+
+            if (danhSachPhieu == null || !danhSachPhieu.Any())
+            {
+                return Content("<h2 style='color:red; text-align:center; margin-top:50px;'>Đã hết hạn 5 phút giữ chỗ. Vui lòng quay lại đặt từ đầu!</h2>");
+            }
+
+            if (NhomDatSanDaQuaGio(danhSachPhieu))
+            {
+                XoaTamGiuTheoNhom(id, danhSachPhieu);
+
+                return Content("<h2 style='color:red; text-align:center; margin-top:50px;'>Khung giờ đã bắt đầu hoặc đã qua. Vui lòng quay lại đặt khung giờ khác!</h2>");
+            }
+
+            ViewBag.MaNhomDatSan = id;
+            ViewBag.DanhSachPhieuDat = danhSachPhieu;
+            ViewBag.NgayDat = danhSachPhieu.First().NGAYDAT;
+            ViewBag.TongTienSan = danhSachPhieu.Sum(p => p.TONGTIENTAMTINH);
+            ViewBag.LaVangLai = string.IsNullOrEmpty(LayMaKhachHangDangNhap());
+
+            ViewBag.DanhSachDichVu = db.DICHVU
+                .Where(d => d.TRANGTHAIKD == "Đang kinh doanh")
+                .OrderBy(d => d.TENDV)
+                .ToList();
+
+            return View();
+        }
+
+        [HttpPost]
+        public JsonResult LuuXacNhanDatSan(
+            string maNhomDatSan,
+            string tenKhach,
+            string sdtKhach,
+            List<DichVuChonDTO> dichVuChon
+        )
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(maNhomDatSan))
+                {
+                    return Json(new { success = false, message = "Mã giữ chỗ không hợp lệ." });
+                }
+
+                var dsPhieu = db.PHIEUDATSAN
+                    .Where(p => p.GHICHU == maNhomDatSan && p.TRANGTHAIPHIEU == "Tam_Giu")
+                    .ToList();
+
+                if (dsPhieu == null || !dsPhieu.Any())
+                {
+                    return Json(new { success = false, message = "Phiếu giữ chỗ không tồn tại hoặc đã hết hạn." });
+                }
+
+                if (NhomTamGiuDaHetHan(maNhomDatSan, 5))
+                {
+                    XoaGiuChoTheoNhom(maNhomDatSan, dsPhieu);
+
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Đã hết 5 phút giữ chỗ. Vui lòng quay lại đặt sân từ đầu."
+                    });
+                }
+
+                if (NhomDatSanDaQuaGio(dsPhieu))
+                {
+                    XoaTamGiuTheoNhom(maNhomDatSan, dsPhieu);
+
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Khung giờ đã bắt đầu hoặc đã qua. Vui lòng quay lại chọn khung giờ khác."
+                    });
+                }
+
+                string maKhachDangNhap = LayMaKhachHangDangNhap();
+                bool laVangLai = string.IsNullOrEmpty(maKhachDangNhap);
+
+                if (laVangLai)
+                {
+                    if (string.IsNullOrWhiteSpace(tenKhach))
+                    {
+                        return Json(new { success = false, message = "Vui lòng nhập họ tên khách hàng." });
+                    }
+
+                    if (string.IsNullOrWhiteSpace(sdtKhach))
+                    {
+                        return Json(new { success = false, message = "Vui lòng nhập số điện thoại khách hàng." });
+                    }
+
+                    if (!System.Text.RegularExpressions.Regex.IsMatch(sdtKhach, @"^[0-9]{10}$"))
+                    {
+                        return Json(new { success = false, message = "Số điện thoại phải gồm đúng 10 chữ số." });
+                    }
+
+                    // Nếu số điện thoại đã tồn tại thì dùng lại khách đó, không tạo mới
+                    var khTonTai = db.KHACHHANG.FirstOrDefault(k => k.SODIENTHOAIKH == sdtKhach);
+
+                    string maKhachHang;
+
+                    if (khTonTai != null)
+                    {
+                        maKhachHang = khTonTai.MAKH;
+                    }
+                    else
+                    {
+                        maKhachHang = "KV" + DateTime.Now.ToString("HHmmssff");
+
+                        KHACHHANG khMoi = new KHACHHANG
+                        {
+                            MAKH = maKhachHang,
+                            HOTENKH = tenKhach.Trim(),
+                            NGAYSINH = DateTime.Today,
+                            GIOITINH = "Khác",
+                            DIACHI = "",
+                            SODIENTHOAIKH = sdtKhach.Trim(),
+                            EMAILKH = maKhachHang.ToLower() + "@khachvanglai.com",
+                            MATKHAUKH = "12345678",
+                            SOLANBUNG = 0,
+                            TRANGTHAITK = "Hoạt động"
+                        };
+
+                        db.KHACHHANG.Add(khMoi);
+                    }
+
+                    foreach (var p in dsPhieu)
+                    {
+                        p.MAKH = maKhachHang;
+                    }
+
+                    db.SaveChanges();
+                }
+                else
+                {
+                    foreach (var p in dsPhieu)
+                    {
+                        if (string.IsNullOrEmpty(p.MAKH))
+                        {
+                            p.MAKH = maKhachDangNhap;
+                        }
+                    }
+
+                    db.SaveChanges();
+                }
+
+                foreach (var p in dsPhieu)
+                {
+                    p.TRANGTHAIPHIEU = "Cho_Thanh_Toan";
+                    p.TRANGTHAITHANHTOAN = "Cho_Chuyen_Khoan";
+                }
+
+                db.SaveChanges();
+
+                Session["DichVuChon_" + maNhomDatSan] = dichVuChon ?? new List<DichVuChonDTO>();
+
+                // Bắt đầu 6 phút thanh toán từ lúc bấm Xác nhận & Thanh toán
+                Session["ThanhToanHetHan_" + maNhomDatSan] = DateTime.Now.AddMinutes(6);
+
+                return Json(new { success = true });
+            }
+            catch (DbEntityValidationException ex)
+            {
+                string loi = "";
+
+                foreach (var eve in ex.EntityValidationErrors)
+                {
+                    foreach (var ve in eve.ValidationErrors)
+                    {
+                        loi += "Trường " + ve.PropertyName + ": " + ve.ErrorMessage + " | ";
+                    }
+                }
+
+                return Json(new { success = false, message = loi });
+            }
+            catch (Exception ex)
+            {
+                string loi = ex.Message;
+
+                if (ex.InnerException != null)
+                {
+                    loi += " | Inner: " + ex.InnerException.Message;
+
+                    if (ex.InnerException.InnerException != null)
+                    {
+                        loi += " | SQL: " + ex.InnerException.InnerException.Message;
+                    }
+                }
+
+                return Json(new { success = false, message = loi });
             }
         }
 
@@ -463,24 +847,208 @@ namespace QLSanPickleball_65132651.Controllers
             var danhSachPhieu = db.PHIEUDATSAN
                 .Include(p => p.SAN)
                 .Include(p => p.SAN.LOAISAN)
-                .Where(p => p.GHICHU == id && p.TRANGTHAIPHIEU == "Tam_Giu")
+                .Where(p => p.GHICHU == id && p.TRANGTHAIPHIEU == "Cho_Thanh_Toan")
                 .ToList();
 
             if (danhSachPhieu == null || !danhSachPhieu.Any())
             {
-                return Content("<h2 style='color:red; text-align:center; margin-top:50px;'>Đã hết hạn 10 phút giữ chỗ. Vui lòng quay lại đặt từ đầu!</h2>");
+                return Content("<h2 style='color:red; text-align:center; margin-top:50px;'>Đã hết hạn giữ chỗ. Vui lòng quay lại đặt từ đầu!</h2>");
             }
 
+            string keyHetHanThanhToan = "ThanhToanHetHan_" + id;
+
+            if (Session[keyHetHanThanhToan] == null)
+            {
+                XoaGiuChoTheoNhom(id, danhSachPhieu);
+
+                return Content("<h2 style='color:red; text-align:center; margin-top:50px;'>Phiên thanh toán đã hết hạn. Vui lòng quay lại đặt sân!</h2>");
+            }
+
+            DateTime thoiGianHetHanThanhToan = (DateTime)Session[keyHetHanThanhToan];
+
+            if (DateTime.Now > thoiGianHetHanThanhToan)
+            {
+                XoaGiuChoTheoNhom(id, danhSachPhieu);
+
+                return Content("<h2 style='color:red; text-align:center; margin-top:50px;'>Đã hết 6 phút thanh toán. Vui lòng quay lại đặt sân!</h2>");
+            }
+
+            if (NhomDatSanDaQuaGio(danhSachPhieu))
+            {
+                XoaTamGiuTheoNhom(id, danhSachPhieu);
+
+                return Content("<h2 style='color:red; text-align:center; margin-top:50px;'>Khung giờ đã bắt đầu hoặc đã qua. Vui lòng quay lại đặt khung giờ khác!</h2>");
+            }
+
+            var dichVuChon = Session["DichVuChon_" + id] as List<DichVuChonDTO>;
+            if (dichVuChon == null)
+            {
+                dichVuChon = new List<DichVuChonDTO>();
+            }
+
+            decimal tienSan = danhSachPhieu.Sum(p => p.TONGTIENTAMTINH);
+            decimal tienDichVu = 0;
+
+            var chiTietDichVu = new List<dynamic>();
+
+            foreach (var item in dichVuChon)
+            {
+                var dv = db.DICHVU.FirstOrDefault(x => x.MADV == item.maDV);
+
+                if (dv != null && item.soLuong > 0)
+                {
+                    decimal thanhTien = dv.DONGIA * item.soLuong;
+                    tienDichVu += thanhTien;
+
+                    chiTietDichVu.Add(new
+                    {
+                        MADV = dv.MADV,
+                        TENDV = dv.TENDV,
+                        DONVITINH = dv.DONVITINH,
+                        DONGIA = dv.DONGIA,
+                        SOLUONG = item.soLuong,
+                        THANHTIEN = thanhTien
+                    });
+                }
+            }
+
+            decimal tongThanhToan = tienSan + tienDichVu;
+
             ViewBag.MaNhomDatSan = id;
-            ViewBag.DanhSachPhieuDat = danhSachPhieu;
-            ViewBag.NgayDat = danhSachPhieu.First().NGAYDAT;
-            ViewBag.TongTienSan = danhSachPhieu.Sum(p => p.TONGTIENTAMTINH);
-
-            ViewBag.DanhSachDichVu = db.DICHVU
-                .Where(d => d.TRANGTHAIKD == "Đang kinh doanh")
-                .OrderBy(d => d.TENDV)
+            ViewBag.DanhSachPhieuDat = danhSachPhieu
+                .OrderBy(p => p.GIOBATDAU)
+                .ThenBy(p => p.SAN == null ? p.MASAN : p.SAN.TENSAN)
                 .ToList();
+            ViewBag.ThoiGianHetHanThanhToan = thoiGianHetHanThanhToan.ToString("o");
+            ViewBag.NgayDat = danhSachPhieu.First().NGAYDAT;
+            ViewBag.TienSan = tienSan;
+            ViewBag.TienDichVu = tienDichVu;
+            ViewBag.TongThanhToan = tongThanhToan;
+            ViewBag.ChiTietDichVu = chiTietDichVu;
 
+            // Thông tin chủ sân để tạo QR
+            ViewBag.TenChuTaiKhoan = "ARMY PICKLEBALL";
+            ViewBag.SoTaiKhoan = "0358990541";
+            ViewBag.MaNganHang = "MB"; 
+            ViewBag.NoiDungCK = "DAT SAN " + id;
+
+            TempData.Remove("Success");
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult GuiMinhChungThanhToan(string maNhomDatSan, HttpPostedFileBase anhMinhChung)
+        {
+            try
+            {
+                if (string.IsNullOrWhiteSpace(maNhomDatSan))
+                {
+                    TempData["Error"] = "Mã giữ chỗ không hợp lệ.";
+                    return RedirectToAction("Booking");
+                }
+
+                var dsPhieu = db.PHIEUDATSAN
+                    .Where(p => p.GHICHU == maNhomDatSan && p.TRANGTHAIPHIEU == "Cho_Thanh_Toan")
+                    .ToList();
+
+                if (dsPhieu == null || !dsPhieu.Any())
+                {
+                    TempData["Error"] = "Phiếu đặt sân không tồn tại hoặc đã hết hạn.";
+                    return RedirectToAction("Booking");
+                }
+
+                string keyHetHanThanhToan = "ThanhToanHetHan_" + maNhomDatSan;
+
+                if (Session[keyHetHanThanhToan] != null)
+                {
+                    DateTime thoiGianHetHanThanhToan = (DateTime)Session[keyHetHanThanhToan];
+
+                    if (DateTime.Now > thoiGianHetHanThanhToan)
+                    {
+                        XoaGiuChoTheoNhom(maNhomDatSan, dsPhieu);
+
+                        TempData["Error"] = "Đã hết 6 phút thanh toán. Vui lòng đặt sân lại.";
+                        return RedirectToAction("Booking");
+                    }
+                }
+                else
+                {
+                    XoaGiuChoTheoNhom(maNhomDatSan, dsPhieu);
+
+                    TempData["Error"] = "Phiên thanh toán đã hết hạn. Vui lòng đặt sân lại.";
+                    return RedirectToAction("Booking");
+                }
+
+                if (NhomDatSanDaQuaGio(dsPhieu))
+                {
+                    XoaTamGiuTheoNhom(maNhomDatSan, dsPhieu);
+
+                    TempData["Error"] = "Khung giờ đã bắt đầu hoặc đã qua. Vui lòng đặt lại khung giờ khác.";
+                    return RedirectToAction("Booking");
+                }
+
+                if (anhMinhChung == null || anhMinhChung.ContentLength <= 0)
+                {
+                    TempData["Error"] = "Vui lòng tải ảnh minh chứng thanh toán.";
+                    return RedirectToAction("ThanhToan", new { id = maNhomDatSan });
+                }
+
+                string ext = Path.GetExtension(anhMinhChung.FileName).ToLower();
+
+                string[] allowExt = { ".jpg", ".jpeg", ".png", ".webp" };
+
+                if (!allowExt.Contains(ext))
+                {
+                    TempData["Error"] = "Chỉ cho phép tải ảnh JPG, PNG hoặc WEBP.";
+                    return RedirectToAction("ThanhToan", new { id = maNhomDatSan });
+                }
+
+                string folder = Server.MapPath("~/Content/Uploads/MinhChungThanhToan/");
+                if (!Directory.Exists(folder))
+                {
+                    Directory.CreateDirectory(folder);
+                }
+
+                string fileName = maNhomDatSan + "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + ext;
+                string fullPath = Path.Combine(folder, fileName);
+
+                anhMinhChung.SaveAs(fullPath);
+
+                string relativePath = "/Content/Uploads/MinhChungThanhToan/" + fileName;
+
+                foreach (var p in dsPhieu)
+                {
+                    p.TRANGTHAIPHIEU = "Chờ xác nhận";
+                    p.TRANGTHAITHANHTOAN = "Chờ xác nhận chuyển khoản";
+
+                    if (string.IsNullOrWhiteSpace(p.GHICHU))
+                    {
+                        p.GHICHU = maNhomDatSan + " | Minh chứng: " + relativePath;
+                    }
+                    else
+                    {
+                        p.GHICHU = p.GHICHU + " | Minh chứng: " + relativePath;
+                    }
+                }
+
+                db.SaveChanges();
+
+                Session.Remove("ThanhToanHetHan_" + maNhomDatSan);
+                Session.Remove("DichVuChon_" + maNhomDatSan);
+
+                TempData["Success"] = "Đã gửi minh chứng thanh toán. Nhân viên sẽ kiểm tra và xác nhận lịch đặt.";
+                return RedirectToAction("ThanhToanThanhCong", new { id = maNhomDatSan });
+            }
+            catch (Exception ex)
+            {
+                TempData["Error"] = "Có lỗi khi gửi minh chứng: " + ex.Message;
+                return RedirectToAction("ThanhToan", new { id = maNhomDatSan });
+            }
+        }
+
+        public ActionResult ThanhToanThanhCong(string id)
+        {
+            ViewBag.MaNhomDatSan = id;
             return View();
         }
 
