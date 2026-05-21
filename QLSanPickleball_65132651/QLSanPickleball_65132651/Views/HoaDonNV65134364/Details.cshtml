@@ -1,0 +1,528 @@
+﻿@using System
+@using System.Linq
+@model QLSanPickleball_65132651.Models.HOADON
+
+@{
+    ViewBag.Title = "Chi tiết hóa đơn";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    var danhSachDichVu = ViewBag.DanhSachDichVu as IEnumerable<QLSanPickleball_65132651.Models.CHITIETDICHVUDAT>;
+
+    var phieu = Model.PHIEUDATSAN;
+
+    string tenKhach = phieu != null && phieu.KHACHHANG != null ? phieu.KHACHHANG.HOTENKH : "Không rõ";
+    string sdtKhach = phieu != null && phieu.KHACHHANG != null ? phieu.KHACHHANG.SODIENTHOAIKH : "";
+    string emailKhach = phieu != null && phieu.KHACHHANG != null ? phieu.KHACHHANG.EMAILKH : "";
+
+    string tenSan = phieu != null && phieu.SAN != null ? phieu.SAN.TENSAN : "Không rõ";
+    string maSan = phieu != null ? phieu.MASAN : "";
+    string loaiSan = phieu != null && phieu.SAN != null && phieu.SAN.LOAISAN != null ? phieu.SAN.LOAISAN.TENLOAISAN : "Không rõ";
+
+    string tenNhanVien = Model.NHANVIEN != null ? Model.NHANVIEN.HOTENNV : "Không rõ";
+}
+
+<style>
+    .invoice-detail-wrapper {
+        max-width: 980px;
+        margin: 0 auto;
+    }
+
+    .page-actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+        .page-actions h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 9px 14px;
+        border-radius: 10px;
+        border: none;
+        text-decoration: none;
+        color: white !important;
+        font-weight: 900;
+        display: inline-block;
+        cursor: pointer;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+    .btn-print {
+        background: #f59e0b;
+    }
+
+    .btn-action:hover {
+        opacity: 0.88;
+        color: white;
+        text-decoration: none;
+    }
+
+    .invoice-paper {
+        background: white;
+        border-radius: 20px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.08);
+        overflow: hidden;
+    }
+
+    .invoice-header {
+        background: linear-gradient(135deg, #0f172a, #1e3a8a);
+        color: white;
+        padding: 28px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 20px;
+    }
+
+    .brand-name {
+        font-size: 26px;
+        font-weight: 900;
+        letter-spacing: 0.5px;
+    }
+
+    .brand-sub {
+        color: #bfdbfe;
+        margin-top: 6px;
+        font-size: 14px;
+        line-height: 1.5;
+    }
+
+    .invoice-title {
+        text-align: right;
+    }
+
+        .invoice-title h1 {
+            margin: 0;
+            font-size: 30px;
+            font-weight: 900;
+        }
+
+    .invoice-code {
+        margin-top: 8px;
+        display: inline-block;
+        background: rgba(255,255,255,0.16);
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-weight: 900;
+    }
+
+    .invoice-body {
+        padding: 28px;
+    }
+
+    .info-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-bottom: 22px;
+    }
+
+    .info-card {
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 18px;
+        background: #f9fafb;
+    }
+
+    .section-title {
+        font-size: 17px;
+        font-weight: 900;
+        color: #111827;
+        margin-bottom: 14px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 14px;
+        padding: 8px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .label {
+        color: #6b7280;
+        font-weight: 800;
+    }
+
+    .value {
+        color: #111827;
+        font-weight: 900;
+        text-align: right;
+    }
+
+    .invoice-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 12px;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        overflow: hidden;
+    }
+
+        .invoice-table th {
+            background: #f3f4f6;
+            color: #111827;
+            padding: 13px;
+            text-align: left;
+            font-size: 13px;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .invoice-table td {
+            padding: 13px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
+        }
+
+        .invoice-table tr:last-child td {
+            border-bottom: none;
+        }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .summary-box {
+        margin-top: 22px;
+        display: flex;
+        justify-content: flex-end;
+    }
+
+    .summary-inner {
+        width: 420px;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 18px;
+        background: #f9fafb;
+    }
+
+    .money-row {
+        display: flex;
+        justify-content: space-between;
+        padding: 10px 0;
+        border-bottom: 1px solid #e5e7eb;
+        gap: 12px;
+    }
+
+        .money-row:last-child {
+            border-bottom: none;
+        }
+
+    .money-label {
+        color: #6b7280;
+        font-weight: 900;
+    }
+
+    .money-value {
+        color: #111827;
+        font-weight: 900;
+    }
+
+    .total-row .money-label,
+    .total-row .money-value {
+        font-size: 22px;
+        color: #047857;
+    }
+
+    .payment-badge {
+        display: inline-block;
+        background: #dcfce7;
+        color: #166534;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+    .footer-note {
+        margin-top: 26px;
+        text-align: center;
+        color: #6b7280;
+        font-weight: 700;
+        border-top: 1px dashed #cbd5e1;
+        padding-top: 18px;
+    }
+
+    .signature-section {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-top: 34px;
+        text-align: center;
+    }
+
+    .signature-title {
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .signature-sub {
+        color: #6b7280;
+        font-size: 13px;
+        margin-top: 5px;
+    }
+
+    .signature-space {
+        height: 70px;
+    }
+
+    @@media(max-width: 750px) {
+        .invoice-header {
+            flex-direction: column;
+        }
+
+        .invoice-title {
+            text-align: left;
+        }
+
+        .info-section {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-inner {
+            width: 100%;
+        }
+    }
+
+    @@media print {
+        body {
+            background: white !important;
+        }
+
+        .admin-sidebar,
+        .admin-topbar,
+        .footer-admin,
+        .page-actions {
+            display: none !important;
+        }
+
+        .admin-main {
+            margin-left: 0 !important;
+            width: 100% !important;
+        }
+
+        .admin-content {
+            padding: 0 !important;
+        }
+
+        .invoice-detail-wrapper {
+            max-width: 100% !important;
+        }
+
+        .invoice-paper {
+            box-shadow: none !important;
+            border: none !important;
+            border-radius: 0 !important;
+        }
+    }
+</style>
+
+<div class="invoice-detail-wrapper">
+    <div class="page-actions">
+        <h2>Chi tiết hóa đơn</h2>
+
+        <div class="action-buttons">
+            @Html.ActionLink("Quay lại", "Index", "HoaDonNV65134364", null, new { @class = "btn-action btn-back" })
+            <button type="button" class="btn-action btn-print" onclick="window.print()">In hóa đơn</button>
+        </div>
+    </div>
+
+    <div class="invoice-paper">
+        <div class="invoice-header">
+            <div>
+                <div class="brand-name">ARMY PICKLEBALL</div>
+                <div class="brand-sub">
+                    Hệ thống quản lý sân Pickleball<br />
+                    Hotline: 0358990541<br />
+                    Hình thức thanh toán: <span class="payment-badge">@Model.HINHTHUCTT</span>
+                </div>
+            </div>
+
+            <div class="invoice-title">
+                <h1>HÓA ĐƠN</h1>
+                <div class="invoice-code">@Model.SOHD</div>
+                <div class="brand-sub">Ngày lập: @Model.NGAYLAP.ToString("dd/MM/yyyy HH:mm")</div>
+            </div>
+        </div>
+
+        <div class="invoice-body">
+            <div class="info-section">
+                <div class="info-card">
+                    <div class="section-title">Thông tin khách hàng</div>
+
+                    <div class="info-row">
+                        <div class="label">Khách hàng</div>
+                        <div class="value">@tenKhach</div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="label">Số điện thoại</div>
+                        <div class="value">@(string.IsNullOrWhiteSpace(sdtKhach) ? "Không có" : sdtKhach)</div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="label">Email</div>
+                        <div class="value">@(string.IsNullOrWhiteSpace(emailKhach) ? "Không có" : emailKhach)</div>
+                    </div>
+                </div>
+
+                <div class="info-card">
+                    <div class="section-title">Thông tin đặt sân</div>
+
+                    <div class="info-row">
+                        <div class="label">Mã phiếu</div>
+                        <div class="value">@Model.MAPHIEUDAT</div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="label">Sân</div>
+                        <div class="value">@tenSan</div>
+                    </div>
+
+                    <div class="info-row">
+                        <div class="label">Loại sân</div>
+                        <div class="value">@loaiSan</div>
+                    </div>
+
+                    @if (phieu != null)
+                    {
+                        <div class="info-row">
+                            <div class="label">Ngày chơi</div>
+                            <div class="value">@phieu.NGAYDAT.ToString("dd/MM/yyyy")</div>
+                        </div>
+
+                        <div class="info-row">
+                            <div class="label">Khung giờ</div>
+                            <div class="value">@phieu.GIOBATDAU.ToString(@"hh\:mm") - @phieu.GIOKETTHUC.ToString(@"hh\:mm")</div>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <div class="section-title">Chi tiết thanh toán</div>
+
+            <table class="invoice-table">
+                <thead>
+                    <tr>
+                        <th>Nội dung</th>
+                        <th class="text-right">Đơn giá</th>
+                        <th class="text-right">Số lượng</th>
+                        <th class="text-right">Thành tiền</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    <tr>
+                        <td>
+                            <strong>Tiền thuê sân</strong>
+                            <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+                                @tenSan - @maSan
+                            </div>
+                        </td>
+                        <td class="text-right">@Model.TIENTHUESAN.ToString("N0") đ</td>
+                        <td class="text-right">1</td>
+                        <td class="text-right"><strong>@Model.TIENTHUESAN.ToString("N0") đ</strong></td>
+                    </tr>
+
+                    @if (danhSachDichVu != null && danhSachDichVu.Any())
+                    {
+                        foreach (var item in danhSachDichVu)
+                        {
+                            string tenDV = item.DICHVU != null ? item.DICHVU.TENDV : item.MADV;
+
+                            <tr>
+                                <td>
+                                    <strong>@tenDV</strong>
+                                    <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+                                        Mã DV: @item.MADV
+                                    </div>
+                                </td>
+                                <td class="text-right">@item.DONGIA.ToString("N0") đ</td>
+                                <td class="text-right">@item.SOLUONG</td>
+                                <td class="text-right"><strong>@item.THANHTIEN.ToString("N0") đ</strong></td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td>
+                                <strong>Dịch vụ đi kèm</strong>
+                                <div style="font-size:13px;color:#6b7280;margin-top:4px;">
+                                    Không sử dụng dịch vụ
+                                </div>
+                            </td>
+                            <td class="text-right">0 đ</td>
+                            <td class="text-right">0</td>
+                            <td class="text-right"><strong>0 đ</strong></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+
+            <div class="summary-box">
+                <div class="summary-inner">
+                    <div class="money-row">
+                        <div class="money-label">Tiền thuê sân</div>
+                        <div class="money-value">@Model.TIENTHUESAN.ToString("N0") đ</div>
+                    </div>
+
+                    <div class="money-row">
+                        <div class="money-label">Tiền dịch vụ</div>
+                        <div class="money-value">@Model.TIENDICHVU.ToString("N0") đ</div>
+                    </div>
+
+                    <div class="money-row">
+                        <div class="money-label">Giảm giá hội viên</div>
+                        <div class="money-value">-@Model.GIAMGIAHOIVIEN.ToString("N0") đ</div>
+                    </div>
+
+                    <div class="money-row total-row">
+                        <div class="money-label">Tổng thanh toán</div>
+                        <div class="money-value">@Model.TONGTHANHTOAN.ToString("N0") đ</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="signature-section">
+                <div>
+                    <div class="signature-title">Khách hàng</div>
+                    <div class="signature-sub">Ký và ghi rõ họ tên</div>
+                    <div class="signature-space"></div>
+                </div>
+
+                <div>
+                    <div class="signature-title">Nhân viên lập hóa đơn</div>
+                    <div class="signature-sub">@tenNhanVien</div>
+                    <div class="signature-space"></div>
+                </div>
+            </div>
+
+            <div class="footer-note">
+                Cảm ơn quý khách đã sử dụng dịch vụ tại ARMY PICKLEBALL.
+            </div>
+        </div>
+    </div>
+</div>

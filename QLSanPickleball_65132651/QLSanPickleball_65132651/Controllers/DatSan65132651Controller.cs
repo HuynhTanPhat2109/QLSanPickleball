@@ -19,6 +19,7 @@ namespace QLSanPickleball_65132651.Controllers
         public string end { get; set; }
         public decimal price { get; set; }
     }
+
     public class DichVuChonDTO
     {
         public string maDV { get; set; }
@@ -197,6 +198,7 @@ namespace QLSanPickleball_65132651.Controllers
             Session.Remove("DichVuChon_" + maNhomDatSan);
             Session.Remove("ThanhToanHetHan_" + maNhomDatSan);
         }
+
         private void XoaTamGiuTheoNhom(string maNhomDatSan, List<PHIEUDATSAN> dsPhieu = null)
         {
             XoaGiuChoTheoNhom(maNhomDatSan, dsPhieu);
@@ -304,16 +306,25 @@ namespace QLSanPickleball_65132651.Controllers
             }
 
             var nv = db.NHANVIEN
+                .Where(x => x.TRANGTHAI == "Đang hoạt động")
                 .OrderBy(x => x.MANV)
-                .FirstOrDefault(x => x.TRANGTHAI == "Đang hoạt động");
+                .FirstOrDefault();
 
             if (nv == null)
             {
-                throw new Exception("Chưa có nhân viên đang hoạt động để tạo phiếu đặt sân.");
+                nv = db.NHANVIEN
+                    .OrderBy(x => x.MANV)
+                    .FirstOrDefault();
+            }
+
+            if (nv == null)
+            {
+                throw new Exception("Chưa có nhân viên để tạo phiếu đặt sân.");
             }
 
             return nv.MANV;
         }
+
         private string LayMaKhachHangDangNhap()
         {
             if (Session["MaKH"] != null)
@@ -447,6 +458,8 @@ namespace QLSanPickleball_65132651.Controllers
 
                 bool laKhachVangLai = string.IsNullOrEmpty(maKhachHang);
 
+                string maNhanVienHeThong = LayNhanVienHeThong();
+
                 foreach (var item in danhSachChon)
                 {
                     if (item == null || string.IsNullOrWhiteSpace(item.maSan))
@@ -480,8 +493,6 @@ namespace QLSanPickleball_65132651.Controllers
                         });
                     }
 
-                    // FIX LỖI ketThuc:
-                    // Khởi tạo sẵn TimeSpan.Zero để tránh lỗi biến chưa được gán.
                     TimeSpan batDau = TimeSpan.Zero;
                     TimeSpan ketThuc = TimeSpan.Zero;
 
@@ -586,7 +597,7 @@ namespace QLSanPickleball_65132651.Controllers
                     phieu.MAPHIEUDAT = TaoMaPhieuDat();
                     phieu.MAKH = maKhachHang;
                     phieu.MASAN = san.MASAN;
-                    phieu.MANV = null;
+                    phieu.MANV = maNhanVienHeThong;
                     phieu.NGAYDAT = ngay;
                     phieu.GIOBATDAU = batDau;
                     phieu.GIOKETTHUC = ketThuc;
@@ -735,7 +746,6 @@ namespace QLSanPickleball_65132651.Controllers
                         return Json(new { success = false, message = "Số điện thoại phải gồm đúng 10 chữ số." });
                     }
 
-                    // Nếu số điện thoại đã tồn tại thì dùng lại khách đó, không tạo mới
                     var khTonTai = db.KHACHHANG.FirstOrDefault(k => k.SODIENTHOAIKH == sdtKhach);
 
                     string maKhachHang;
@@ -794,8 +804,6 @@ namespace QLSanPickleball_65132651.Controllers
                 db.SaveChanges();
 
                 Session["DichVuChon_" + maNhomDatSan] = dichVuChon ?? new List<DichVuChonDTO>();
-
-                // Bắt đầu 6 phút thanh toán từ lúc bấm Xác nhận & Thanh toán
                 Session["ThanhToanHetHan_" + maNhomDatSan] = DateTime.Now.AddMinutes(6);
 
                 return Json(new { success = true });
@@ -881,6 +889,7 @@ namespace QLSanPickleball_65132651.Controllers
             }
 
             var dichVuChon = Session["DichVuChon_" + id] as List<DichVuChonDTO>;
+
             if (dichVuChon == null)
             {
                 dichVuChon = new List<DichVuChonDTO>();
@@ -926,10 +935,9 @@ namespace QLSanPickleball_65132651.Controllers
             ViewBag.TongThanhToan = tongThanhToan;
             ViewBag.ChiTietDichVu = chiTietDichVu;
 
-            // Thông tin chủ sân để tạo QR
             ViewBag.TenChuTaiKhoan = "ARMY PICKLEBALL";
             ViewBag.SoTaiKhoan = "0358990541";
-            ViewBag.MaNganHang = "MB"; 
+            ViewBag.MaNganHang = "MB";
             ViewBag.NoiDungCK = "DAT SAN " + id;
 
             TempData.Remove("Success");
@@ -1004,6 +1012,7 @@ namespace QLSanPickleball_65132651.Controllers
                 }
 
                 string folder = Server.MapPath("~/Content/Uploads/MinhChungThanhToan/");
+
                 if (!Directory.Exists(folder))
                 {
                     Directory.CreateDirectory(folder);
@@ -1031,6 +1040,11 @@ namespace QLSanPickleball_65132651.Controllers
                     }
                 }
 
+                // QUAN TRỌNG:
+                // Lưu dịch vụ khách đã chọn từ Session vào bảng CHITIETDICHVUDAT
+                // trước khi xóa Session.
+                LuuDichVuKhachChonVaoChiTiet(maNhomDatSan, dsPhieu);
+
                 db.SaveChanges();
 
                 Session.Remove("ThanhToanHetHan_" + maNhomDatSan);
@@ -1043,6 +1057,110 @@ namespace QLSanPickleball_65132651.Controllers
             {
                 TempData["Error"] = "Có lỗi khi gửi minh chứng: " + ex.Message;
                 return RedirectToAction("ThanhToan", new { id = maNhomDatSan });
+            }
+        }
+
+        // =========================================================
+        // LƯU DỊCH VỤ KHÁCH CHỌN VÀO CHITIETDICHVUDAT
+        // =========================================================
+        private void LuuDichVuKhachChonVaoChiTiet(string maNhomDatSan, List<PHIEUDATSAN> dsPhieu)
+        {
+            if (string.IsNullOrWhiteSpace(maNhomDatSan) || dsPhieu == null || !dsPhieu.Any())
+            {
+                return;
+            }
+
+            var dichVuChon = Session["DichVuChon_" + maNhomDatSan] as List<DichVuChonDTO>;
+
+            if (dichVuChon == null || !dichVuChon.Any())
+            {
+                return;
+            }
+
+            // Dịch vụ khách chọn là cho cả nhóm đặt sân.
+            // Nếu lưu vào tất cả phiếu thì tiền dịch vụ bị nhân lên nhiều lần.
+            // Vì vậy lưu vào phiếu đại diện đầu tiên của nhóm.
+            var phieuDaiDien = dsPhieu
+                .OrderBy(p => p.GIOBATDAU)
+                .ThenBy(p => p.MASAN)
+                .FirstOrDefault();
+
+            if (phieuDaiDien == null)
+            {
+                return;
+            }
+
+            foreach (var item in dichVuChon)
+            {
+                if (item == null || string.IsNullOrWhiteSpace(item.maDV) || item.soLuong <= 0)
+                {
+                    continue;
+                }
+
+                var dichVu = db.DICHVU.FirstOrDefault(d => d.MADV == item.maDV);
+
+                if (dichVu == null)
+                {
+                    continue;
+                }
+
+                if (dichVu.TRANGTHAIKD != "Đang kinh doanh")
+                {
+                    throw new Exception("Dịch vụ " + dichVu.TENDV + " hiện không còn kinh doanh.");
+                }
+
+                int soLuongMoi = item.soLuong;
+                decimal donGia = dichVu.DONGIA;
+                decimal thanhTien = soLuongMoi * donGia;
+
+                var chiTietCu = db.CHITIETDICHVUDAT.FirstOrDefault(c =>
+                    c.MAPHIEUDAT == phieuDaiDien.MAPHIEUDAT &&
+                    c.MADV == dichVu.MADV
+                );
+
+                if (chiTietCu == null)
+                {
+                    if (dichVu.SOLUONGTON < soLuongMoi)
+                    {
+                        throw new Exception("Dịch vụ " + dichVu.TENDV + " không đủ tồn kho. Hiện còn " + dichVu.SOLUONGTON + ".");
+                    }
+
+                    CHITIETDICHVUDAT chiTietMoi = new CHITIETDICHVUDAT
+                    {
+                        MAPHIEUDAT = phieuDaiDien.MAPHIEUDAT,
+                        MADV = dichVu.MADV,
+                        SOLUONG = soLuongMoi,
+                        DONGIA = donGia,
+                        THANHTIEN = thanhTien
+                    };
+
+                    db.CHITIETDICHVUDAT.Add(chiTietMoi);
+
+                    dichVu.SOLUONGTON -= soLuongMoi;
+                }
+                else
+                {
+                    // Chống trường hợp gửi lại làm trừ kho sai.
+                    int chenhLech = soLuongMoi - chiTietCu.SOLUONG;
+
+                    if (chenhLech > 0)
+                    {
+                        if (dichVu.SOLUONGTON < chenhLech)
+                        {
+                            throw new Exception("Dịch vụ " + dichVu.TENDV + " không đủ tồn kho. Hiện còn " + dichVu.SOLUONGTON + ".");
+                        }
+
+                        dichVu.SOLUONGTON -= chenhLech;
+                    }
+                    else if (chenhLech < 0)
+                    {
+                        dichVu.SOLUONGTON += Math.Abs(chenhLech);
+                    }
+
+                    chiTietCu.SOLUONG = soLuongMoi;
+                    chiTietCu.DONGIA = donGia;
+                    chiTietCu.THANHTIEN = thanhTien;
+                }
             }
         }
 

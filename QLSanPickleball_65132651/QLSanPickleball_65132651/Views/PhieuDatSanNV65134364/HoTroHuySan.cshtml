@@ -1,0 +1,360 @@
+﻿@model QLSanPickleball_65132651.Models.PHIEUDATSAN
+
+@{
+    ViewBag.Title = "Hỗ trợ hủy sân";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    string tenKhach = Model.KHACHHANG != null ? Model.KHACHHANG.HOTENKH : "Khách vãng lai";
+    string sdtKhach = Model.KHACHHANG != null ? Model.KHACHHANG.SODIENTHOAIKH : "";
+    string tenSan = Model.SAN != null ? Model.SAN.TENSAN : Model.MASAN;
+    string loaiSan = Model.SAN != null && Model.SAN.LOAISAN != null ? Model.SAN.LOAISAN.TENLOAISAN : "";
+
+    decimal tongTienDichVu = ViewBag.TongTienDichVu == null ? 0m : (decimal)ViewBag.TongTienDichVu;
+    decimal tongTien = ViewBag.TongTien == null ? Model.TONGTIENTAMTINH : (decimal)ViewBag.TongTien;
+    decimal soTienHoanGoiY = ViewBag.SoTienHoanGoiY == null ? 0m : (decimal)ViewBag.SoTienHoanGoiY;
+    int phanTramGoiY = ViewBag.PhanTramGoiY == null ? 0 : (int)ViewBag.PhanTramGoiY;
+    double soGioTruocGioChoi = ViewBag.SoGioTruocGioChoi == null ? 0 : (double)ViewBag.SoGioTruocGioChoi;
+}
+
+<style>
+    .cancel-wrapper {
+        max-width: 980px;
+        margin: 0 auto;
+    }
+
+    .page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+        .page-head h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .page-sub {
+        margin-top: 6px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .btn-back {
+        background: #6b7280;
+        color: white !important;
+        padding: 10px 16px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+        .btn-back:hover {
+            opacity: 0.88;
+            color: white;
+            text-decoration: none;
+        }
+
+    .hero-card {
+        background: linear-gradient(135deg, #7f1d1d, #dc2626);
+        color: white;
+        border-radius: 22px;
+        padding: 24px;
+        display: grid;
+        grid-template-columns: 120px 1fr auto;
+        gap: 18px;
+        align-items: center;
+        box-shadow: 0 14px 35px rgba(220, 38, 38, 0.18);
+        margin-bottom: 18px;
+    }
+
+    .hero-code {
+        width: 96px;
+        height: 76px;
+        border-radius: 22px;
+        background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 17px;
+    }
+
+    .hero-title {
+        font-size: 24px;
+        font-weight: 900;
+    }
+
+    .hero-sub {
+        color: #fecaca;
+        margin-top: 6px;
+        line-height: 1.6;
+        font-size: 14px;
+    }
+
+    .refund-preview {
+        text-align: right;
+    }
+
+    .refund-label {
+        color: #fecaca;
+        font-size: 13px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .refund-value {
+        margin-top: 6px;
+        font-size: 28px;
+        font-weight: 900;
+    }
+
+    .grid-main {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .card-box {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 900;
+        color: #111827;
+        margin-bottom: 16px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 0;
+        border-bottom: 1px solid #e5e7eb;
+    }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        color: #6b7280;
+        font-weight: 800;
+    }
+
+    .info-value {
+        color: #111827;
+        font-weight: 900;
+        text-align: right;
+    }
+
+    .money {
+        color: #047857;
+    }
+
+    .danger-money {
+        color: #dc2626;
+        font-size: 20px;
+    }
+
+    .policy-box {
+        background: #fef2f2;
+        border: 1px solid #fecaca;
+        color: #991b1b;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: 800;
+        line-height: 1.7;
+        margin-bottom: 18px;
+    }
+
+    .suggest-box {
+        background: #eff6ff;
+        border: 1px solid #bfdbfe;
+        color: #1e40af;
+        border-radius: 16px;
+        padding: 16px;
+        font-weight: 800;
+        line-height: 1.7;
+        margin-bottom: 18px;
+    }
+
+    .form-group {
+        margin-bottom: 16px;
+    }
+
+    .control-label {
+        display: block;
+        font-weight: 900;
+        color: #374151;
+        margin-bottom: 7px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 13px;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        outline: none;
+        background: white;
+        font-size: 14px;
+    }
+
+    textarea.form-control {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    .form-control:focus {
+        border-color: #dc2626;
+        box-shadow: 0 0 0 3px rgba(220,38,38,0.12);
+    }
+
+    .btn-row {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+        margin-top: 20px;
+    }
+
+    .btn-cancel-submit {
+        background: #dc2626;
+        color: white;
+        border: none;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-weight: 900;
+    }
+
+        .btn-cancel-submit:hover {
+            background: #b91c1c;
+        }
+
+    @@media(max-width: 850px) {
+        .hero-card {
+            grid-template-columns: 1fr;
+        }
+
+        .refund-preview {
+            text-align: left;
+        }
+
+        .grid-main {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="cancel-wrapper">
+    <div class="page-head">
+        <div>
+            <h2>Hỗ trợ hủy sân</h2>
+            <div class="page-sub">Nhân viên kiểm tra thời gian hủy và chọn mức hoàn tiền phù hợp.</div>
+        </div>
+
+        @Html.ActionLink("Quay lại chi tiết", "Details", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new { @class = "btn-back" })
+    </div>
+
+    <div class="hero-card">
+        <div class="hero-code">@Model.MAPHIEUDAT</div>
+
+        <div>
+            <div class="hero-title">@tenSan</div>
+            <div class="hero-sub">
+                Khách hàng: @tenKhach @(string.IsNullOrWhiteSpace(sdtKhach) ? "" : " - " + sdtKhach) <br />
+                Ngày chơi: @Model.NGAYDAT.ToString("dd/MM/yyyy") • Giờ: @Model.GIOBATDAU.ToString(@"hh\:mm") - @Model.GIOKETTHUC.ToString(@"hh\:mm") <br />
+                Loại sân: @loaiSan
+            </div>
+        </div>
+
+        <div class="refund-preview">
+            <div class="refund-label">Gợi ý hoàn tiền</div>
+            <div class="refund-value">@phanTramGoiY%</div>
+        </div>
+    </div>
+
+    <div class="grid-main">
+        <div class="card-box">
+            <div class="card-title">Thông tin thanh toán</div>
+
+            <div class="info-row">
+                <div class="info-label">Tiền sân</div>
+                <div class="info-value money">@Model.TONGTIENTAMTINH.ToString("N0") đ</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">Tiền dịch vụ</div>
+                <div class="info-value money">@tongTienDichVu.ToString("N0") đ</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">Tổng tiền xét hoàn</div>
+                <div class="info-value money">@tongTien.ToString("N0") đ</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">Số giờ trước giờ chơi</div>
+                <div class="info-value">@soGioTruocGioChoi.ToString("0.##") giờ</div>
+            </div>
+
+            <div class="info-row">
+                <div class="info-label">Tiền hoàn gợi ý</div>
+                <div class="info-value danger-money">@soTienHoanGoiY.ToString("N0") đ</div>
+            </div>
+        </div>
+
+        <div class="card-box">
+            <div class="card-title">Xác nhận hủy sân</div>
+
+            <div class="policy-box">
+                Chính sách hoàn tiền: <br />
+                • Hủy trước ≥ 4 tiếng: hoàn 100% <br />
+                • Hủy từ 2 đến dưới 4 tiếng: hoàn 50% <br />
+                • Hủy dưới 2 tiếng: hoàn 20%
+            </div>
+
+            <div class="suggest-box">
+                Hệ thống gợi ý hoàn <b>@phanTramGoiY%</b>. Nhân viên vẫn có thể chọn mức hoàn phù hợp theo tình huống thực tế.
+            </div>
+
+            @using (Html.BeginForm("HoTroHuySan", "PhieuDatSanNV65134364", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="maPhieuDat" value="@Model.MAPHIEUDAT" />
+
+                <div class="form-group">
+                    <label class="control-label">Mức hoàn tiền</label>
+                    @Html.DropDownList("phanTramHoan", (SelectList)ViewBag.PhanTramList, new { @class = "form-control" })
+                </div>
+
+                <div class="form-group">
+                    <label class="control-label">Lý do hủy</label>
+                    <textarea name="lyDoHuy" class="form-control" placeholder="Ví dụ: Khách yêu cầu hủy do bận việc, trời mưa, đổi lịch..."></textarea>
+                </div>
+
+                <div class="btn-row">
+                    @Html.ActionLink("Không hủy", "Details", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new { @class = "btn-back" })
+
+                    <button type="submit"
+                            class="btn-cancel-submit"
+                            onclick="return confirm('Xác nhận hủy phiếu @Model.MAPHIEUDAT và cập nhật sân về Trống?');">
+                        Xác nhận hủy sân
+                    </button>
+                </div>
+            }
+        </div>
+    </div>
+</div>

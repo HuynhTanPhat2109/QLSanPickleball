@@ -1,0 +1,623 @@
+﻿@using System
+@using System.Linq
+@model IEnumerable<QLSanPickleball_65132651.Models.CHITIETDICHVUDAT>
+
+@{
+    ViewBag.Title = "Chi tiết dịch vụ đặt";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+        .page-head h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .page-sub {
+        margin-top: 4px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .stat-value {
+        margin-top: 8px;
+        font-size: 27px;
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .stat-blue {
+        color: #2563eb;
+    }
+
+    .stat-green {
+        color: #047857;
+    }
+
+    .stat-orange {
+        color: #f59e0b;
+    }
+
+    .stat-purple {
+        color: #7c3aed;
+    }
+
+    .filter-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 900;
+        color: #374151;
+        margin-bottom: 6px;
+        font-size: 13px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        outline: none;
+        background: white;
+        font-size: 14px;
+    }
+
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+    .btn-filter,
+    .btn-reset {
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 900;
+        text-decoration: none;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .btn-filter {
+        background: #2563eb;
+        color: white;
+    }
+
+        .btn-filter:hover {
+            background: #1d4ed8;
+        }
+
+    .btn-reset {
+        background: #6b7280;
+        color: white !important;
+    }
+
+        .btn-reset:hover {
+            background: #4b5563;
+            text-decoration: none;
+        }
+
+    .detail-list {
+        display: grid;
+        gap: 14px;
+    }
+
+    .detail-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        padding: 18px;
+        display: grid;
+        grid-template-columns: 120px 1.3fr 1.2fr 1fr 1fr 150px;
+        gap: 14px;
+        align-items: center;
+    }
+
+    .code-box {
+        text-align: center;
+    }
+
+    .ma-phieu {
+        font-size: 18px;
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .ma-dv {
+        display: inline-block;
+        margin-top: 6px;
+        background: #eef2ff;
+        color: #1d4ed8;
+        padding: 4px 8px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 900;
+    }
+
+    .main-text {
+        font-size: 15px;
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .sub-text {
+        margin-top: 4px;
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.35;
+    }
+
+    .info-label {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .info-value {
+        color: #111827;
+        font-size: 15px;
+        font-weight: 800;
+    }
+
+    .money {
+        color: #047857;
+        font-size: 18px;
+        font-weight: 900;
+    }
+
+    .qty-badge {
+        display: inline-block;
+        background: #fef3c7;
+        color: #92400e;
+        padding: 7px 11px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 900;
+    }
+
+    .btn-action {
+        padding: 8px 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 13px;
+        color: white !important;
+        display: inline-block;
+        font-weight: 900;
+        text-align: center;
+        min-width: 82px;
+    }
+
+    .btn-detail {
+        background: #0ea5e9;
+    }
+
+    .btn-action:hover {
+        opacity: 0.88;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    .empty-card {
+        background: white;
+        border: 1px dashed #cbd5e1;
+        border-radius: 18px;
+        padding: 38px;
+        text-align: center;
+        color: #64748b;
+        font-weight: 800;
+    }
+
+    .pagination-wrap {
+        margin-top: 20px;
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 14px 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 14px;
+        flex-wrap: wrap;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.05);
+    }
+
+    .pagination-info {
+        color: #6b7280;
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .pagination-list {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    .page-btn {
+        min-width: 38px;
+        height: 38px;
+        padding: 0 12px;
+        border-radius: 10px;
+        border: 1px solid #d1d5db;
+        background: #ffffff;
+        color: #374151 !important;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        text-decoration: none;
+        font-weight: 900;
+        font-size: 13px;
+    }
+
+        .page-btn:hover {
+            background: #eff6ff;
+            border-color: #2563eb;
+            color: #1d4ed8 !important;
+            text-decoration: none;
+        }
+
+        .page-btn.active {
+            background: #2563eb;
+            border-color: #2563eb;
+            color: white !important;
+        }
+
+        .page-btn.disabled {
+            opacity: 0.45;
+            pointer-events: none;
+            cursor: not-allowed;
+        }
+
+    @@media(max-width: 1200px) {
+        .detail-card {
+            grid-template-columns: 110px 1.3fr 1fr;
+        }
+
+        .action-box {
+            grid-column: 1 / span 3;
+        }
+    }
+
+    @@media(max-width: 950px) {
+        .stat-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .filter-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media(max-width: 720px) {
+        .detail-card {
+            grid-template-columns: 1fr;
+        }
+
+        .code-box {
+            text-align: left;
+        }
+
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+
+        .stat-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="page-head">
+    <div>
+        <div class="page-sub">Theo dõi các dịch vụ đã được thêm vào phiếu đặt sân và doanh thu dịch vụ.</div>
+    </div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-label">Tổng dòng dịch vụ</div>
+        <div class="stat-value stat-blue">@ViewBag.TongSoDong</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Số phiếu có dịch vụ</div>
+        <div class="stat-value stat-purple">@ViewBag.SoPhieuCoDichVu</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Tổng số lượng</div>
+        <div class="stat-value stat-orange">@ViewBag.TongSoLuong</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Tổng tiền dịch vụ</div>
+        <div class="stat-value stat-green">@(((decimal)(ViewBag.TongTienDichVu ?? 0m)).ToString("N0")) đ</div>
+    </div>
+</div>
+
+<div class="filter-card">
+    @using (Html.BeginForm("Index", "ChiTietDichVuDat65134364", FormMethod.Get))
+    {
+        <input type="hidden" name="page" value="1" />
+
+        <div class="filter-row">
+            <div>
+                <label class="form-label">Tìm kiếm</label>
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       value="@ViewBag.Search"
+                       placeholder="Mã phiếu, mã DV, tên DV, khách hàng, số điện thoại, sân..." />
+            </div>
+
+            <div>
+                <label class="form-label">Từ ngày chơi</label>
+                <input type="date"
+                       name="tuNgay"
+                       class="form-control"
+                       value="@ViewBag.TuNgay" />
+            </div>
+
+            <div>
+                <label class="form-label">Đến ngày chơi</label>
+                <input type="date"
+                       name="denNgay"
+                       class="form-control"
+                       value="@ViewBag.DenNgay" />
+            </div>
+
+            <div>
+                <button type="submit" class="btn-filter">Lọc</button>
+            </div>
+
+            <div>
+                @Html.ActionLink("Làm mới", "Index", "ChiTietDichVuDat65134364", null, new { @class = "btn-reset" })
+            </div>
+        </div>
+    }
+</div>
+
+<div class="detail-list">
+    @if (Model != null && Model.Any())
+    {
+        foreach (var item in Model)
+        {
+            string tenDV = item.DICHVU != null ? item.DICHVU.TENDV : item.MADV;
+            string donViTinh = item.DICHVU != null ? item.DICHVU.DONVITINH : "";
+
+            string tenKhach = item.PHIEUDATSAN != null && item.PHIEUDATSAN.KHACHHANG != null
+                ? item.PHIEUDATSAN.KHACHHANG.HOTENKH
+                : "Không rõ";
+
+            string sdtKhach = item.PHIEUDATSAN != null && item.PHIEUDATSAN.KHACHHANG != null
+                ? item.PHIEUDATSAN.KHACHHANG.SODIENTHOAIKH
+                : "";
+
+            string tenSan = item.PHIEUDATSAN != null && item.PHIEUDATSAN.SAN != null
+                ? item.PHIEUDATSAN.SAN.TENSAN
+                : "Không rõ";
+
+            string maSan = item.PHIEUDATSAN != null ? item.PHIEUDATSAN.MASAN : "";
+
+            DateTime? ngayDat = item.PHIEUDATSAN != null ? (DateTime?)item.PHIEUDATSAN.NGAYDAT : null;
+
+            <div class="detail-card">
+                <div class="code-box">
+                    <div class="ma-phieu">@item.MAPHIEUDAT</div>
+                    <div class="ma-dv">@item.MADV</div>
+                </div>
+
+                <div>
+                    <div class="info-label">Dịch vụ</div>
+                    <div class="main-text">@tenDV</div>
+                    <div class="sub-text">Đơn vị: @donViTinh</div>
+                </div>
+
+                <div>
+                    <div class="info-label">Khách hàng</div>
+                    <div class="main-text">@tenKhach</div>
+                    <div class="sub-text">@(string.IsNullOrWhiteSpace(sdtKhach) ? "Không có SĐT" : sdtKhach)</div>
+                </div>
+
+                <div>
+                    <div class="info-label">Sân / Ngày chơi</div>
+                    <div class="info-value">@tenSan</div>
+                    <div class="sub-text">
+                        Mã sân: @maSan
+                        @if (ngayDat.HasValue)
+                        {
+                            <span> • @ngayDat.Value.ToString("dd/MM/yyyy")</span>
+                        }
+                    </div>
+                </div>
+
+                <div>
+                    <div class="info-label">Số lượng / Thành tiền</div>
+                    <div>
+                        <span class="qty-badge">SL: @item.SOLUONG</span>
+                    </div>
+                    <div class="money" style="margin-top:6px;">@item.THANHTIEN.ToString("N0") đ</div>
+                    <div class="sub-text">Đơn giá: @item.DONGIA.ToString("N0") đ</div>
+                </div>
+
+                <div class="action-box">
+                    @Html.ActionLink("Xem phiếu", "Details", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new { @class = "btn-action btn-detail" })
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        <div class="empty-card">
+            Chưa có chi tiết dịch vụ đặt nào.
+        </div>
+    }
+</div>
+
+@{
+    int currentPage = ViewBag.CurrentPage == null ? 1 : (int)ViewBag.CurrentPage;
+    int totalPages = ViewBag.TotalPages == null ? 1 : (int)ViewBag.TotalPages;
+    int pageSize = ViewBag.PageSize == null ? 10 : (int)ViewBag.PageSize;
+    int totalItems = ViewBag.TotalItems == null ? 0 : (int)ViewBag.TotalItems;
+
+    int fromItem = totalItems == 0 ? 0 : ((currentPage - 1) * pageSize) + 1;
+    int toItem = currentPage * pageSize;
+
+    if (toItem > totalItems)
+    {
+        toItem = totalItems;
+    }
+
+    int startPage = currentPage - 2;
+    int endPage = currentPage + 2;
+
+    if (startPage < 1)
+    {
+        startPage = 1;
+    }
+
+    if (endPage > totalPages)
+    {
+        endPage = totalPages;
+    }
+}
+
+@if (totalItems > 0)
+{
+    <div class="pagination-wrap">
+        <div class="pagination-info">
+            Hiển thị @fromItem - @toItem / @totalItems dòng dịch vụ
+        </div>
+
+        <div class="pagination-list">
+            @Html.ActionLink("Trước", "Index", "ChiTietDichVuDat65134364",
+                new
+                {
+                    page = currentPage - 1,
+                    search = ViewBag.Search,
+                    tuNgay = ViewBag.TuNgay,
+                    denNgay = ViewBag.DenNgay
+                },
+                new
+                {
+                    @class = currentPage <= 1 ? "page-btn disabled" : "page-btn"
+                })
+
+            @if (startPage > 1)
+            {
+                @Html.ActionLink("1", "Index", "ChiTietDichVuDat65134364",
+                    new
+                    {
+                        page = 1,
+                        search = ViewBag.Search,
+                        tuNgay = ViewBag.TuNgay,
+                        denNgay = ViewBag.DenNgay
+                    },
+                    new { @class = "page-btn" })
+
+                if (startPage > 2)
+                {
+                    <span class="page-btn disabled">...</span>
+                }
+            }
+
+            @for (int i = startPage; i <= endPage; i++)
+            {
+                @Html.ActionLink(i.ToString(), "Index", "ChiTietDichVuDat65134364",
+                    new
+                    {
+                        page = i,
+                        search = ViewBag.Search,
+                        tuNgay = ViewBag.TuNgay,
+                        denNgay = ViewBag.DenNgay
+                    },
+                    new
+                    {
+                        @class = i == currentPage ? "page-btn active" : "page-btn"
+                    })
+            }
+
+            @if (endPage < totalPages)
+            {
+                if (endPage < totalPages - 1)
+                {
+                    <span class="page-btn disabled">...</span>
+                }
+
+                @Html.ActionLink(totalPages.ToString(), "Index", "ChiTietDichVuDat65134364",
+                    new
+                    {
+                        page = totalPages,
+                        search = ViewBag.Search,
+                        tuNgay = ViewBag.TuNgay,
+                        denNgay = ViewBag.DenNgay
+                    },
+                    new { @class = "page-btn" })
+            }
+
+            @Html.ActionLink("Sau", "Index", "ChiTietDichVuDat65134364",
+                new
+                {
+                    page = currentPage + 1,
+                    search = ViewBag.Search,
+                    tuNgay = ViewBag.TuNgay,
+                    denNgay = ViewBag.DenNgay
+                },
+                new
+                {
+                    @class = currentPage >= totalPages ? "page-btn disabled" : "page-btn"
+                })
+        </div>
+    </div>
+}

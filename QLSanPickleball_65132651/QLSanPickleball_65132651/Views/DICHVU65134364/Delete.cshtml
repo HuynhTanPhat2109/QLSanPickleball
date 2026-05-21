@@ -1,0 +1,219 @@
+﻿@model QLSanPickleball_65132651.Models.DICHVU
+
+@{
+    ViewBag.Title = "Xóa dịch vụ";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    bool daDuocSuDung = ViewBag.DaDuocSuDung != null && (bool)ViewBag.DaDuocSuDung;
+    int soLanDuocDat = ViewBag.SoLanDuocDat == null ? 0 : (int)ViewBag.SoLanDuocDat;
+}
+
+<style>
+    .delete-wrapper {
+        max-width: 820px;
+        margin: 0 auto;
+    }
+
+    .warning-card {
+        background: white;
+        border: 1px solid #fecaca;
+        border-radius: 22px;
+        padding: 26px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+    }
+
+    .warning-icon {
+        width: 76px;
+        height: 76px;
+        border-radius: 22px;
+        background: #fee2e2;
+        color: #dc2626;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 32px;
+        font-weight: 900;
+        margin-bottom: 16px;
+    }
+
+    h2 {
+        margin: 0;
+        font-size: 26px;
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .sub {
+        margin-top: 8px;
+        color: #6b7280;
+        line-height: 1.6;
+    }
+
+    .alert-note {
+        margin-top: 18px;
+        padding: 14px 16px;
+        border-radius: 14px;
+        font-weight: 800;
+    }
+
+    .alert-red {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+    }
+
+    .alert-yellow {
+        background: #fef3c7;
+        color: #92400e;
+        border: 1px solid #fde68a;
+    }
+
+    .info-box {
+        margin-top: 20px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .info-item {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 14px;
+    }
+
+    .info-label {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        color: #111827;
+        font-size: 16px;
+        font-weight: 900;
+    }
+
+    .btn-row {
+        margin-top: 24px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-delete,
+    .btn-back {
+        border: none;
+        padding: 11px 18px;
+        border-radius: 12px;
+        color: white !important;
+        text-decoration: none;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+    .btn-delete {
+        background: #dc2626;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+        .btn-delete:hover,
+        .btn-back:hover {
+            opacity: 0.88;
+            text-decoration: none;
+            color: white;
+        }
+
+    @@media(max-width: 650px) {
+        .info-box {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="delete-wrapper">
+    <div class="warning-card">
+        <div class="warning-icon">!</div>
+
+        <h2>Xóa dịch vụ</h2>
+
+        @if (daDuocSuDung)
+        {
+            <div class="sub">
+                Dịch vụ này đã từng được sử dụng trong phiếu đặt sân. Hệ thống sẽ không xóa khỏi CSDL,
+                mà chuyển trạng thái sang <b>Ngừng kinh doanh</b> để tránh lỗi dữ liệu.
+            </div>
+
+            <div class="alert-note alert-yellow">
+                Dịch vụ đã được đặt @soLanDuocDat lần. Sau khi xác nhận, dịch vụ sẽ bị ngừng kinh doanh.
+            </div>
+        }
+        else
+        {
+            <div class="sub">
+                Dịch vụ này chưa từng được sử dụng. Sau khi xác nhận, hệ thống sẽ xóa dịch vụ khỏi CSDL.
+            </div>
+
+            <div class="alert-note alert-red">
+                Bạn có chắc chắn muốn xóa dịch vụ này không?
+            </div>
+        }
+
+        <div class="info-box">
+            <div class="info-item">
+                <div class="info-label">Mã dịch vụ</div>
+                <div class="info-value">@Model.MADV</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Tên dịch vụ</div>
+                <div class="info-value">@Model.TENDV</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Đơn vị tính</div>
+                <div class="info-value">@Model.DONVITINH</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Đơn giá</div>
+                <div class="info-value">@Model.DONGIA.ToString("N0") đ</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Tồn kho</div>
+                <div class="info-value">@Model.SOLUONGTON</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Trạng thái</div>
+                <div class="info-value">@Model.TRANGTHAIKD</div>
+            </div>
+        </div>
+
+        @using (Html.BeginForm("Delete", "DICHVU65134364", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.HiddenFor(model => model.MADV)
+
+            <div class="btn-row">
+                @Html.ActionLink("Quay lại", "Index", "DICHVU65134364", null, new { @class = "btn-back" })
+
+                @if (daDuocSuDung)
+                {
+                    <button type="submit" class="btn-delete">Ngừng kinh doanh</button>
+                }
+                else
+                {
+                    <button type="submit" class="btn-delete">Xóa dịch vụ</button>
+                }
+            </div>
+        }
+    </div>
+</div>

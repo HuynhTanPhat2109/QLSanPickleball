@@ -1,0 +1,696 @@
+﻿@model IEnumerable<QLSanPickleball_65132651.Models.PHIEUDATSAN>
+
+@{
+    ViewBag.Title = "Dashboard Admin";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .dashboard-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 16px;
+        flex-wrap: wrap;
+        margin-bottom: 22px;
+    }
+
+        .dashboard-head h2 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .dashboard-sub {
+        margin-top: 5px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .today-box {
+        background: linear-gradient(135deg, #0f172a, #1e3a8a);
+        color: white;
+        padding: 18px 24px;
+        border-radius: 20px;
+        box-shadow: 0 14px 30px rgba(30, 58, 138, 0.2);
+        min-width: 260px;
+    }
+
+    .today-label {
+        color: #bfdbfe;
+        font-size: 13px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .today-value {
+        margin-top: 6px;
+        font-size: 24px;
+        font-weight: 900;
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        position: relative;
+        overflow: hidden;
+    }
+
+        .stat-card::before {
+            content: "";
+            position: absolute;
+            right: -32px;
+            top: -32px;
+            width: 92px;
+            height: 92px;
+            border-radius: 999px;
+            background: rgba(37, 99, 235, 0.08);
+        }
+
+    .stat-title {
+        font-size: 13px;
+        color: #6b7280;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .stat-number {
+        margin-top: 9px;
+        font-size: 30px;
+        font-weight: 900;
+        color: #111827;
+        line-height: 1;
+    }
+
+    .stat-note {
+        margin-top: 9px;
+        font-size: 13px;
+        color: #6b7280;
+        font-weight: 700;
+    }
+
+    .revenue-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .revenue-card {
+        border-radius: 20px;
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        color: white;
+    }
+
+        .revenue-card.today {
+            background: linear-gradient(135deg, #047857, #16a34a);
+        }
+
+        .revenue-card.week {
+            background: linear-gradient(135deg, #1d4ed8, #2563eb);
+        }
+
+        .revenue-card.month {
+            background: linear-gradient(135deg, #7c2d12, #f97316);
+        }
+
+        .revenue-card.year {
+            background: linear-gradient(135deg, #581c87, #9333ea);
+        }
+
+    .revenue-label {
+        font-size: 13px;
+        font-weight: 900;
+        text-transform: uppercase;
+        opacity: 0.86;
+    }
+
+    .revenue-value {
+        margin-top: 9px;
+        font-size: 27px;
+        font-weight: 900;
+        line-height: 1.2;
+    }
+
+    .revenue-note {
+        margin-top: 8px;
+        font-size: 13px;
+        opacity: 0.82;
+        font-weight: 700;
+    }
+
+    .section-title {
+        font-size: 20px;
+        font-weight: 900;
+        margin: 24px 0 14px 0;
+        color: #111827;
+    }
+
+    .status-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 16px;
+        margin-bottom: 20px;
+    }
+
+    .status-box {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 14px;
+    }
+
+    .status-name {
+        font-size: 14px;
+        color: #6b7280;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .status-count {
+        font-size: 34px;
+        font-weight: 900;
+        line-height: 1;
+    }
+
+    .status-desc {
+        color: #6b7280;
+        font-size: 13px;
+        margin-top: 6px;
+        font-weight: 700;
+    }
+
+    .status-icon {
+        width: 64px;
+        height: 64px;
+        border-radius: 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 20px;
+    }
+
+    .status-free .status-icon {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-maintain .status-icon {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .chart-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+        margin-bottom: 22px;
+    }
+
+    .chart-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        height: 380px;
+        position: relative;
+    }
+
+    .chart-title {
+        font-size: 17px;
+        font-weight: 900;
+        color: #111827;
+        margin-bottom: 6px;
+    }
+
+    .chart-sub {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 700;
+        margin-bottom: 14px;
+    }
+
+    .chart-box {
+        height: 285px;
+        position: relative;
+    }
+
+    .quick-actions {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 14px;
+        margin-bottom: 22px;
+    }
+
+        .quick-actions a {
+            display: block;
+            background: #2563eb;
+            color: white !important;
+            text-align: center;
+            padding: 14px;
+            border-radius: 14px;
+            text-decoration: none;
+            font-weight: 900;
+            box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
+        }
+
+            .quick-actions a:hover {
+                background: #1d4ed8;
+                text-decoration: none;
+                color: white;
+                transform: translateY(-1px);
+            }
+
+    .admin-table-card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        overflow-x: auto;
+    }
+
+    .table {
+        margin-bottom: 0;
+    }
+
+        .table th {
+            background: #f3f4f6;
+            color: #111827;
+            white-space: nowrap;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .table td {
+            vertical-align: middle;
+            white-space: nowrap;
+            font-size: 14px;
+        }
+
+    .badge-status {
+        padding: 7px 11px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+    .badge-success {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .badge-warning {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .badge-danger {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .badge-gray {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .btn-small-detail {
+        background: #0ea5e9;
+        color: white !important;
+        padding: 7px 10px;
+        border-radius: 9px;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 900;
+    }
+
+        .btn-small-detail:hover {
+            opacity: 0.88;
+            text-decoration: none;
+            color: white;
+        }
+
+    @@media(max-width: 1150px) {
+        .stat-grid,
+        .revenue-grid,
+        .quick-actions {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .chart-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+
+    @@media(max-width: 700px) {
+        .stat-grid,
+        .revenue-grid,
+        .status-grid,
+        .quick-actions {
+            grid-template-columns: 1fr;
+        }
+
+        .today-box {
+            width: 100%;
+        }
+    }
+</style>
+
+<div class="dashboard-head">
+    <div>
+        <h2>Dashboard quản trị</h2>
+        <div class="dashboard-sub">Tổng quan hoạt động sân Pickleball, doanh thu và lịch đặt mới nhất.</div>
+    </div>
+
+    <div class="today-box">
+        <div class="today-label">Tổng doanh thu toàn hệ thống</div>
+        <div class="today-value">@String.Format("{0:N0}", ViewBag.TongDoanhThu) VNĐ</div>
+    </div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-title">Nhân viên</div>
+        <div class="stat-number">@ViewBag.TongNhanVien</div>
+        <div class="stat-note">Tài khoản nhân sự</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-title">Khách hàng</div>
+        <div class="stat-number">@ViewBag.TongKhachHang</div>
+        <div class="stat-note">Khách hàng trong hệ thống</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-title">Sân</div>
+        <div class="stat-number">@ViewBag.TongSan</div>
+        <div class="stat-note">Sân Pickleball đang quản lý</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-title">Dịch vụ</div>
+        <div class="stat-number">@ViewBag.TongDichVu</div>
+        <div class="stat-note">Dịch vụ đi kèm</div>
+    </div>
+</div>
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-title">Hội viên</div>
+        <div class="stat-number">@ViewBag.TongHoiVien</div>
+        <div class="stat-note">Khách hàng hội viên</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-title">Phiếu đặt sân</div>
+        <div class="stat-number">@ViewBag.TongPhieuDat</div>
+        <div class="stat-note">Tổng lịch đặt đã ghi nhận</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-title">Hóa đơn</div>
+        <div class="stat-number">@ViewBag.TongHoaDon</div>
+        <div class="stat-note">Hóa đơn thanh toán</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-title">Tổng doanh thu</div>
+        <div class="stat-number" style="font-size:24px;">@String.Format("{0:N0}", ViewBag.TongDoanhThu)</div>
+        <div class="stat-note">VNĐ</div>
+    </div>
+</div>
+
+<div class="section-title">Doanh thu</div>
+
+<div class="revenue-grid">
+    <div class="revenue-card today">
+        <div class="revenue-label">Hôm nay</div>
+        <div class="revenue-value">@String.Format("{0:N0}", ViewBag.DoanhThuHomNay) đ</div>
+        <div class="revenue-note">Doanh thu trong ngày hiện tại</div>
+    </div>
+
+    <div class="revenue-card week">
+        <div class="revenue-label">Tuần này</div>
+        <div class="revenue-value">@String.Format("{0:N0}", ViewBag.DoanhThuTuan) đ</div>
+        <div class="revenue-note">Tính từ thứ 2 đến chủ nhật</div>
+    </div>
+
+    <div class="revenue-card month">
+        <div class="revenue-label">Tháng này</div>
+        <div class="revenue-value">@String.Format("{0:N0}", ViewBag.DoanhThuThang) đ</div>
+        <div class="revenue-note">Tổng doanh thu trong tháng</div>
+    </div>
+
+    <div class="revenue-card year">
+        <div class="revenue-label">Năm nay</div>
+        <div class="revenue-value">@String.Format("{0:N0}", ViewBag.DoanhThuNam) đ</div>
+        <div class="revenue-note">Tổng doanh thu trong năm</div>
+    </div>
+</div>
+
+<div class="section-title">Trạng thái sân</div>
+
+<div class="status-grid">
+    <div class="status-box status-free">
+        <div>
+            <div class="status-name">Sân trống</div>
+            <div class="status-count" style="color:#16a34a">@ViewBag.SanTrong</div>
+            <div class="status-desc">Sân đang có thể phục vụ</div>
+        </div>
+
+        <div class="status-icon">OK</div>
+    </div>
+
+    <div class="status-box status-maintain">
+        <div>
+            <div class="status-name">Bảo trì</div>
+            <div class="status-count" style="color:#6b7280">@ViewBag.SanBaoTri</div>
+            <div class="status-desc">Sân tạm ngừng hoạt động</div>
+        </div>
+
+        <div class="status-icon">BT</div>
+    </div>
+</div>
+
+<div class="section-title">Biểu đồ tổng quan</div>
+
+<div class="chart-grid">
+    <div class="chart-card">
+        <div class="chart-title">Cơ cấu doanh thu năm nay</div>
+        <div class="chart-sub">Tỷ trọng doanh thu theo 12 tháng</div>
+
+        <div class="chart-box">
+            <canvas id="chartDoanhThuTron"></canvas>
+        </div>
+    </div>
+
+    <div class="chart-card">
+        <div class="chart-title">Tình trạng sân</div>
+        <div class="chart-sub">Chỉ hiển thị sân trống và sân bảo trì</div>
+
+        <div class="chart-box">
+            <canvas id="chartSanTron"></canvas>
+        </div>
+    </div>
+</div>
+
+<div class="section-title">Truy cập nhanh</div>
+
+<div class="quick-actions">
+    @Html.ActionLink("Quản lý sân", "Index", "SAN65134364")
+    @Html.ActionLink("Quản lý nhân viên", "Index", "NHANVIEN65134364")
+    @Html.ActionLink("Quản lý dịch vụ", "Index", "DICHVU65134364")
+    @Html.ActionLink("Xem hóa đơn", "Index", "HoaDonNV65134364")
+</div>
+
+<div class="section-title">Phiếu đặt sân mới nhất</div>
+
+<div class="admin-table-card">
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Mã phiếu</th>
+                <th>Khách hàng</th>
+                <th>Sân</th>
+                <th>Nhân viên</th>
+                <th>Ngày đặt</th>
+                <th>Khung giờ</th>
+                <th>Tạm tính</th>
+                <th>Trạng thái phiếu</th>
+                <th>Thanh toán</th>
+                <th></th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    string tenKhach = item.KHACHHANG != null ? item.KHACHHANG.HOTENKH : (item.MAKH != null ? item.MAKH : "Khách vãng lai");
+                    string tenSan = item.SAN != null ? item.SAN.TENSAN : item.MASAN;
+                    string tenNhanVien = item.NHANVIEN != null ? item.NHANVIEN.HOTENNV : item.MANV;
+
+                    string classPhieu = "badge-gray";
+
+                    if (item.TRANGTHAIPHIEU == "Đã xác nhận" || item.TRANGTHAIPHIEU == "Hoàn thành")
+                    {
+                        classPhieu = "badge-success";
+                    }
+                    else if (item.TRANGTHAIPHIEU == "Chờ duyệt" || item.TRANGTHAIPHIEU == "Chờ xác nhận" || item.TRANGTHAIPHIEU == "Cho_Thanh_Toan")
+                    {
+                        classPhieu = "badge-warning";
+                    }
+                    else if (item.TRANGTHAIPHIEU == "Đã hủy" || item.TRANGTHAIPHIEU == "Đã huỷ" || item.TRANGTHAIPHIEU == "Hủy" || item.TRANGTHAIPHIEU == "DaHuy")
+                    {
+                        classPhieu = "badge-danger";
+                    }
+
+                    string classThanhToan = "badge-gray";
+
+                    if (item.TRANGTHAITHANHTOAN == "Đã thanh toán" || item.TRANGTHAITHANHTOAN == "Đã thanh toán 100%")
+                    {
+                        classThanhToan = "badge-success";
+                    }
+                    else if (item.TRANGTHAITHANHTOAN == "Đã đặt cọc" || item.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản" || item.TRANGTHAITHANHTOAN == "Cho_Chuyen_Khoan")
+                    {
+                        classThanhToan = "badge-warning";
+                    }
+                    else if (item.TRANGTHAITHANHTOAN == "Chưa thanh toán" || item.TRANGTHAITHANHTOAN == "ChuaThanhToan" || item.TRANGTHAITHANHTOAN == "Đã hủy")
+                    {
+                        classThanhToan = "badge-danger";
+                    }
+
+                    <tr>
+                        <td><strong>@item.MAPHIEUDAT</strong></td>
+                        <td>@tenKhach</td>
+                        <td>@tenSan</td>
+                        <td>@tenNhanVien</td>
+                        <td>@String.Format("{0:dd/MM/yyyy}", item.NGAYDAT)</td>
+                        <td>@item.GIOBATDAU.ToString(@"hh\:mm") - @item.GIOKETTHUC.ToString(@"hh\:mm")</td>
+                        <td>@String.Format("{0:N0}", item.TONGTIENTAMTINH) VNĐ</td>
+                        <td>
+                            <span class="badge-status @classPhieu">@item.TRANGTHAIPHIEU</span>
+                        </td>
+                        <td>
+                            <span class="badge-status @classThanhToan">@item.TRANGTHAITHANHTOAN</span>
+                        </td>
+                        <td>
+                            @Html.ActionLink("Xem", "Details", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new { @class = "btn-small-detail" })
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="10" class="text-center">Chưa có phiếu đặt sân nào.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    const labelsThang = @Html.Raw(ViewBag.LabelsThang ?? "[]");
+    const dataThang = @Html.Raw(ViewBag.DataThang ?? "[]");
+
+    const sanTrong = Number("@(ViewBag.SanTrong ?? 0)");
+    const sanBaoTri = Number("@(ViewBag.SanBaoTri ?? 0)");
+
+    function formatMoney(value) {
+        return Number(value).toLocaleString("vi-VN") + " đ";
+    }
+
+    new Chart(document.getElementById("chartDoanhThuTron"), {
+        type: "doughnut",
+        data: {
+            labels: labelsThang,
+            datasets: [{
+                data: dataThang,
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            cutout: "62%",
+            plugins: {
+                legend: {
+                    position: "bottom",
+                    labels: {
+                        boxWidth: 14,
+                        font: {
+                            weight: "bold"
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return " " + context.label + ": " + formatMoney(context.raw);
+                        }
+                    }
+                }
+            }
+        }
+    });
+
+    new Chart(document.getElementById("chartSanTron"), {
+        type: "pie",
+        data: {
+            labels: ["Sân trống", "Bảo trì"],
+            datasets: [{
+                data: [sanTrong, sanBaoTri],
+                borderWidth: 2
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: false,
+            plugins: {
+                legend: {
+                    position: "bottom",
+                    labels: {
+                        boxWidth: 14,
+                        font: {
+                            weight: "bold"
+                        }
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function (context) {
+                            return " " + context.label + ": " + context.raw + " sân";
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>

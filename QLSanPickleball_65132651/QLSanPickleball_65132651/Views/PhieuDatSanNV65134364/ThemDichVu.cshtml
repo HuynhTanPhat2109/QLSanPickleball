@@ -1,0 +1,346 @@
+﻿@using System
+@using System.Linq
+@model QLSanPickleball_65132651.Models.PHIEUDATSAN
+
+@{
+    ViewBag.Title = "Thêm dịch vụ vào phiếu";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    var danhSachDichVu = ViewBag.DanhSachDichVu as IEnumerable<QLSanPickleball_65132651.Models.DICHVU>;
+
+    string tenSan = Model.SAN != null ? Model.SAN.TENSAN : Model.MASAN;
+    string tenKhach = Model.KHACHHANG != null ? Model.KHACHHANG.HOTENKH : "Khách vãng lai";
+    string sdtKhach = Model.KHACHHANG != null ? Model.KHACHHANG.SODIENTHOAIKH : "";
+}
+
+<style>
+    .service-wrapper {
+        max-width: 950px;
+        margin: 0 auto;
+    }
+
+    .page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+        .page-head h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .page-sub {
+        margin-top: 5px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .btn-back {
+        background: #6b7280;
+        color: white !important;
+        padding: 10px 16px;
+        border-radius: 12px;
+        text-decoration: none;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+        .btn-back:hover {
+            opacity: 0.88;
+            color: white;
+            text-decoration: none;
+        }
+
+    .alert-success-custom {
+        background: #dcfce7;
+        color: #166534;
+        padding: 13px 16px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #bbf7d0;
+        font-weight: 800;
+    }
+
+    .alert-error-custom {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 13px 16px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #fecaca;
+        font-weight: 800;
+    }
+
+    .summary-card {
+        background: linear-gradient(135deg, #0f172a, #1e3a8a);
+        color: white;
+        border-radius: 20px;
+        padding: 22px;
+        margin-bottom: 18px;
+        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.16);
+        display: grid;
+        grid-template-columns: 120px 1fr auto;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .summary-code {
+        min-width: 105px;
+        height: 70px;
+        border-radius: 20px;
+        background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 16px;
+        padding: 0 10px;
+        white-space: nowrap;
+    }
+
+    .summary-title {
+        font-size: 23px;
+        font-weight: 900;
+        margin-bottom: 5px;
+    }
+
+    .summary-sub {
+        color: #bfdbfe;
+        line-height: 1.6;
+        font-size: 14px;
+    }
+
+    .summary-money {
+        text-align: right;
+    }
+
+    .summary-money-label {
+        color: #bfdbfe;
+        font-size: 13px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .summary-money-value {
+        margin-top: 5px;
+        font-size: 26px;
+        font-weight: 900;
+    }
+
+    .form-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 0.6fr;
+        gap: 16px;
+        align-items: end;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 900;
+        color: #374151;
+        margin-bottom: 7px;
+        font-size: 13px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 13px;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        font-size: 14px;
+        background: white;
+        outline: none;
+    }
+
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+    .btn-save {
+        background: #16a34a;
+        color: white;
+        border: none;
+        padding: 12px 18px;
+        border-radius: 12px;
+        font-weight: 900;
+        min-width: 140px;
+    }
+
+        .btn-save:hover {
+            background: #15803d;
+        }
+
+    .service-preview {
+        margin-top: 18px;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .preview-card {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 14px;
+    }
+
+    .preview-label {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .preview-value {
+        margin-top: 6px;
+        color: #111827;
+        font-weight: 900;
+        font-size: 16px;
+    }
+
+    .empty-box {
+        border: 1px dashed #cbd5e1;
+        border-radius: 16px;
+        padding: 26px;
+        text-align: center;
+        color: #64748b;
+        background: #f8fafc;
+        font-weight: 800;
+    }
+
+    @@media(max-width: 800px) {
+        .summary-card {
+            grid-template-columns: 1fr;
+        }
+
+        .summary-money {
+            text-align: left;
+        }
+
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .service-preview {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="service-wrapper">
+    <div class="page-head">
+        <div>
+            <div class="page-sub">Chọn dịch vụ khách sử dụng để cộng vào hóa đơn.</div>
+        </div>
+
+        @Html.ActionLink("Quay lại chi tiết", "Details", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new { @class = "btn-back" })
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert-success-custom">@TempData["Success"]</div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-error-custom">@TempData["Error"]</div>
+    }
+
+    <div class="summary-card">
+        <div class="summary-code">@Model.MAPHIEUDAT</div>
+
+        <div>
+            <div class="summary-title">@tenSan</div>
+            <div class="summary-sub">
+                Khách hàng: @tenKhach @(string.IsNullOrWhiteSpace(sdtKhach) ? "" : " - " + sdtKhach) <br />
+                Ngày chơi: @Model.NGAYDAT.ToString("dd/MM/yyyy") • Giờ: @Model.GIOBATDAU.ToString(@"hh\:mm") - @Model.GIOKETTHUC.ToString(@"hh\:mm")
+            </div>
+        </div>
+
+        <div class="summary-money">
+            <div class="summary-money-label">Tiền sân</div>
+            <div class="summary-money-value">@Model.TONGTIENTAMTINH.ToString("N0") đ</div>
+        </div>
+    </div>
+
+    <div class="form-card">
+        @if (danhSachDichVu != null && danhSachDichVu.Any())
+        {
+            using (Html.BeginForm("ThemDichVu", "PhieuDatSanNV65134364", FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+
+                <input type="hidden" name="maPhieuDat" value="@Model.MAPHIEUDAT" />
+
+                <div class="form-grid">
+                    <div>
+                        <label class="form-label">Dịch vụ</label>
+                        <select name="maDV" class="form-control" required>
+                            <option value="">-- Chọn dịch vụ --</option>
+
+                            @foreach (var item in danhSachDichVu)
+                            {
+                                <option value="@item.MADV">
+                                    @item.TENDV - @item.DONGIA.ToString("N0") đ / @item.DONVITINH - Tồn: @item.SOLUONGTON
+                                </option>
+                            }
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="form-label">Số lượng</label>
+                        <input type="number"
+                               name="soLuong"
+                               class="form-control"
+                               min="1"
+                               value="1"
+                               required />
+                    </div>
+
+                    <div>
+                        <button type="submit" class="btn-save">Thêm dịch vụ</button>
+                    </div>
+                </div>
+            }
+
+            <div class="service-preview">
+                <div class="preview-card">
+                    <div class="preview-label">Lưu vào bảng</div>
+                    <div class="preview-value">CHITIETDICHVUDAT</div>
+                </div>
+
+                <div class="preview-card">
+                    <div class="preview-label">Tự trừ tồn kho</div>
+                    <div class="preview-value">Có</div>
+                </div>
+
+                <div class="preview-card">
+                    <div class="preview-label">Hóa đơn</div>
+                    <div class="preview-value">Tự cộng tiền DV</div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="empty-box">
+                Hiện không có dịch vụ nào đang kinh doanh hoặc còn tồn kho.
+            </div>
+        }
+    </div>
+</div>

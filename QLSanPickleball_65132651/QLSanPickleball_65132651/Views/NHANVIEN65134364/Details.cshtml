@@ -1,0 +1,337 @@
+﻿@model QLSanPickleball_65132651.Models.NHANVIEN
+
+@{
+    ViewBag.Title = "Chi tiết nhân viên";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .detail-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+    .detail-card {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    .detail-header {
+        background: #111827;
+        color: white;
+        padding: 22px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+    }
+
+    .avatar {
+        width: 58px;
+        height: 58px;
+        border-radius: 50%;
+        background: #2563eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .detail-header-info h3 {
+        margin: 0;
+        font-size: 22px;
+        font-weight: bold;
+    }
+
+    .detail-header-info p {
+        margin: 5px 0 0 0;
+        color: #d1d5db;
+    }
+
+    .detail-body {
+        padding: 24px;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .detail-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 15px;
+        background: #f9fafb;
+    }
+
+    .detail-label {
+        font-size: 13px;
+        font-weight: bold;
+        color: #6b7280;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .detail-value {
+        font-size: 16px;
+        color: #111827;
+        font-weight: 600;
+        word-break: break-word;
+    }
+
+    .badge-role,
+    .badge-status {
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: bold;
+        display: inline-block;
+    }
+
+    .role-admin {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .role-manager {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .role-staff {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-lock {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-off {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .action-bar {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-custom {
+        padding: 10px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        color: white !important;
+        display: inline-block;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+        .btn-back:hover {
+            background: #4b5563;
+            text-decoration: none;
+            color: white;
+        }
+
+    .btn-edit {
+        background: #f59e0b;
+    }
+
+        .btn-edit:hover {
+            background: #d97706;
+            text-decoration: none;
+            color: white;
+        }
+
+    .btn-delete {
+        background: #dc2626;
+    }
+
+        .btn-delete:hover {
+            background: #b91c1c;
+            text-decoration: none;
+            color: white;
+        }
+
+    .btn-lock {
+        background: #7c2d12;
+    }
+
+        .btn-lock:hover {
+            background: #5c1f0c;
+            text-decoration: none;
+            color: white;
+        }
+
+    .btn-unlock {
+        background: #16a34a;
+    }
+
+        .btn-unlock:hover {
+            background: #15803d;
+            text-decoration: none;
+            color: white;
+        }
+
+    @@media(max-width: 700px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .action-bar {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+@{
+    string roleClass = "role-staff";
+
+    if (Model.VAITRO == "Admin")
+    {
+        roleClass = "role-admin";
+    }
+    else if (Model.VAITRO == "Quản lý")
+    {
+        roleClass = "role-manager";
+    }
+
+    string statusClass = "status-off";
+
+    if (Model.TRANGTHAI == "Đang hoạt động")
+    {
+        statusClass = "status-active";
+    }
+    else if (Model.TRANGTHAI == "Tạm khóa")
+    {
+        statusClass = "status-lock";
+    }
+
+    string chuCaiDau = !string.IsNullOrWhiteSpace(Model.HOTENNV)
+        ? Model.HOTENNV.Trim().Substring(0, 1).ToUpper()
+        : "N";
+}
+
+<div class="detail-wrapper">
+   
+
+    <div class="detail-card">
+        <div class="detail-header">
+            <div class="avatar">@chuCaiDau</div>
+
+            <div class="detail-header-info">
+                <h3>@Model.HOTENNV</h3>
+                <p>Mã nhân viên: @Model.MANV</p>
+            </div>
+        </div>
+
+        <div class="detail-body">
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Mã nhân viên</div>
+                    <div class="detail-value">@Model.MANV</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Họ tên nhân viên</div>
+                    <div class="detail-value">@Model.HOTENNV</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Số điện thoại</div>
+                    <div class="detail-value">@Model.SODIENTHOAINV</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Email</div>
+                    <div class="detail-value">@Model.EMAILNV</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Tên đăng nhập</div>
+                    <div class="detail-value">@Model.TENDANGNHAP</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Mật khẩu</div>
+                    <div class="detail-value">@Model.MATKHAUNV</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Vai trò</div>
+                    <div class="detail-value">
+                        <span class="badge-role @roleClass">@Model.VAITRO</span>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Trạng thái</div>
+                    <div class="detail-value">
+                        <span class="badge-status @statusClass">@Model.TRANGTHAI</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="action-bar">
+                @Html.ActionLink("Quay lại", "Index", "NHANVIEN65134364", null, new { @class = "btn-custom btn-back" })
+
+                @Html.ActionLink("Sửa thông tin", "Edit", "NHANVIEN65134364", new { id = Model.MANV }, new { @class = "btn-custom btn-edit" })
+
+                @if (Model.TRANGTHAI == "Đang hoạt động")
+                {
+                    @Html.ActionLink("Khóa tài khoản", "Khoa", "NHANVIEN65134364", new { id = Model.MANV }, new
+                    {
+                        @class = "btn-custom btn-lock",
+                        onclick = "return confirm('Bạn có chắc muốn khóa tài khoản này không?');"
+                    })
+                }
+                else
+                {
+                    @Html.ActionLink("Mở khóa", "MoKhoa", "NHANVIEN65134364", new { id = Model.MANV }, new
+                    {
+                        @class = "btn-custom btn-unlock",
+                        onclick = "return confirm('Bạn có chắc muốn mở khóa tài khoản này không?');"
+                    })
+                }
+
+                @Html.ActionLink("Xóa", "Delete", "NHANVIEN65134364", new { id = Model.MANV }, new { @class = "btn-custom btn-delete" })
+            </div>
+        </div>
+    </div>
+</div>

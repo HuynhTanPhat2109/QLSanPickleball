@@ -1,0 +1,379 @@
+﻿@model QLSanPickleball_65132651.Models.SAN
+
+@{
+    ViewBag.Title = "Chi tiết sân";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .detail-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        margin-bottom: 18px;
+    }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+    .detail-card {
+        background: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        overflow: hidden;
+    }
+
+    .detail-header {
+        background: linear-gradient(135deg, #065f46, #16a34a);
+        color: white;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .court-circle {
+        width: 76px;
+        height: 76px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.18);
+        border: 1px solid rgba(255,255,255,0.35);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        font-weight: bold;
+        flex-shrink: 0;
+    }
+
+    .detail-header-info h3 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: bold;
+    }
+
+    .detail-header-info p {
+        margin: 6px 0 0 0;
+        color: #dcfce7;
+        font-weight: 600;
+    }
+
+    .detail-body {
+        padding: 24px;
+    }
+
+    .detail-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .detail-item {
+        border: 1px solid #e5e7eb;
+        border-radius: 10px;
+        padding: 15px;
+        background: #f9fafb;
+    }
+
+    .detail-item-full {
+        grid-column: 1 / span 2;
+    }
+
+    .detail-label {
+        font-size: 13px;
+        font-weight: bold;
+        color: #6b7280;
+        margin-bottom: 8px;
+        text-transform: uppercase;
+    }
+
+    .detail-value {
+        font-size: 16px;
+        color: #111827;
+        font-weight: 600;
+        word-break: break-word;
+        line-height: 1.5;
+    }
+
+    .badge-type,
+    .badge-status {
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: bold;
+        display: inline-block;
+    }
+
+    .type-vip {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .type-normal {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .status-free {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-booked {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-playing {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-maintain {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .action-bar {
+        margin-top: 20px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-custom {
+        padding: 10px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        color: white !important;
+        display: inline-block;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+        .btn-back:hover {
+            background: #4b5563;
+            text-decoration: none;
+            color: white;
+        }
+
+    .btn-edit {
+        background: #f59e0b;
+    }
+
+        .btn-edit:hover {
+            background: #d97706;
+            text-decoration: none;
+            color: white;
+        }
+
+    .btn-delete {
+        background: #dc2626;
+    }
+
+        .btn-delete:hover {
+            background: #b91c1c;
+            text-decoration: none;
+            color: white;
+        }
+
+    .quick-status {
+        margin-top: 22px;
+        border-top: 1px solid #e5e7eb;
+        padding-top: 18px;
+    }
+
+    .quick-status-title {
+        font-size: 16px;
+        font-weight: bold;
+        color: #111827;
+        margin-bottom: 12px;
+    }
+
+    .status-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-status {
+        padding: 8px 12px;
+        border-radius: 8px;
+        text-decoration: none;
+        color: white !important;
+        font-weight: bold;
+        font-size: 13px;
+    }
+
+    .btn-free {
+        background: #16a34a;
+    }
+
+    .btn-booked {
+        background: #ca8a04;
+    }
+
+    .btn-playing {
+        background: #dc2626;
+    }
+
+    .btn-maintain {
+        background: #6b7280;
+    }
+
+    .btn-status:hover {
+        opacity: 0.85;
+        text-decoration: none;
+        color: white;
+    }
+
+    @@media(max-width: 700px) {
+        .detail-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .detail-item-full {
+            grid-column: 1;
+        }
+
+        .detail-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .action-bar {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+@{
+    string tenLoaiSan = Model.LOAISAN != null ? Model.LOAISAN.TENLOAISAN : Model.MALOAISAN;
+
+    string typeClass = "type-normal";
+    if (!string.IsNullOrWhiteSpace(tenLoaiSan) && tenLoaiSan.ToLower().Contains("vip"))
+    {
+        typeClass = "type-vip";
+    }
+
+    string statusClass = "status-free";
+
+    if (Model.TRANGTHAISAN == "Đang đặt")
+    {
+        statusClass = "status-booked";
+    }
+    else if (Model.TRANGTHAISAN == "Đang sử dụng")
+    {
+        statusClass = "status-playing";
+    }
+    else if (Model.TRANGTHAISAN == "Bảo trì")
+    {
+        statusClass = "status-maintain";
+    }
+}
+
+<div class="detail-wrapper">
+
+    <div class="detail-card">
+        <div class="detail-header">
+            <div class="court-circle">@Model.MASAN</div>
+
+            <div class="detail-header-info">
+                <h3>@Model.TENSAN</h3>
+                <p>Mã sân: @Model.MASAN</p>
+            </div>
+        </div>
+
+        <div class="detail-body">
+            <div class="detail-grid">
+                <div class="detail-item">
+                    <div class="detail-label">Mã sân</div>
+                    <div class="detail-value">@Model.MASAN</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Tên sân</div>
+                    <div class="detail-value">@Model.TENSAN</div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Loại sân</div>
+                    <div class="detail-value">
+                        <span class="badge-type @typeClass">@tenLoaiSan</span>
+                    </div>
+                </div>
+
+                <div class="detail-item">
+                    <div class="detail-label">Trạng thái sân</div>
+                    <div class="detail-value">
+                        <span class="badge-status @statusClass">@Model.TRANGTHAISAN</span>
+                    </div>
+                </div>
+
+                <div class="detail-item detail-item-full">
+                    <div class="detail-label">Mô tả sân</div>
+                    <div class="detail-value">
+                        @(string.IsNullOrWhiteSpace(Model.MOTASAN) ? "Không có mô tả." : Model.MOTASAN)
+                    </div>
+                </div>
+            </div>
+
+            <div class="quick-status">
+                <div class="quick-status-title">Đổi trạng thái nhanh</div>
+
+                <div class="status-actions">
+                    @Html.ActionLink("Trống", "ChuyenTrangThai", "SAN65134364",
+                        new { id = Model.MASAN, trangThai = "Trống" },
+                        new
+                        {
+                            @class = "btn-status btn-free",
+                            onclick = "return confirm('Chuyển sân " + Model.TENSAN + " sang trạng thái Trống?');"
+                        })
+
+                    @Html.ActionLink("Đang đặt", "ChuyenTrangThai", "SAN65134364",
+                        new { id = Model.MASAN, trangThai = "Đang đặt" },
+                        new
+                        {
+                            @class = "btn-status btn-booked",
+                            onclick = "return confirm('Chuyển sân " + Model.TENSAN + " sang trạng thái Đang đặt?');"
+                        })
+
+                    @Html.ActionLink("Đang sử dụng", "ChuyenTrangThai", "SAN65134364",
+                        new { id = Model.MASAN, trangThai = "Đang sử dụng" },
+                        new
+                        {
+                            @class = "btn-status btn-playing",
+                            onclick = "return confirm('Chuyển sân " + Model.TENSAN + " sang trạng thái Đang sử dụng?');"
+                        })
+
+                    @Html.ActionLink("Bảo trì", "ChuyenTrangThai", "SAN65134364",
+                        new { id = Model.MASAN, trangThai = "Bảo trì" },
+                        new
+                        {
+                            @class = "btn-status btn-maintain",
+                            onclick = "return confirm('Chuyển sân " + Model.TENSAN + " sang trạng thái Bảo trì?');"
+                        })
+                </div>
+            </div>
+
+            <div class="action-bar">
+                @Html.ActionLink("Quay lại", "Index", "SAN65134364", null, new { @class = "btn-custom btn-back" })
+
+                @Html.ActionLink("Sửa thông tin", "Edit", "SAN65134364", new { id = Model.MASAN }, new { @class = "btn-custom btn-edit" })
+
+                @Html.ActionLink("Xóa", "Delete", "SAN65134364", new { id = Model.MASAN }, new { @class = "btn-custom btn-delete" })
+            </div>
+        </div>
+    </div>
+</div>

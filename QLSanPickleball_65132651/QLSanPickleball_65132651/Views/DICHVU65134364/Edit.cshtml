@@ -1,0 +1,177 @@
+﻿@model QLSanPickleball_65132651.Models.DICHVU
+
+@{
+    ViewBag.Title = "Sửa dịch vụ";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .form-wrapper {
+        max-width: 850px;
+        margin: 0 auto;
+    }
+
+    .page-head {
+        margin-bottom: 18px;
+    }
+
+        .page-head h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .page-sub {
+        margin-top: 5px;
+        color: #6b7280;
+    }
+
+    .form-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .form-group-full {
+        grid-column: 1 / span 2;
+    }
+
+    .control-label {
+        display: block;
+        font-weight: 900;
+        color: #374151;
+        margin-bottom: 7px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 11px 13px;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        font-size: 14px;
+    }
+
+        .form-control:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+            outline: none;
+        }
+
+    .text-danger {
+        color: #dc2626;
+        font-size: 13px;
+        font-weight: 700;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .btn-row {
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        margin-top: 24px;
+        flex-wrap: wrap;
+    }
+
+    .btn-save,
+    .btn-back {
+        border: none;
+        padding: 11px 18px;
+        border-radius: 12px;
+        font-weight: 900;
+        text-decoration: none;
+        color: white !important;
+        display: inline-block;
+    }
+
+    .btn-save {
+        background: #f59e0b;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+        .btn-save:hover,
+        .btn-back:hover {
+            opacity: 0.88;
+            text-decoration: none;
+            color: white;
+        }
+
+    @@media(max-width: 650px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group-full {
+            grid-column: 1;
+        }
+    }
+</style>
+
+<div class="form-wrapper">
+    <div class="page-head">
+        <div class="page-sub">Cập nhật giá, tồn kho và trạng thái kinh doanh của dịch vụ.</div>
+    </div>
+
+    <div class="form-card">
+        @using (Html.BeginForm("Edit", "DICHVU65134364", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            <div class="form-grid">
+                <div>
+                    @Html.LabelFor(model => model.MADV, "Mã dịch vụ", new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.MADV, new { @class = "form-control", @readonly = "readonly" })
+                    @Html.ValidationMessageFor(model => model.MADV, "", new { @class = "text-danger" })
+                </div>
+
+                <div>
+                    @Html.LabelFor(model => model.TRANGTHAIKD, "Trạng thái kinh doanh", new { @class = "control-label" })
+                    @Html.DropDownListFor(model => model.TRANGTHAIKD, (SelectList)ViewBag.TrangThaiList, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.TRANGTHAIKD, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group-full">
+                    @Html.LabelFor(model => model.TENDV, "Tên dịch vụ", new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.TENDV, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.TENDV, "", new { @class = "text-danger" })
+                </div>
+
+                <div>
+                    @Html.LabelFor(model => model.DONVITINH, "Đơn vị tính", new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.DONVITINH, new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.DONVITINH, "", new { @class = "text-danger" })
+                </div>
+
+                <div>
+                    @Html.LabelFor(model => model.DONGIA, "Đơn giá", new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.DONGIA, new { @class = "form-control", type = "number", min = "0", step = "1000" })
+                    @Html.ValidationMessageFor(model => model.DONGIA, "", new { @class = "text-danger" })
+                </div>
+
+                <div>
+                    @Html.LabelFor(model => model.SOLUONGTON, "Số lượng tồn", new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.SOLUONGTON, new { @class = "form-control", type = "number", min = "0" })
+                    @Html.ValidationMessageFor(model => model.SOLUONGTON, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="btn-row">
+                @Html.ActionLink("Quay lại", "Index", "DICHVU65134364", null, new { @class = "btn-back" })
+                <button type="submit" class="btn-save">Cập nhật</button>
+            </div>
+        }
+    </div>
+</div>

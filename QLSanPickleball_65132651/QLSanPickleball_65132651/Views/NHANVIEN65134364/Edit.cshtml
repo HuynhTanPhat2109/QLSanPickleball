@@ -1,0 +1,348 @@
+﻿@model QLSanPickleball_65132651.Models.NHANVIEN
+
+@{
+    ViewBag.Title = "Sửa nhân viên";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .edit-wrapper {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+    .form-card {
+        background: white;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        padding: 24px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 28px;
+    }
+
+    .avatar-box {
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 22px;
+        text-align: center;
+        background: #f9fafb;
+        height: fit-content;
+    }
+
+    .avatar-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f59e0b, #b45309);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 58px;
+        font-weight: bold;
+        margin: 0 auto 16px auto;
+        box-shadow: 0 8px 18px rgba(245, 158, 11, 0.25);
+    }
+
+    .avatar-title {
+        font-weight: bold;
+        color: #111827;
+        font-size: 17px;
+        margin-bottom: 6px;
+    }
+
+    .avatar-note {
+        font-size: 13px;
+        color: #6b7280;
+        line-height: 1.5;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .form-group {
+        margin-bottom: 4px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: bold;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        outline: none;
+        background: white;
+    }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.15);
+        }
+
+    .readonly-input {
+        background: #f3f4f6;
+        cursor: not-allowed;
+        color: #6b7280;
+    }
+
+    .text-danger {
+        color: #dc2626;
+        font-size: 13px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .action-bar {
+        margin-top: 24px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-save {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 11px 18px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+        .btn-save:hover {
+            background: #d97706;
+        }
+
+    .btn-back {
+        background: #6b7280;
+        color: white !important;
+        padding: 11px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+        .btn-back:hover {
+            background: #4b5563;
+            text-decoration: none;
+            color: white;
+        }
+
+    .btn-detail {
+        background: #0ea5e9;
+        color: white !important;
+        padding: 11px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+        .btn-detail:hover {
+            background: #0284c7;
+            text-decoration: none;
+            color: white;
+        }
+
+    .validation-summary-errors {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 18px;
+    }
+
+    @@media(max-width: 850px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+@{
+    string chuDaiDien = "NV";
+
+    if (!string.IsNullOrWhiteSpace(Model.HOTENNV))
+    {
+        var parts = Model.HOTENNV.Trim().Split(new[] { ' ' }, System.StringSplitOptions.RemoveEmptyEntries);
+
+        if (parts.Length >= 2)
+        {
+            chuDaiDien = (parts[parts.Length - 2].Substring(0, 1) + parts[parts.Length - 1].Substring(0, 1)).ToUpper();
+        }
+        else
+        {
+            chuDaiDien = parts[0].Substring(0, 1).ToUpper();
+        }
+    }
+}
+
+<div class="edit-wrapper">
+    
+
+    <div class="form-card">
+        @using (Html.BeginForm("Edit", "NHANVIEN65134364", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            @Html.HiddenFor(model => model.MANV)
+
+            <div class="form-grid">
+                <div class="avatar-box">
+                    <div class="avatar-circle" id="avatarChu">@chuDaiDien</div>
+                    <div class="avatar-title">@Model.HOTENNV</div>
+                    <div class="avatar-note">
+                        Avatar tự tạo theo chữ cái đầu của tên nhân viên.
+                    </div>
+                </div>
+
+                <div>
+                    <div class="info-grid">
+                        <div class="form-group">
+                            <label class="form-label">Mã nhân viên</label>
+                            <input type="text" value="@Model.MANV" class="form-control readonly-input" readonly />
+                            @Html.ValidationMessageFor(model => model.MANV, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Họ tên nhân viên</label>
+                            @Html.TextBoxFor(model => model.HOTENNV, new
+                            {
+                                @class = "form-control",
+                                placeholder = "Nhập họ tên nhân viên",
+                                id = "HOTENNV"
+                            })
+                            @Html.ValidationMessageFor(model => model.HOTENNV, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Số điện thoại</label>
+                            @Html.TextBoxFor(model => model.SODIENTHOAINV, new
+                            {
+                                @class = "form-control",
+                                placeholder = "Nhập số điện thoại 10 số"
+                            })
+                            @Html.ValidationMessageFor(model => model.SODIENTHOAINV, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            @Html.TextBoxFor(model => model.EMAILNV, new
+                            {
+                                @class = "form-control",
+                                placeholder = "Nhập email nhân viên",
+                                type = "email"
+                            })
+                            @Html.ValidationMessageFor(model => model.EMAILNV, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Tên đăng nhập</label>
+                            @Html.TextBoxFor(model => model.TENDANGNHAP, new
+                            {
+                                @class = "form-control",
+                                placeholder = "Nhập tên đăng nhập"
+                            })
+                            @Html.ValidationMessageFor(model => model.TENDANGNHAP, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Mật khẩu</label>
+                            @Html.TextBoxFor(model => model.MATKHAUNV, new
+                            {
+                                @class = "form-control",
+                                placeholder = "Nhập mật khẩu"
+                            })
+                            @Html.ValidationMessageFor(model => model.MATKHAUNV, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Vai trò</label>
+                            @Html.DropDownListFor(model => model.VAITRO,
+                                (SelectList)ViewBag.VaiTroList,
+                                "-- Chọn vai trò --",
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(model => model.VAITRO, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Trạng thái</label>
+                            @Html.DropDownListFor(model => model.TRANGTHAI,
+                                (SelectList)ViewBag.TrangThaiList,
+                                "-- Chọn trạng thái --",
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(model => model.TRANGTHAI, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="action-bar">
+                        @Html.ActionLink("Quay lại", "Index", "NHANVIEN65134364", null, new { @class = "btn-back" })
+                        @Html.ActionLink("Chi tiết", "Details", "NHANVIEN65134364", new { id = Model.MANV }, new { @class = "btn-detail" })
+                        <button type="submit" class="btn-save">Lưu thay đổi</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    var inputTen = document.getElementById("HOTENNV");
+    var avatar = document.getElementById("avatarChu");
+
+    inputTen.addEventListener("input", function () {
+        var ten = inputTen.value.trim();
+
+        if (ten.length === 0) {
+            avatar.innerText = "NV";
+            return;
+        }
+
+        var parts = ten.split(/\s+/);
+        var chuDau = "";
+
+        if (parts.length >= 2) {
+            chuDau = parts[parts.length - 2].charAt(0) + parts[parts.length - 1].charAt(0);
+        } else {
+            chuDau = parts[0].charAt(0);
+        }
+
+        avatar.innerText = chuDau.toUpperCase();
+    });
+</script>

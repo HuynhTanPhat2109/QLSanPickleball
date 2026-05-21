@@ -1,13 +1,354 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var hoTen = Session["HOTENNV"] != null ? Session["HOTENNV"].ToString() : "Admin";
+    var vaiTro = Session["VAITRO"] != null ? Session["VAITRO"].ToString() : "Quản trị";
 
-<html>
+    string roleHienTai = Session["VAITRO"] != null ? Session["VAITRO"].ToString() : "";
+
+    bool laAdminHoacQuanLy = roleHienTai == "Admin" || roleHienTai == "Quản lý";
+    bool laNhanVien = roleHienTai == "Nhân viên";
+    bool duocVaoKhuNhanVien = laAdminHoacQuanLy || laNhanVien;
+}
+
+<!DOCTYPE html>
+<html lang="vi">
 <head>
-    <meta name="viewport" content="width=device-width" />
-    <title>@ViewBag.Title</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>@ViewBag.Title - ARMY PICKLEBALL</title>
+
+    @Styles.Render("~/Content/css")
+    @Scripts.Render("~/bundles/modernizr")
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f4f6f9;
+        }
+
+        .admin-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .admin-sidebar {
+            width: 260px;
+            background: #111827;
+            color: white;
+            position: fixed;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            overflow-y: auto;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.15);
+        }
+
+        .admin-logo {
+            padding: 24px 20px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
+
+            .admin-logo h2 {
+                margin: 0;
+                font-size: 20px;
+                font-weight: 900;
+                letter-spacing: 2px;
+                color: #ffffff;
+            }
+
+            .admin-logo span {
+                display: block;
+                margin-top: 8px;
+                font-size: 13px;
+                color: #9ca3af;
+            }
+
+        .admin-user {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.12);
+        }
+
+            .admin-user .name {
+                font-size: 16px;
+                font-weight: 900;
+                color: #ffffff;
+            }
+
+            .admin-user .role {
+                margin-top: 7px;
+                font-size: 14px;
+                color: #9ca3af;
+                font-weight: 700;
+            }
+
+        .role-badge {
+            display: inline-block;
+            margin-top: 10px;
+            padding: 6px 10px;
+            border-radius: 999px;
+            background: #1f2937;
+            color: #dbeafe;
+            font-size: 12px;
+            font-weight: 900;
+        }
+
+        .admin-menu {
+            list-style: none;
+            padding: 12px 0;
+            margin: 0;
+        }
+
+        .admin-menu-title {
+            padding: 16px 20px 7px 20px;
+            font-size: 12px;
+            color: #6b7280;
+            text-transform: uppercase;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+        }
+
+        .admin-menu li a {
+            display: block;
+            padding: 12px 20px;
+            color: #d1d5db;
+            text-decoration: none;
+            font-size: 14px;
+            transition: 0.2s;
+            border-left: 4px solid transparent;
+        }
+
+            .admin-menu li a:hover {
+                background: #1f2937;
+                color: #ffffff;
+                padding-left: 26px;
+                border-left-color: #2563eb;
+                text-decoration: none;
+            }
+
+            .admin-menu li a:focus {
+                color: #ffffff;
+                text-decoration: none;
+            }
+
+        .menu-note {
+            padding: 10px 20px;
+            color: #9ca3af;
+            font-size: 12px;
+            line-height: 1.5;
+            background: rgba(255,255,255,0.03);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            margin: 8px 0;
+        }
+
+        .admin-main {
+            margin-left: 260px;
+            width: calc(100% - 260px);
+            min-height: 100vh;
+        }
+
+        .admin-topbar {
+            height: 64px;
+            background: #ffffff;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 28px;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+            .admin-topbar h1 {
+                margin: 0;
+                font-size: 20px;
+                font-weight: 900;
+                color: #111827;
+            }
+
+        .admin-topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+            color: #374151;
+        }
+
+        .btn-logout {
+            padding: 8px 14px;
+            background: #dc2626;
+            color: white !important;
+            text-decoration: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 900;
+        }
+
+            .btn-logout:hover {
+                background: #b91c1c;
+                text-decoration: none;
+                color: white;
+            }
+
+        .admin-content {
+            padding: 28px;
+        }
+
+        .admin-card {
+            background: white;
+            border-radius: 10px;
+            padding: 22px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            border: 1px solid #e5e7eb;
+        }
+
+        .footer-admin {
+            padding: 18px 28px;
+            color: #6b7280;
+            font-size: 13px;
+            text-align: center;
+        }
+
+        table {
+            background: white;
+        }
+
+        .table th {
+            background: #f3f4f6;
+            color: #111827;
+        }
+
+        .btn {
+            border-radius: 6px;
+        }
+
+        input,
+        select,
+        textarea {
+            max-width: 100%;
+        }
+
+        @@media (max-width: 768px) {
+            .admin-sidebar {
+                width: 220px;
+            }
+
+            .admin-main {
+                margin-left: 220px;
+                width: calc(100% - 220px);
+            }
+
+            .admin-topbar {
+                padding: 0 16px;
+            }
+
+            .admin-content {
+                padding: 18px;
+            }
+
+            .admin-logo h2 {
+                font-size: 17px;
+            }
+        }
+    </style>
 </head>
+
 <body>
-    <div>
-        @RenderBody()
+    <div class="admin-wrapper">
+
+        <aside class="admin-sidebar">
+            <div class="admin-logo">
+                <h2>ARMY PICKLEBALL</h2>
+                <span>Hệ thống quản trị sân</span>
+            </div>
+
+            <div class="admin-user">
+                <div class="name">@hoTen</div>
+                <div class="role">@vaiTro</div>
+
+                @if (laAdminHoacQuanLy)
+                {
+                    <span class="role-badge">Toàn quyền quản trị</span>
+                }
+                else if (laNhanVien)
+                {
+                    <span class="role-badge">Nghiệp vụ nhân viên</span>
+                }
+            </div>
+
+            <ul class="admin-menu">
+                <li class="admin-menu-title">Tổng quan</li>
+                <li>@Html.ActionLink("Dashboard", "HomeNv", "Admin65134364")</li>
+
+                @if (laAdminHoacQuanLy)
+                {
+                    <li class="admin-menu-title">Quản lý hệ thống</li>
+                    <li>@Html.ActionLink("Quản lý nhân viên", "Index", "NHANVIEN65134364")</li>
+                    <li>@Html.ActionLink("Quản lý khách hàng", "Index", "KHACHHANGs")</li>
+                    <li>@Html.ActionLink("Quản lý hội viên", "Index", "HOIVIENs")</li>
+
+                    <li class="admin-menu-title">Quản lý sân</li>
+                    <li>@Html.ActionLink("Danh sách sân", "Index", "SAN65134364")</li>
+                    <li>@Html.ActionLink("Loại sân", "Index", "LOAISANs")</li>
+                    <li>@Html.ActionLink("Bảng giá sân", "Index", "BANGGIAs")</li>
+                }
+
+                @if (duocVaoKhuNhanVien)
+                {
+                    <li class="admin-menu-title">Nghiệp vụ nhân viên</li>
+                    <li>@Html.ActionLink("Phiếu đặt sân", "Index", "PhieuDatSanNV65134364")</li>
+                    <li>@Html.ActionLink("Cập nhật trạng thái sân", "Index", "SAN65134364")</li>
+                    <li>@Html.ActionLink("Hỗ trợ hủy sân", "Index", "PhieuDatSanNV65134364", new { trangThaiPhieu = "Đã xác nhận" }, null)</li>
+                    <li>@Html.ActionLink("Hóa đơn", "Index", "HoaDonNV65134364")</li>
+                    <li>@Html.ActionLink("Dịch vụ sử dụng", "Index", "ChiTietDichVuDat65134364")</li>
+
+                    <li class="menu-note">
+                        Hủy sân xử lý trong chi tiết phiếu đặt sân. Chính sách hoàn tiền sẽ làm ở bước tiếp theo.
+                    </li>
+                }
+
+                @if (laAdminHoacQuanLy)
+                {
+                    <li class="admin-menu-title">Dịch vụ</li>
+                    <li>@Html.ActionLink("Dịch vụ đi kèm", "Index", "DICHVU65134364")</li>
+                    <li>@Html.ActionLink("Chi tiết dịch vụ đặt", "Index", "ChiTietDichVuDat65134364")</li>
+
+                    <li class="admin-menu-title">Cấu hình</li>
+                    <li>@Html.ActionLink("Tham số hệ thống", "Index", "THAMSO65134364")</li>
+                }
+
+                <li class="admin-menu-title">Tài khoản</li>
+                <li>@Html.ActionLink("Đăng xuất", "Logout", "Account65132651")</li>
+            </ul>
+        </aside>
+
+        <main class="admin-main">
+            <div class="admin-topbar">
+                <h1>@ViewBag.Title</h1>
+
+                <div class="admin-topbar-right">
+                    <span>Xin chào, <strong>@hoTen</strong></span>
+                    @Html.ActionLink("Đăng xuất", "Logout", "Account65132651", null, new { @class = "btn-logout" })
+                </div>
+            </div>
+
+            <div class="admin-content">
+                @RenderBody()
+            </div>
+
+            <div class="footer-admin">
+                © @DateTime.Now.Year - ARMY PICKLEBALL | Quản lý hệ thống sân Pickleball
+            </div>
+        </main>
+
     </div>
+
+    @Scripts.Render("~/bundles/jquery")
+    @Scripts.Render("~/bundles/bootstrap")
+    @RenderSection("scripts", required: false)
 </body>
 </html>

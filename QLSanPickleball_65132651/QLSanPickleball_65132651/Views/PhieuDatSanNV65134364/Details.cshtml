@@ -1,0 +1,885 @@
+﻿@using System
+@using System.Linq
+@model QLSanPickleball_65132651.Models.PHIEUDATSAN
+
+@{
+    ViewBag.Title = "Chi tiết phiếu đặt sân";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    var danhSachDichVu = ViewBag.DanhSachDichVu as IEnumerable<QLSanPickleball_65132651.Models.CHITIETDICHVUDAT>;
+    bool daCoHoaDon = ViewBag.DaCoHoaDon != null && (bool)ViewBag.DaCoHoaDon;
+
+    string tenSan = Model.SAN != null ? Model.SAN.TENSAN : Model.MASAN;
+    string loaiSan = Model.SAN != null && Model.SAN.LOAISAN != null ? Model.SAN.LOAISAN.TENLOAISAN : "Không rõ";
+    string tenKhach = Model.KHACHHANG != null ? Model.KHACHHANG.HOTENKH : "Khách vãng lai";
+    string sdtKhach = Model.KHACHHANG != null ? Model.KHACHHANG.SODIENTHOAIKH : "";
+    string emailKhach = Model.KHACHHANG != null ? Model.KHACHHANG.EMAILKH : "";
+    string tenNhanVien = Model.NHANVIEN != null ? Model.NHANVIEN.HOTENNV : "Chưa xử lý";
+
+    decimal tongTienDichVu = 0;
+    if (danhSachDichVu != null && danhSachDichVu.Any())
+    {
+        tongTienDichVu = danhSachDichVu.Sum(x => x.THANHTIEN);
+    }
+
+    decimal tongTamTinh = Model.TONGTIENTAMTINH + tongTienDichVu;
+
+    string classPhieu = "st-gray";
+
+    if (Model.TRANGTHAIPHIEU == "Tam_Giu")
+    {
+        classPhieu = "st-temp";
+    }
+    else if (Model.TRANGTHAIPHIEU == "Cho_Thanh_Toan")
+    {
+        classPhieu = "st-pay";
+    }
+    else if (Model.TRANGTHAIPHIEU == "Chờ duyệt" || Model.TRANGTHAIPHIEU == "Chờ xác nhận")
+    {
+        classPhieu = "st-wait";
+    }
+    else if (Model.TRANGTHAIPHIEU == "Đã xác nhận")
+    {
+        classPhieu = "st-confirm";
+    }
+    else if (Model.TRANGTHAIPHIEU == "Hoàn thành")
+    {
+        classPhieu = "st-done";
+    }
+    else if (Model.TRANGTHAIPHIEU == "Đã hủy" || Model.TRANGTHAIPHIEU == "Đã huỷ" || Model.TRANGTHAIPHIEU == "Hủy" || Model.TRANGTHAIPHIEU == "Huy" || Model.TRANGTHAIPHIEU == "DaHuy")
+    {
+        classPhieu = "st-cancel";
+    }
+
+    string classThanhToan = "st-gray";
+
+    if (Model.TRANGTHAITHANHTOAN == "ChuaThanhToan")
+    {
+        classThanhToan = "st-temp";
+    }
+    else if (Model.TRANGTHAITHANHTOAN == "Cho_Chuyen_Khoan")
+    {
+        classThanhToan = "st-pay";
+    }
+    else if (Model.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản")
+    {
+        classThanhToan = "st-wait";
+    }
+    else if (Model.TRANGTHAITHANHTOAN == "Đã đặt cọc")
+    {
+        classThanhToan = "st-confirm";
+    }
+    else if (Model.TRANGTHAITHANHTOAN == "Đã thanh toán 100%")
+    {
+        classThanhToan = "st-done";
+    }
+    else if (Model.TRANGTHAITHANHTOAN == "Đã hủy" || Model.TRANGTHAITHANHTOAN == "Đã huỷ")
+    {
+        classThanhToan = "st-cancel";
+    }
+
+    bool choXacNhan = Model.TRANGTHAIPHIEU == "Chờ xác nhận"
+        || Model.TRANGTHAIPHIEU == "Chờ duyệt"
+        || Model.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản";
+
+    bool daXacNhan = Model.TRANGTHAIPHIEU == "Đã xác nhận";
+    bool daHoanThanh = Model.TRANGTHAIPHIEU == "Hoàn thành";
+
+    bool daHuy = Model.TRANGTHAIPHIEU == "Đã hủy"
+        || Model.TRANGTHAIPHIEU == "Đã huỷ"
+        || Model.TRANGTHAIPHIEU == "Hủy"
+        || Model.TRANGTHAIPHIEU == "Huy"
+        || Model.TRANGTHAIPHIEU == "DaHuy"
+        || Model.TRANGTHAITHANHTOAN == "Đã hủy"
+        || Model.TRANGTHAITHANHTOAN == "Đã huỷ";
+
+    bool duocSuaDichVu = !daHuy && !daHoanThanh && !daCoHoaDon;
+
+    string maNhom = "";
+    string minhChungPath = "";
+
+    if (!string.IsNullOrWhiteSpace(Model.GHICHU))
+    {
+        int viTriGRP = Model.GHICHU.IndexOf("GRP");
+
+        if (viTriGRP >= 0)
+        {
+            string temp = Model.GHICHU.Substring(viTriGRP).Trim();
+
+            int viTriSpace = temp.IndexOf(" ");
+            int viTriGach = temp.IndexOf("|");
+
+            int viTriCat = -1;
+
+            if (viTriSpace > 0 && viTriGach > 0)
+            {
+                viTriCat = Math.Min(viTriSpace, viTriGach);
+            }
+            else if (viTriSpace > 0)
+            {
+                viTriCat = viTriSpace;
+            }
+            else if (viTriGach > 0)
+            {
+                viTriCat = viTriGach;
+            }
+
+            maNhom = viTriCat > 0 ? temp.Substring(0, viTriCat).Trim() : temp.Trim();
+        }
+
+        if (Model.GHICHU.Contains("Minh chứng:"))
+        {
+            int viTri = Model.GHICHU.IndexOf("Minh chứng:");
+            minhChungPath = Model.GHICHU.Substring(viTri + "Minh chứng:".Length).Trim();
+
+            int viTriGach2 = minhChungPath.IndexOf("|");
+            if (viTriGach2 > 0)
+            {
+                minhChungPath = minhChungPath.Substring(0, viTriGach2).Trim();
+            }
+        }
+    }
+
+    string tenFileMinhChung = "";
+    if (!string.IsNullOrWhiteSpace(minhChungPath))
+    {
+        tenFileMinhChung = System.IO.Path.GetFileName(minhChungPath);
+    }
+}
+
+<style>
+    .detail-wrapper {
+        max-width: 1150px;
+        margin: 0 auto;
+    }
+
+    .page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+        .page-head h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .page-sub {
+        margin-top: 4px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .top-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+    }
+
+    .alert-success-custom {
+        background: #dcfce7;
+        color: #166534;
+        padding: 13px 16px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #bbf7d0;
+        font-weight: 800;
+    }
+
+    .alert-error-custom {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 13px 16px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #fecaca;
+        font-weight: 800;
+    }
+
+    .hero-card {
+        background: linear-gradient(135deg, #0f172a, #1e3a8a);
+        color: white;
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.18);
+        margin-bottom: 18px;
+        display: grid;
+        grid-template-columns: 130px 1fr auto;
+        gap: 18px;
+        align-items: center;
+    }
+
+    .hero-icon {
+        min-width: 110px;
+        height: 76px;
+        border-radius: 22px;
+        background: rgba(255,255,255,0.16);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        font-weight: 900;
+        border: 1px solid rgba(255,255,255,0.2);
+        padding: 0 12px;
+        white-space: nowrap;
+    }
+
+    .hero-title {
+        font-size: 24px;
+        font-weight: 900;
+        margin-bottom: 6px;
+    }
+
+    .hero-meta {
+        color: #bfdbfe;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .hero-money {
+        text-align: right;
+    }
+
+    .hero-money-label {
+        color: #bfdbfe;
+        font-size: 13px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+
+    .hero-money-value {
+        font-size: 28px;
+        font-weight: 900;
+        margin-top: 6px;
+    }
+
+    .grid-main {
+        display: grid;
+        grid-template-columns: 1.3fr 0.9fr;
+        gap: 18px;
+    }
+
+    .card-box {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
+        padding: 20px;
+        margin-bottom: 18px;
+    }
+
+    .card-title {
+        font-size: 18px;
+        font-weight: 900;
+        color: #111827;
+        margin-bottom: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .info-item {
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+        border-radius: 14px;
+        padding: 14px;
+        min-width: 0;
+    }
+
+    .info-item-full {
+        grid-column: 1 / span 2;
+    }
+
+    .info-label {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        color: #111827;
+        font-size: 15px;
+        font-weight: 800;
+        line-height: 1.45;
+        word-break: break-word;
+    }
+
+    .code-value {
+        font-size: 20px;
+        font-weight: 900;
+        color: #111827;
+        letter-spacing: 0.3px;
+        word-break: normal;
+        white-space: nowrap;
+    }
+
+    .group-code {
+        display: inline-block;
+        background: #eef2ff;
+        color: #1d4ed8;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 14px;
+        font-weight: 900;
+        word-break: normal;
+        white-space: nowrap;
+    }
+
+    .proof-link {
+        display: inline-block;
+        background: #ecfeff;
+        color: #0e7490 !important;
+        padding: 8px 12px;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 900;
+        text-decoration: none;
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+        .proof-link:hover {
+            background: #cffafe;
+            text-decoration: none;
+        }
+
+    .badge-status {
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 900;
+        display: inline-block;
+        white-space: nowrap;
+    }
+
+    .st-temp {
+        background: #e0f2fe;
+        color: #0369a1;
+    }
+
+    .st-pay {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .st-wait {
+        background: #ffedd5;
+        color: #c2410c;
+    }
+
+    .st-confirm {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .st-done {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .st-cancel {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .st-gray {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .money-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 11px 0;
+        border-bottom: 1px solid #e5e7eb;
+        gap: 12px;
+    }
+
+        .money-row:last-child {
+            border-bottom: none;
+        }
+
+    .money-label {
+        color: #6b7280;
+        font-weight: 800;
+    }
+
+    .money-value {
+        color: #111827;
+        font-weight: 900;
+    }
+
+    .money-total {
+        font-size: 22px;
+        color: #047857;
+    }
+
+    .service-table {
+        width: 100%;
+        border-collapse: collapse;
+        overflow: hidden;
+        border-radius: 14px;
+    }
+
+        .service-table th {
+            background: #f3f4f6;
+            color: #111827;
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #e5e7eb;
+            font-size: 13px;
+        }
+
+        .service-table td {
+            padding: 12px;
+            border-bottom: 1px solid #e5e7eb;
+            color: #374151;
+        }
+
+        .service-table tr:last-child td {
+            border-bottom: none;
+        }
+
+    .text-right {
+        text-align: right;
+    }
+
+    .empty-box {
+        border: 1px dashed #cbd5e1;
+        border-radius: 14px;
+        padding: 22px;
+        text-align: center;
+        color: #64748b;
+        font-weight: 700;
+        background: #f8fafc;
+    }
+
+    .proof-img {
+        width: 100%;
+        max-height: 420px;
+        object-fit: contain;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    .btn-action {
+        padding: 9px 13px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-size: 13px;
+        color: white !important;
+        display: inline-block;
+        font-weight: 900;
+        text-align: center;
+        border: none;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+    .btn-confirm {
+        background: #16a34a;
+    }
+
+    .btn-start {
+        background: #2563eb;
+    }
+
+    .btn-finish {
+        background: #7c3aed;
+    }
+
+    .btn-invoice {
+        background: #f59e0b;
+    }
+
+    .btn-cancel {
+        background: #dc2626;
+    }
+
+    .btn-service {
+        background: #0891b2;
+    }
+
+    .btn-remove-service {
+        background: #dc2626;
+        padding: 6px 10px;
+        border-radius: 9px;
+        color: white !important;
+        text-decoration: none;
+        font-size: 12px;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+        .btn-remove-service:hover {
+            opacity: 0.88;
+            color: white;
+            text-decoration: none;
+        }
+
+    .btn-action:hover {
+        opacity: 0.88;
+        color: white;
+        text-decoration: none;
+        transform: translateY(-1px);
+    }
+
+    @@media(max-width: 950px) {
+        .grid-main {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-card {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-money {
+            text-align: left;
+        }
+    }
+
+    @@media(max-width: 650px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-item-full {
+            grid-column: 1;
+        }
+
+        .top-actions {
+            justify-content: flex-start;
+        }
+    }
+</style>
+
+<div class="detail-wrapper">
+    <div class="page-head">
+        <div>
+            <h2>Chi tiết phiếu đặt sân</h2>
+            <div class="page-sub">Kiểm tra thông tin đặt sân, minh chứng thanh toán và xử lý nghiệp vụ.</div>
+        </div>
+
+        <div class="top-actions">
+            @Html.ActionLink("Quay lại", "Index", "PhieuDatSanNV65134364", null, new { @class = "btn-action btn-back" })
+
+            @if (duocSuaDichVu)
+            {
+                @Html.ActionLink("Thêm dịch vụ", "ThemDichVu", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new { @class = "btn-action btn-service" })
+            }
+
+            @if (choXacNhan && !daHuy)
+            {
+                @Html.ActionLink("Xác nhận", "XacNhanThanhToan", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new
+                {
+                    @class = "btn-action btn-confirm",
+                    onclick = "return confirm('Xác nhận thanh toán cho phiếu " + Model.MAPHIEUDAT + "?');"
+                })
+            }
+
+            @if (daXacNhan && !daHuy)
+            {
+                @Html.ActionLink("Vào sân", "KhachVaoSan", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new
+                {
+                    @class = "btn-action btn-start",
+                    onclick = "return confirm('Xác nhận khách vào sân?');"
+                })
+
+                @Html.ActionLink("Kết thúc", "KetThucLuotChoi", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new
+                {
+                    @class = "btn-action btn-finish",
+                    onclick = "return confirm('Kết thúc lượt chơi và chuyển sân về Trống?');"
+                })
+
+                if (!daCoHoaDon)
+                {
+                    @Html.ActionLink("Lập hóa đơn", "LapHoaDon", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new
+                    {
+                        @class = "btn-action btn-invoice",
+                        onclick = "return confirm('Lập hóa đơn cho phiếu " + Model.MAPHIEUDAT + "?');"
+                    })
+                }
+            }
+
+            @if (!daHuy && !daHoanThanh)
+            {
+                @Html.ActionLink("Hỗ trợ hủy sân", "HoTroHuySan", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new
+                {
+                    @class = "btn-action btn-cancel"
+                })          }
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert-success-custom">@TempData["Success"]</div>
+    }
+
+    @if (TempData["Error"] != null)
+    {
+        <div class="alert-error-custom">@TempData["Error"]</div>
+    }
+
+    <div class="hero-card">
+        <div class="hero-icon">@Model.MAPHIEUDAT</div>
+
+        <div>
+            <div class="hero-title">@tenSan</div>
+            <div class="hero-meta">
+                Mã sân: @Model.MASAN • Loại sân: @loaiSan <br />
+                Ngày chơi: @Model.NGAYDAT.ToString("dd/MM/yyyy") • Giờ: @Model.GIOBATDAU.ToString(@"hh\:mm") - @Model.GIOKETTHUC.ToString(@"hh\:mm")
+            </div>
+        </div>
+
+        <div class="hero-money">
+            <div class="hero-money-label">Tổng tạm tính</div>
+            <div class="hero-money-value">@tongTamTinh.ToString("N0") đ</div>
+        </div>
+    </div>
+
+    <div class="grid-main">
+        <div>
+            <div class="card-box">
+                <div class="card-title">
+                    <span>Thông tin phiếu</span>
+                    <span class="badge-status @classPhieu">@Model.TRANGTHAIPHIEU</span>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Mã phiếu</div>
+                        <div class="code-value">@Model.MAPHIEUDAT</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Mã nhóm đặt sân</div>
+                        <div class="info-value">
+                            @if (!string.IsNullOrWhiteSpace(maNhom))
+                            {
+                                <span class="group-code">@maNhom</span>
+                            }
+                            else
+                            {
+                                <span>Không có</span>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Trạng thái phiếu</div>
+                        <div class="info-value">
+                            <span class="badge-status @classPhieu">@Model.TRANGTHAIPHIEU</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Trạng thái thanh toán</div>
+                        <div class="info-value">
+                            <span class="badge-status @classThanhToan">@Model.TRANGTHAITHANHTOAN</span>
+                        </div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Nhân viên xử lý</div>
+                        <div class="info-value">@tenNhanVien</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Hóa đơn</div>
+                        <div class="info-value">@(daCoHoaDon ? "Đã lập hóa đơn" : "Chưa lập hóa đơn")</div>
+                    </div>
+
+                    <div class="info-item info-item-full">
+                        <div class="info-label">Minh chứng</div>
+                        <div class="info-value">
+                            @if (!string.IsNullOrWhiteSpace(minhChungPath))
+                            {
+                                <a href="@Url.Content(minhChungPath)" target="_blank" class="proof-link">
+                                    Xem minh chứng: @tenFileMinhChung
+                                </a>
+                            }
+                            else
+                            {
+                                <span>Chưa có minh chứng thanh toán</span>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">Thông tin khách hàng</div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Mã khách hàng</div>
+                        <div class="info-value">@(string.IsNullOrWhiteSpace(Model.MAKH) ? "Không có" : Model.MAKH)</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Họ tên khách</div>
+                        <div class="info-value">@tenKhach</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Số điện thoại</div>
+                        <div class="info-value">@(string.IsNullOrWhiteSpace(sdtKhach) ? "Không có" : sdtKhach)</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Email</div>
+                        <div class="info-value">@(string.IsNullOrWhiteSpace(emailKhach) ? "Không có" : emailKhach)</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">
+                    <span>Dịch vụ đi kèm</span>
+
+                    @if (duocSuaDichVu)
+                    {
+                        @Html.ActionLink("Thêm dịch vụ", "ThemDichVu", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new { @class = "btn-action btn-service" })
+                    }
+                </div>
+
+                @if (danhSachDichVu != null && danhSachDichVu.Any())
+                {
+                    <table class="service-table">
+                        <thead>
+                            <tr>
+                                <th>Dịch vụ</th>
+                                <th>Đơn vị</th>
+                                <th class="text-right">Đơn giá</th>
+                                <th class="text-right">Số lượng</th>
+                                <th class="text-right">Thành tiền</th>
+
+                                @if (duocSuaDichVu)
+                                {
+                                    <th class="text-right">Thao tác</th>
+                                }
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            @foreach (var item in danhSachDichVu)
+                            {
+                                string tenDV = item.DICHVU != null ? item.DICHVU.TENDV : item.MADV;
+                                string donViTinh = item.DICHVU != null ? item.DICHVU.DONVITINH : "";
+
+                                <tr>
+                                    <td><strong>@tenDV</strong></td>
+                                    <td>@donViTinh</td>
+                                    <td class="text-right">@item.DONGIA.ToString("N0") đ</td>
+                                    <td class="text-right">@item.SOLUONG</td>
+                                    <td class="text-right"><strong>@item.THANHTIEN.ToString("N0") đ</strong></td>
+
+                                    @if (duocSuaDichVu)
+                                    {
+                                        <td class="text-right">
+                                            @Html.ActionLink("Xóa", "XoaDichVu", "PhieuDatSanNV65134364",
+                                                new { maPhieuDat = Model.MAPHIEUDAT, maDV = item.MADV },
+                                                new
+                                                {
+                                                    @class = "btn-remove-service",
+                                                    onclick = "return confirm('Xóa dịch vụ " + tenDV + " khỏi phiếu này?');"
+                                                })
+                                        </td>
+                                    }
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <div class="empty-box">Phiếu này chưa có dịch vụ đi kèm.</div>
+                }
+            </div>
+        </div>
+
+        <div>
+            <div class="card-box">
+                <div class="card-title">Thanh toán</div>
+
+                <div class="money-row">
+                    <div class="money-label">Tiền sân</div>
+                    <div class="money-value">@Model.TONGTIENTAMTINH.ToString("N0") đ</div>
+                </div>
+
+                <div class="money-row">
+                    <div class="money-label">Tiền dịch vụ</div>
+                    <div class="money-value">@tongTienDichVu.ToString("N0") đ</div>
+                </div>
+
+                <div class="money-row">
+                    <div class="money-label">Tổng cộng</div>
+                    <div class="money-value money-total">@tongTamTinh.ToString("N0") đ</div>
+                </div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">Thông tin sân</div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <div class="info-label">Sân</div>
+                        <div class="info-value">@tenSan</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Loại sân</div>
+                        <div class="info-value">@loaiSan</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Ngày chơi</div>
+                        <div class="info-value">@Model.NGAYDAT.ToString("dd/MM/yyyy")</div>
+                    </div>
+
+                    <div class="info-item">
+                        <div class="info-label">Khung giờ</div>
+                        <div class="info-value">@Model.GIOBATDAU.ToString(@"hh\:mm") - @Model.GIOKETTHUC.ToString(@"hh\:mm")</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-box">
+                <div class="card-title">Minh chứng thanh toán</div>
+
+                @if (!string.IsNullOrWhiteSpace(minhChungPath))
+                {
+                    <a href="@Url.Content(minhChungPath)" target="_blank">
+                        <img src="@Url.Content(minhChungPath)" class="proof-img" />
+                    </a>
+                }
+                else
+                {
+                    <div class="empty-box">Chưa có minh chứng thanh toán.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>

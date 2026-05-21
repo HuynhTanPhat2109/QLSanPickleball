@@ -1,0 +1,288 @@
+﻿@model QLSanPickleball_65132651.Models.SAN
+
+@{
+    ViewBag.Title = "Sửa sân";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .edit-wrapper {
+        max-width: 980px;
+        margin: 0 auto;
+    }
+
+    .page-header {
+        margin-bottom: 18px;
+    }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+    .form-card {
+        background: white;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        padding: 24px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 28px;
+    }
+
+    .court-preview {
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 22px;
+        background: #f9fafb;
+        text-align: center;
+        height: fit-content;
+    }
+
+    .court-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f59e0b, #b45309);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 42px;
+        font-weight: bold;
+        margin: 0 auto 16px auto;
+        box-shadow: 0 8px 18px rgba(245, 158, 11, 0.25);
+    }
+
+    .court-title {
+        font-size: 18px;
+        font-weight: bold;
+        color: #111827;
+        margin-bottom: 6px;
+    }
+
+    .court-note {
+        color: #6b7280;
+        font-size: 13px;
+        line-height: 1.5;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .form-group-full {
+        grid-column: 1 / span 2;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: bold;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        outline: none;
+        background: white;
+    }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #f59e0b;
+            box-shadow: 0 0 0 2px rgba(245, 158, 11, 0.12);
+        }
+
+    .readonly-input {
+        background: #f3f4f6;
+        cursor: not-allowed;
+        color: #6b7280;
+    }
+
+    textarea.form-control {
+        min-height: 110px;
+        resize: vertical;
+    }
+
+    .text-danger {
+        color: #dc2626;
+        font-size: 13px;
+        margin-top: 4px;
+        display: block;
+    }
+
+    .action-bar {
+        margin-top: 24px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-save {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 11px 18px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+        .btn-save:hover {
+            background: #d97706;
+        }
+
+    .btn-back,
+    .btn-detail {
+        color: white !important;
+        padding: 11px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+        display: inline-block;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+        .btn-back:hover {
+            background: #4b5563;
+            text-decoration: none;
+            color: white;
+        }
+
+    .btn-detail {
+        background: #0ea5e9;
+    }
+
+        .btn-detail:hover {
+            background: #0284c7;
+            text-decoration: none;
+            color: white;
+        }
+
+    .validation-summary-errors {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        border-radius: 8px;
+        padding: 12px 16px;
+        margin-bottom: 18px;
+    }
+
+    @@media(max-width: 850px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-group-full {
+            grid-column: 1;
+        }
+    }
+</style>
+
+<div class="edit-wrapper">
+    <div class="form-card">
+        @using (Html.BeginForm("Edit", "SAN65134364", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            @Html.HiddenFor(model => model.MASAN)
+
+            <div class="form-grid">
+                <div class="court-preview">
+                    <div class="court-circle" id="courtPreview">@Model.MASAN</div>
+                    <div class="court-title" id="courtNamePreview">@Model.TENSAN</div>
+                    <div class="court-note">
+                        Mã sân là khóa chính nên không chỉnh sửa trực tiếp.
+                    </div>
+                </div>
+
+                <div>
+                    <div class="info-grid">
+                        <div class="form-group">
+                            <label class="form-label">Mã sân</label>
+                            <input type="text" value="@Model.MASAN" class="form-control readonly-input" readonly />
+                            @Html.ValidationMessageFor(model => model.MASAN, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Tên sân</label>
+                            @Html.TextBoxFor(model => model.TENSAN, new
+                            {
+                                @class = "form-control",
+                                placeholder = "Nhập tên sân",
+                                id = "TENSAN"
+                            })
+                            @Html.ValidationMessageFor(model => model.TENSAN, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Loại sân</label>
+                            @Html.DropDownList("MALOAISAN",
+                                null,
+                                "-- Chọn loại sân --",
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(model => model.MALOAISAN, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Trạng thái sân</label>
+                            @Html.DropDownListFor(model => model.TRANGTHAISAN,
+                                (SelectList)ViewBag.TrangThaiList,
+                                "-- Chọn trạng thái --",
+                                new { @class = "form-select" })
+                            @Html.ValidationMessageFor(model => model.TRANGTHAISAN, "", new { @class = "text-danger" })
+                        </div>
+
+                        <div class="form-group form-group-full">
+                            <label class="form-label">Mô tả sân</label>
+                            @Html.TextAreaFor(model => model.MOTASAN, new
+                            {
+                                @class = "form-control",
+                                placeholder = "Nhập mô tả sân, vị trí sân, ghi chú..."
+                            })
+                            @Html.ValidationMessageFor(model => model.MOTASAN, "", new { @class = "text-danger" })
+                        </div>
+                    </div>
+
+                    <div class="action-bar">
+                        @Html.ActionLink("Quay lại", "Index", "SAN65134364", null, new { @class = "btn-back" })
+                        @Html.ActionLink("Chi tiết", "Details", "SAN65134364", new { id = Model.MASAN }, new { @class = "btn-detail" })
+                        <button type="submit" class="btn-save">Lưu thay đổi</button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    const inputTenSan = document.getElementById("TENSAN");
+    const courtNamePreview = document.getElementById("courtNamePreview");
+
+    inputTenSan.addEventListener("input", function () {
+        let tenSan = inputTenSan.value.trim();
+        courtNamePreview.innerText = tenSan.length > 0 ? tenSan : "Sân";
+    });
+</script>

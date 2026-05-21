@@ -1,0 +1,327 @@
+﻿@model QLSanPickleball_65132651.Models.DICHVU
+
+@{
+    ViewBag.Title = "Chi tiết dịch vụ";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    int soLanDuocDat = ViewBag.SoLanDuocDat == null ? 0 : (int)ViewBag.SoLanDuocDat;
+    int tongSoLuongDaBan = ViewBag.TongSoLuongDaBan == null ? 0 : (int)ViewBag.TongSoLuongDaBan;
+    decimal tongDoanhThu = ViewBag.TongDoanhThuDichVu == null ? 0m : (decimal)ViewBag.TongDoanhThuDichVu;
+
+    string statusClass = "status-other";
+    if (Model.TRANGTHAIKD == "Đang kinh doanh")
+    {
+        statusClass = "status-active";
+    }
+    else if (Model.TRANGTHAIKD == "Ngừng kinh doanh")
+    {
+        statusClass = "status-stop";
+    }
+}
+
+<style>
+    .detail-wrapper {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+        .page-head h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .page-sub {
+        margin-top: 5px;
+        color: #6b7280;
+    }
+
+    .action-box {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 10px 15px;
+        border-radius: 12px;
+        text-decoration: none;
+        color: white !important;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+    .btn-edit {
+        background: #f59e0b;
+    }
+
+    .btn-delete {
+        background: #dc2626;
+    }
+
+    .btn-action:hover {
+        opacity: 0.88;
+        text-decoration: none;
+        color: white;
+    }
+
+    .hero-card {
+        background: linear-gradient(135deg, #0f172a, #b45309);
+        color: white;
+        border-radius: 22px;
+        padding: 26px;
+        display: grid;
+        grid-template-columns: 95px 1fr auto;
+        gap: 20px;
+        align-items: center;
+        box-shadow: 0 14px 35px rgba(15,23,42,0.16);
+        margin-bottom: 18px;
+    }
+
+    .hero-icon {
+        width: 82px;
+        height: 82px;
+        border-radius: 22px;
+        background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 18px;
+    }
+
+    .hero-title {
+        font-size: 26px;
+        font-weight: 900;
+    }
+
+    .hero-sub {
+        color: #fed7aa;
+        margin-top: 6px;
+        line-height: 1.5;
+    }
+
+    .hero-money {
+        text-align: right;
+    }
+
+    .hero-money-label {
+        color: #fed7aa;
+        font-weight: 900;
+        font-size: 13px;
+        text-transform: uppercase;
+    }
+
+    .hero-money-value {
+        font-size: 30px;
+        font-weight: 900;
+        margin-top: 6px;
+    }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .stat-card,
+    .info-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-weight: 900;
+        font-size: 13px;
+        text-transform: uppercase;
+    }
+
+    .stat-value {
+        margin-top: 8px;
+        font-size: 26px;
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .green {
+        color: #047857;
+    }
+
+    .blue {
+        color: #2563eb;
+    }
+
+    .orange {
+        color: #f59e0b;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .info-item {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 14px;
+    }
+
+    .info-label {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        color: #111827;
+        font-size: 16px;
+        font-weight: 900;
+    }
+
+    .badge-status {
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-stop {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-other {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    @@media(max-width: 800px) {
+        .hero-card {
+            grid-template-columns: 1fr;
+        }
+
+        .hero-money {
+            text-align: left;
+        }
+
+        .stat-grid,
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="detail-wrapper">
+    <div class="page-head">
+        <div>
+
+            <div class="page-sub">Thông tin dịch vụ, tồn kho và thống kê sử dụng.</div>
+        </div>
+
+        <div class="action-box">
+            @Html.ActionLink("Quay lại", "Index", "DICHVU65134364", null, new { @class = "btn-action btn-back" })
+            @Html.ActionLink("Sửa", "Edit", "DICHVU65134364", new { id = Model.MADV }, new { @class = "btn-action btn-edit" })
+            @Html.ActionLink("Xóa", "Delete", "DICHVU65134364", new { id = Model.MADV }, new { @class = "btn-action btn-delete" })
+        </div>
+    </div>
+
+    <div class="hero-card">
+        <div class="hero-icon">@Model.MADV</div>
+
+        <div>
+            <div class="hero-title">@Model.TENDV</div>
+            <div class="hero-sub">
+                Đơn vị tính: @Model.DONVITINH <br />
+                Trạng thái: @Model.TRANGTHAIKD
+            </div>
+        </div>
+
+        <div class="hero-money">
+            <div class="hero-money-label">Đơn giá</div>
+            <div class="hero-money-value">@Model.DONGIA.ToString("N0") đ</div>
+        </div>
+    </div>
+
+    <div class="stat-grid">
+        <div class="stat-card">
+            <div class="stat-label">Số lần được đặt</div>
+            <div class="stat-value blue">@soLanDuocDat</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Tổng số lượng đã bán</div>
+            <div class="stat-value orange">@tongSoLuongDaBan</div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-label">Doanh thu dịch vụ</div>
+            <div class="stat-value green">@tongDoanhThu.ToString("N0") đ</div>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Mã dịch vụ</div>
+                <div class="info-value">@Model.MADV</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Tên dịch vụ</div>
+                <div class="info-value">@Model.TENDV</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Đơn vị tính</div>
+                <div class="info-value">@Model.DONVITINH</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Đơn giá</div>
+                <div class="info-value">@Model.DONGIA.ToString("N0") đ</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Số lượng tồn</div>
+                <div class="info-value">@Model.SOLUONGTON</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Trạng thái</div>
+                <div class="info-value">
+                    <span class="badge-status @statusClass">@Model.TRANGTHAIKD</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

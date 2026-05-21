@@ -1,0 +1,615 @@
+﻿@model IEnumerable<QLSanPickleball_65132651.Models.SAN>
+
+@{
+    ViewBag.Title = "Quản lý sân";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    bool laAdminHoacQuanLy = ViewBag.LaAdminHoacQuanLy != null && (bool)ViewBag.LaAdminHoacQuanLy;
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .page-sub {
+        margin-top: 5px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .btn-add {
+        background: #2563eb;
+        color: white !important;
+        padding: 11px 17px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+        .btn-add:hover {
+            background: #1d4ed8;
+            text-decoration: none;
+            color: white;
+        }
+
+    .stat-grid {
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 16px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+    }
+
+    .stat-value {
+        margin-top: 7px;
+        font-size: 26px;
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .green {
+        color: #16a34a;
+    }
+
+    .yellow {
+        color: #ca8a04;
+    }
+
+    .red {
+        color: #dc2626;
+    }
+
+    .gray {
+        color: #6b7280;
+    }
+
+    .blue {
+        color: #2563eb;
+    }
+
+    .filter-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .form-label {
+        font-weight: 900;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+        font-size: 13px;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        outline: none;
+        background: white;
+    }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #2563eb;
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
+        }
+
+    .btn-search {
+        background: #16a34a;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+        .btn-search:hover {
+            background: #15803d;
+        }
+
+    .btn-reset {
+        display: inline-block;
+        background: #6b7280;
+        color: white !important;
+        padding: 10px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 900;
+    }
+
+        .btn-reset:hover {
+            background: #4b5563;
+            text-decoration: none;
+        }
+
+    .alert-success-custom {
+        background: #dcfce7;
+        color: #166534;
+        padding: 13px 16px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #bbf7d0;
+        font-weight: 800;
+    }
+
+    .alert-error-custom {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 13px 16px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #fecaca;
+        font-weight: 800;
+    }
+
+    .table-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: collapse;
+    }
+
+        .table th {
+            background: #f3f4f6;
+            color: #111827;
+            white-space: nowrap;
+            text-align: center;
+            vertical-align: middle;
+            font-size: 13px;
+            text-transform: uppercase;
+        }
+
+        .table td {
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+    .san-name-box {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .san-icon {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 12px;
+        flex-shrink: 0;
+    }
+
+    .san-title {
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .san-desc {
+        font-size: 13px;
+        color: #6b7280;
+        margin-top: 2px;
+        max-width: 280px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .badge-type,
+    .badge-status {
+        padding: 7px 11px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+    .type-vip {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .type-normal {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .status-free {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-booked {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .status-playing {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-maintain {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .action-group,
+    .status-actions {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 7px 10px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 12px;
+        color: white !important;
+        display: inline-block;
+        font-weight: 900;
+    }
+
+    .btn-detail {
+        background: #0ea5e9;
+    }
+
+    .btn-edit {
+        background: #f59e0b;
+    }
+
+    .btn-delete {
+        background: #dc2626;
+    }
+
+    .btn-update-status {
+        background: #0891b2;
+    }
+
+    .btn-status {
+        padding: 6px 9px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-size: 12px;
+        color: white !important;
+        display: inline-block;
+        font-weight: 900;
+    }
+
+    .btn-free {
+        background: #16a34a;
+    }
+
+    .btn-booked {
+        background: #ca8a04;
+    }
+
+    .btn-playing {
+        background: #dc2626;
+    }
+
+    .btn-maintain {
+        background: #6b7280;
+    }
+
+    .btn-action:hover,
+    .btn-status:hover {
+        opacity: 0.85;
+        text-decoration: none;
+        color: white;
+    }
+
+    .empty-row {
+        text-align: center;
+        padding: 26px;
+        color: #64748b;
+        font-weight: 800;
+    }
+
+    @@media(max-width: 1100px) {
+        .stat-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .filter-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media(max-width: 650px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .filter-row,
+        .stat-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <div>
+    </div>
+
+    @if (laAdminHoacQuanLy)
+    {
+        @Html.ActionLink("+ Thêm sân", "Create", "SAN65134364", null, new { @class = "btn-add" })
+    }
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert-success-custom">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert-error-custom">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="stat-grid">
+    <div class="stat-card">
+        <div class="stat-label">Tổng sân</div>
+        <div class="stat-value blue">@ViewBag.TongSan</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Sân trống</div>
+        <div class="stat-value green">@ViewBag.SanTrong</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Đang đặt</div>
+        <div class="stat-value yellow">@ViewBag.SanDangDat</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Đang sử dụng</div>
+        <div class="stat-value red">@ViewBag.SanDangSuDung</div>
+    </div>
+
+    <div class="stat-card">
+        <div class="stat-label">Bảo trì</div>
+        <div class="stat-value gray">@ViewBag.SanBaoTri</div>
+    </div>
+</div>
+
+<div class="filter-card">
+    @using (Html.BeginForm("Index", "SAN65134364", FormMethod.Get))
+    {
+        <div class="filter-row">
+            <div>
+                <label class="form-label">Tìm kiếm</label>
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       value="@ViewBag.Search"
+                       placeholder="Nhập mã sân, tên sân hoặc mô tả..." />
+            </div>
+
+            <div>
+                <label class="form-label">Loại sân</label>
+                @Html.DropDownList("maLoaiSan",
+                    (SelectList)ViewBag.LoaiSanList,
+                    "-- Tất cả --",
+                    new { @class = "form-select" })
+            </div>
+
+            <div>
+                <label class="form-label">Trạng thái</label>
+                <select name="trangThai" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    <option value="Trống" @(ViewBag.TrangThai == "Trống" ? "selected" : "")>Trống</option>
+                    <option value="Đang đặt" @(ViewBag.TrangThai == "Đang đặt" ? "selected" : "")>Đang đặt</option>
+                    <option value="Đang sử dụng" @(ViewBag.TrangThai == "Đang sử dụng" ? "selected" : "")>Đang sử dụng</option>
+                    <option value="Bảo trì" @(ViewBag.TrangThai == "Bảo trì" ? "selected" : "")>Bảo trì</option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn-search">Lọc</button>
+            </div>
+
+            <div>
+                @Html.ActionLink("Làm mới", "Index", "SAN65134364", null, new { @class = "btn-reset" })
+            </div>
+        </div>
+    }
+</div>
+
+<div class="table-card">
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Mã sân</th>
+                <th>Thông tin sân</th>
+                <th>Loại sân</th>
+                <th>Trạng thái</th>
+                <th>Cập nhật trạng thái</th>
+                <th>Chức năng</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    string typeClass = "type-normal";
+                    string tenLoaiSan = item.LOAISAN != null ? item.LOAISAN.TENLOAISAN : item.MALOAISAN;
+
+                    if (tenLoaiSan != null && tenLoaiSan.ToLower().Contains("vip"))
+                    {
+                        typeClass = "type-vip";
+                    }
+
+                    string statusClass = "status-free";
+
+                    if (item.TRANGTHAISAN == "Đang đặt")
+                    {
+                        statusClass = "status-booked";
+                    }
+                    else if (item.TRANGTHAISAN == "Đang sử dụng")
+                    {
+                        statusClass = "status-playing";
+                    }
+                    else if (item.TRANGTHAISAN == "Bảo trì")
+                    {
+                        statusClass = "status-maintain";
+                    }
+
+                    <tr>
+                        <td class="text-center">
+                            <strong>@item.MASAN</strong>
+                        </td>
+
+                        <td>
+                            <div class="san-name-box">
+                                <div class="san-icon">
+                                    @item.MASAN
+                                </div>
+
+                                <div>
+                                    <div class="san-title">@item.TENSAN</div>
+                                    <div class="san-desc">
+                                        @(string.IsNullOrWhiteSpace(item.MOTASAN) ? "Không có mô tả" : item.MOTASAN)
+                                    </div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="text-center">
+                            <span class="badge-type @typeClass">
+                                @tenLoaiSan
+                            </span>
+                        </td>
+
+                        <td class="text-center">
+                            <span class="badge-status @statusClass">
+                                @item.TRANGTHAISAN
+                            </span>
+                        </td>
+
+                        <td>
+                            <div class="status-actions">
+                                @Html.ActionLink("Trống", "ChuyenTrangThai", "SAN65134364",
+                                    new { id = item.MASAN, trangThai = "Trống" },
+                                    new
+                                    {
+                                        @class = "btn-status btn-free",
+                                        onclick = "return confirm('Chuyển sân " + item.TENSAN + " sang trạng thái Trống?');"
+                                    })
+
+                                @Html.ActionLink("Đặt", "ChuyenTrangThai", "SAN65134364",
+                                    new { id = item.MASAN, trangThai = "Đang đặt" },
+                                    new
+                                    {
+                                        @class = "btn-status btn-booked",
+                                        onclick = "return confirm('Chuyển sân " + item.TENSAN + " sang trạng thái Đang đặt?');"
+                                    })
+
+                                @Html.ActionLink("Sử dụng", "ChuyenTrangThai", "SAN65134364",
+                                    new { id = item.MASAN, trangThai = "Đang sử dụng" },
+                                    new
+                                    {
+                                        @class = "btn-status btn-playing",
+                                        onclick = "return confirm('Chuyển sân " + item.TENSAN + " sang trạng thái Đang sử dụng?');"
+                                    })
+
+                                @Html.ActionLink("Bảo trì", "ChuyenTrangThai", "SAN65134364",
+                                    new { id = item.MASAN, trangThai = "Bảo trì" },
+                                    new
+                                    {
+                                        @class = "btn-status btn-maintain",
+                                        onclick = "return confirm('Chuyển sân " + item.TENSAN + " sang trạng thái Bảo trì?');"
+                                    })
+                            </div>
+                        </td>
+
+                        <td>
+                            <div class="action-group">
+                                @Html.ActionLink("Chi tiết", "Details", "SAN65134364", new { id = item.MASAN }, new { @class = "btn-action btn-detail" })
+
+                                @Html.ActionLink("Trạng thái", "CapNhatTrangThai", "SAN65134364", new { id = item.MASAN }, new { @class = "btn-action btn-update-status" })
+
+                                @if (laAdminHoacQuanLy)
+                                {
+                                    @Html.ActionLink("Sửa", "Edit", "SAN65134364", new { id = item.MASAN }, new { @class = "btn-action btn-edit" })
+
+                                    @Html.ActionLink("Xóa", "Delete", "SAN65134364", new { id = item.MASAN }, new { @class = "btn-action btn-delete" })
+                                }
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="6" class="empty-row">Không tìm thấy sân nào.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

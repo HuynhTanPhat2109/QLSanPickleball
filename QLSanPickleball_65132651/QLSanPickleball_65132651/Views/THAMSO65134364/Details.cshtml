@@ -1,0 +1,260 @@
+﻿@model QLSanPickleball_65132651.Models.THAMSO
+
+@{
+    ViewBag.Title = "Chi tiết tham số";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    string statusClass = "status-other";
+
+    if (Model.TINHTRANG == "Đang áp dụng")
+    {
+        statusClass = "status-active";
+    }
+    else if (Model.TINHTRANG == "Ngừng áp dụng")
+    {
+        statusClass = "status-stop";
+    }
+}
+
+<style>
+    .detail-wrapper {
+        max-width: 850px;
+        margin: 0 auto;
+    }
+
+    .page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin-bottom: 18px;
+    }
+
+        .page-head h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .page-sub {
+        margin-top: 5px;
+        color: #6b7280;
+    }
+
+    .action-box {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 10px 15px;
+        border-radius: 12px;
+        text-decoration: none;
+        color: white !important;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+    .btn-edit {
+        background: #f59e0b;
+    }
+
+    .btn-action:hover {
+        opacity: 0.88;
+        text-decoration: none;
+        color: white;
+    }
+
+    .hero-card {
+        background: linear-gradient(135deg, #0f172a, #1e3a8a);
+        color: white;
+        border-radius: 22px;
+        padding: 26px;
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 20px;
+        align-items: center;
+        box-shadow: 0 14px 35px rgba(15,23,42,0.16);
+        margin-bottom: 18px;
+    }
+
+    .hero-icon {
+        min-width: 100px;
+        height: 76px;
+        border-radius: 22px;
+        background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 18px;
+        padding: 0 12px;
+    }
+
+    .hero-title {
+        font-size: 25px;
+        font-weight: 900;
+    }
+
+    .hero-sub {
+        color: #bfdbfe;
+        margin-top: 6px;
+        line-height: 1.5;
+    }
+
+    .info-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px;
+    }
+
+    .info-item {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 14px;
+    }
+
+    .info-item-full {
+        grid-column: 1 / span 2;
+    }
+
+    .info-label {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 6px;
+    }
+
+    .info-value {
+        color: #111827;
+        font-size: 16px;
+        font-weight: 900;
+        word-break: break-word;
+    }
+
+    .value-badge {
+        display: inline-block;
+        background: #dcfce7;
+        color: #166534;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 15px;
+        font-weight: 900;
+    }
+
+    .type-badge {
+        display: inline-block;
+        background: #eef2ff;
+        color: #1d4ed8;
+        padding: 8px 12px;
+        border-radius: 999px;
+        font-size: 15px;
+        font-weight: 900;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-stop {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-other {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    @@media(max-width: 700px) {
+        .hero-card {
+            grid-template-columns: 1fr;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-item-full {
+            grid-column: 1;
+        }
+    }
+</style>
+
+<div class="detail-wrapper">
+    <div class="page-head">
+        <div>
+            <div class="page-sub">Xem thông tin cấu hình hệ thống.</div>
+        </div>
+
+        <div class="action-box">
+            @Html.ActionLink("Quay lại", "Index", "THAMSO65134364", null, new { @class = "btn-action btn-back" })
+            @Html.ActionLink("Sửa", "Edit", "THAMSO65134364", new { id = Model.MATHAMSO }, new { @class = "btn-action btn-edit" })
+        </div>
+    </div>
+
+    <div class="hero-card">
+        <div class="hero-icon">@Model.MATHAMSO</div>
+
+        <div>
+            <div class="hero-title">@Model.TENTHAMSO</div>
+            <div class="hero-sub">
+                Giá trị hiện tại: @Model.GIATRI • Kiểu/ĐVT: @Model.KIEU_DVT
+            </div>
+        </div>
+    </div>
+
+    <div class="info-card">
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Mã tham số</div>
+                <div class="info-value">@Model.MATHAMSO</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Giá trị</div>
+                <div class="info-value">
+                    <span class="value-badge">@Model.GIATRI</span>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Kiểu / Đơn vị tính</div>
+                <div class="info-value">
+                    <span class="type-badge">@Model.KIEU_DVT</span>
+                </div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Tình trạng</div>
+                <div class="info-value">
+                    <span class="value-badge @statusClass">@Model.TINHTRANG</span>
+                </div>
+            </div>
+
+            <div class="info-item info-item-full">
+                <div class="info-label">Tên tham số</div>
+                <div class="info-value">@Model.TENTHAMSO</div>
+            </div>
+        </div>
+    </div>
+</div>

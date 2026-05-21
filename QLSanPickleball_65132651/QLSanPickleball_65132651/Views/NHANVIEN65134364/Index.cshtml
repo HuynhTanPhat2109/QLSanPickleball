@@ -1,0 +1,401 @@
+﻿@model IEnumerable<QLSanPickleball_65132651.Models.NHANVIEN>
+
+@{
+    ViewBag.Title = "Quản lý nhân viên";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 24px;
+            font-weight: bold;
+            color: #111827;
+        }
+
+    .btn-add {
+        background: #2563eb;
+        color: white !important;
+        padding: 10px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+        .btn-add:hover {
+            background: #1d4ed8;
+            text-decoration: none;
+            color: white;
+        }
+
+    .filter-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .form-label {
+        font-weight: bold;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 9px 10px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+        outline: none;
+    }
+
+        .form-control:focus,
+        .form-select:focus {
+            border-color: #2563eb;
+        }
+
+    .btn-search {
+        background: #16a34a;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+        .btn-search:hover {
+            background: #15803d;
+        }
+
+    .btn-reset {
+        display: inline-block;
+        background: #6b7280;
+        color: white !important;
+        padding: 10px 16px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+        .btn-reset:hover {
+            background: #4b5563;
+            text-decoration: none;
+        }
+
+    .table-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 12px;
+        padding: 18px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        overflow-x: auto;
+    }
+
+    .table {
+        width: 100%;
+        margin-bottom: 0;
+        border-collapse: collapse;
+    }
+
+        .table th {
+            background: #f3f4f6;
+            color: #111827;
+            white-space: nowrap;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .table td {
+            vertical-align: middle;
+            white-space: nowrap;
+        }
+
+    .badge-role,
+    .badge-status {
+        padding: 6px 10px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: bold;
+        display: inline-block;
+    }
+
+    .role-admin {
+        background: #dbeafe;
+        color: #1d4ed8;
+    }
+
+    .role-manager {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .role-staff {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .status-lock {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .status-off {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 6px;
+        justify-content: center;
+    }
+
+    .btn-action {
+        padding: 6px 10px;
+        border-radius: 6px;
+        text-decoration: none;
+        font-size: 13px;
+        color: white !important;
+        display: inline-block;
+    }
+
+    .btn-detail {
+        background: #0ea5e9;
+    }
+
+    .btn-edit {
+        background: #f59e0b;
+    }
+
+    .btn-delete {
+        background: #dc2626;
+    }
+
+    .btn-lock {
+        background: #7c2d12;
+    }
+
+    .btn-unlock {
+        background: #16a34a;
+    }
+
+    .btn-action:hover {
+        opacity: 0.85;
+        text-decoration: none;
+        color: white;
+    }
+
+    .alert-success-custom {
+        background: #dcfce7;
+        color: #166534;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #bbf7d0;
+    }
+
+    .alert-error-custom {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 12px 16px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        border: 1px solid #fecaca;
+    }
+
+    @@media(max-width: 1000px) {
+        .filter-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media(max-width: 600px) {
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="page-header">
+    @Html.ActionLink("+ Thêm nhân viên", "Create", "NHANVIEN65134364", null, new { @class = "btn-add" })
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert-success-custom">
+        @TempData["Success"]
+    </div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert-error-custom">
+        @TempData["Error"]
+    </div>
+}
+
+<div class="filter-card">
+    @using (Html.BeginForm("Index", "NHANVIEN65134364", FormMethod.Get))
+    {
+        <div class="filter-row">
+            <div>
+                <label class="form-label">Tìm kiếm</label>
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       value="@ViewBag.Search"
+                       placeholder="Nhập mã, họ tên, SĐT, email hoặc tên đăng nhập..." />
+            </div>
+
+            <div>
+                <label class="form-label">Vai trò</label>
+                <select name="vaiTro" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    <option value="Admin" @(ViewBag.VaiTro == "Admin" ? "selected" : "")>Admin</option>
+                    <option value="Quản lý" @(ViewBag.VaiTro == "Quản lý" ? "selected" : "")>Quản lý</option>
+                    <option value="Nhân viên" @(ViewBag.VaiTro == "Nhân viên" ? "selected" : "")>Nhân viên</option>
+                </select>
+            </div>
+
+            <div>
+                <label class="form-label">Trạng thái</label>
+                <select name="trangThai" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    <option value="Đang hoạt động" @(ViewBag.TrangThai == "Đang hoạt động" ? "selected" : "")>Đang hoạt động</option>
+                    <option value="Tạm khóa" @(ViewBag.TrangThai == "Tạm khóa" ? "selected" : "")>Tạm khóa</option>
+                    <option value="Đã nghỉ việc" @(ViewBag.TrangThai == "Đã nghỉ việc" ? "selected" : "")>Đã nghỉ việc</option>
+                </select>
+            </div>
+
+            <div>
+                <button type="submit" class="btn-search">Lọc</button>
+            </div>
+
+            <div>
+                @Html.ActionLink("Làm mới", "Index", "NHANVIEN65134364", null, new { @class = "btn-reset" })
+            </div>
+        </div>
+    }
+</div>
+
+<div class="table-card">
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Mã NV</th>
+                <th>Họ tên</th>
+                <th>Số điện thoại</th>
+                <th>Email</th>
+                <th>Tên đăng nhập</th>
+                <th>Vai trò</th>
+                <th>Trạng thái</th>
+                <th>Chức năng</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @if (Model != null && Model.Any())
+            {
+                foreach (var item in Model)
+                {
+                    string roleClass = "role-staff";
+
+                    if (item.VAITRO == "Admin")
+                    {
+                        roleClass = "role-admin";
+                    }
+                    else if (item.VAITRO == "Quản lý")
+                    {
+                        roleClass = "role-manager";
+                    }
+
+                    string statusClass = "status-off";
+
+                    if (item.TRANGTHAI == "Đang hoạt động")
+                    {
+                        statusClass = "status-active";
+                    }
+                    else if (item.TRANGTHAI == "Tạm khóa")
+                    {
+                        statusClass = "status-lock";
+                    }
+
+                    <tr>
+                        <td class="text-center">@item.MANV</td>
+                        <td>@item.HOTENNV</td>
+                        <td>@item.SODIENTHOAINV</td>
+                        <td>@item.EMAILNV</td>
+                        <td>@item.TENDANGNHAP</td>
+                        <td class="text-center">
+                            <span class="badge-role @roleClass">@item.VAITRO</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge-status @statusClass">@item.TRANGTHAI</span>
+                        </td>
+                        <td>
+                            <div class="action-group">
+                                @Html.ActionLink("Chi tiết", "Details", "NHANVIEN65134364", new { id = item.MANV }, new { @class = "btn-action btn-detail" })
+                                @Html.ActionLink("Sửa", "Edit", "NHANVIEN65134364", new { id = item.MANV }, new { @class = "btn-action btn-edit" })
+
+                                @if (item.TRANGTHAI == "Đang hoạt động")
+                                {
+                                    @Html.ActionLink("Khóa", "Khoa", "NHANVIEN65134364", new { id = item.MANV }, new
+                                    {
+                                        @class = "btn-action btn-lock",
+                                        onclick = "return confirm('Bạn có chắc muốn khóa tài khoản này không?');"
+                                    })
+                                }
+                                else
+                                {
+                                    @Html.ActionLink("Mở khóa", "MoKhoa", "NHANVIEN65134364", new { id = item.MANV }, new
+                                    {
+                                        @class = "btn-action btn-unlock",
+                                        onclick = "return confirm('Bạn có chắc muốn mở khóa tài khoản này không?');"
+                                    })
+                                }
+
+                                @Html.ActionLink("Xóa", "Delete", "NHANVIEN65134364", new { id = item.MANV }, new { @class = "btn-action btn-delete" })
+                            </div>
+                        </td>
+                    </tr>
+                }
+            }
+            else
+            {
+                <tr>
+                    <td colspan="8" class="text-center">Không tìm thấy nhân viên nào.</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

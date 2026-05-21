@@ -1,9 +1,7 @@
 ﻿using QLSanPickleball_65132651.Models;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
-using System.Web;
 using System.Web.Mvc;
 
 namespace QLSanPickleball_65132651.Controllers
@@ -13,19 +11,27 @@ namespace QLSanPickleball_65132651.Controllers
         private QLSanEntities db = new QLSanEntities();
 
         // ==========================================
-        // 1. CHỨC NĂNG ĐĂNG NHẬP (CHUNG CHO CẢ 2 BÊN)
+        // 1. CHỨC NĂNG ĐĂNG NHẬP
         // ==========================================
         [HttpGet]
         public ActionResult Login()
         {
-            // Nếu đã đăng nhập rồi thì không cho vào trang Login nữa
+            // Nếu đã đăng nhập rồi thì chuyển đúng trang theo vai trò
             if (Session["Role"] != null)
             {
-                if (Session["Role"].ToString() == "KhachHang")
+                string role = Session["Role"].ToString();
+
+                if (role == "KhachHang")
+                {
                     return RedirectToAction("Index", "Home");
-                else
-                    return RedirectToAction("Index", "Home");
+                }
+
+                if (role == "Admin" || role == "Quản lý" || role == "Nhân viên")
+                {
+                    return RedirectToAction("HomeNv", "Admin65134364");
+                }
             }
+
             return View();
         }
 
@@ -35,12 +41,15 @@ namespace QLSanPickleball_65132651.Controllers
         {
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                ViewBag.Error = "Vui lòng nhập số điện thoại và mật khẩu!";
+                ViewBag.Error = "Vui lòng nhập số điện thoại/tên đăng nhập và mật khẩu!";
                 return View();
             }
 
-            // 1. Kiểm tra bảng KHACHHANG bằng Số điện thoại
-            var kh = db.KHACHHANG.FirstOrDefault(k => k.SODIENTHOAIKH == username && k.MATKHAUKH == password);
+            // 1. Kiểm tra bảng KHACHHANG bằng số điện thoại
+            var kh = db.KHACHHANG.FirstOrDefault(k =>
+                k.SODIENTHOAIKH == username &&
+                k.MATKHAUKH == password);
+
             if (kh != null)
             {
                 if (kh.TRANGTHAITK != "Hoạt động")
@@ -53,17 +62,24 @@ namespace QLSanPickleball_65132651.Controllers
                 Session["TenUser"] = kh.HOTENKH;
                 Session["Role"] = "KhachHang";
 
-                // Session riêng cho đặt sân
+                // Session riêng cho khách hàng đặt sân
                 Session["MaKH"] = kh.MAKH;
                 Session["TenKH"] = kh.HOTENKH;
                 Session["SDTKH"] = kh.SODIENTHOAIKH;
 
+                // Xóa session nhân viên nếu có
+                Session.Remove("MANV");
+                Session.Remove("HOTENNV");
+                Session.Remove("VAITRO");
+
                 return RedirectToAction("Index", "Home");
             }
 
-            // 2. Kiểm tra bảng NHANVIEN bằng Số điện thoại (Giả sử bảng NHANVIEN có cột SODIENTHOAINV)
-            // Nếu bảng Nhân viên của bạn dùng TENDANGNHAP, bạn có thể cho phép họ nhập 1 trong 2
-            var nv = db.NHANVIEN.FirstOrDefault(n => (n.SODIENTHOAINV == username || n.TENDANGNHAP == username) && n.MATKHAUNV == password);
+            // 2. Kiểm tra bảng NHANVIEN bằng số điện thoại hoặc tên đăng nhập
+            var nv = db.NHANVIEN.FirstOrDefault(n =>
+                (n.SODIENTHOAINV == username || n.TENDANGNHAP == username) &&
+                n.MATKHAUNV == password);
+
             if (nv != null)
             {
                 if (nv.TRANGTHAI != "Đang hoạt động")
@@ -72,14 +88,26 @@ namespace QLSanPickleball_65132651.Controllers
                     return View();
                 }
 
+                // Session dùng chung
                 Session["MaUser"] = nv.MANV;
                 Session["TenUser"] = nv.HOTENNV;
                 Session["Role"] = nv.VAITRO;
 
-                // Nhân viên không phải khách hàng, tránh bị nhận nhầm là khách đặt sân
+                // Session riêng cho trang Admin/HomeNv
+                Session["MANV"] = nv.MANV;
+                Session["HOTENNV"] = nv.HOTENNV;
+                Session["VAITRO"] = nv.VAITRO;
+
+                // Nhân viên không phải khách hàng
                 Session.Remove("MaKH");
                 Session.Remove("TenKH");
                 Session.Remove("SDTKH");
+
+                // Admin / Quản lý / Nhân viên đều vào trang HomeNv
+                if (nv.VAITRO == "Admin" || nv.VAITRO == "Quản lý" || nv.VAITRO == "Nhân viên")
+                {
+                    return RedirectToAction("HomeNv", "Admin65134364");
+                }
 
                 return RedirectToAction("Index", "Home");
             }
@@ -89,7 +117,7 @@ namespace QLSanPickleball_65132651.Controllers
         }
 
         // ==========================================
-        // 2. CHỨC NĂNG ĐĂNG KÝ (CHỈ DÀNH CHO KHÁCH HÀNG)
+        // 2. CHỨC NĂNG ĐĂNG KÝ KHÁCH HÀNG
         // ==========================================
         [HttpGet]
         public ActionResult Register()
@@ -101,34 +129,32 @@ namespace QLSanPickleball_65132651.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult Register(KHACHHANG model, string XacNhanMatKhau)
         {
-            // 1. Kiểm tra khớp mật khẩu (vì XacNhanMatKhau không nằm trong Model)
             if (model.MATKHAUKH != XacNhanMatKhau)
             {
                 ModelState.AddModelError("XacNhanMatKhau", "Mật khẩu xác nhận không khớp!");
             }
+
             if (string.IsNullOrWhiteSpace(model.SODIENTHOAIKH) ||
                 !Regex.IsMatch(model.SODIENTHOAIKH, @"^[0-9]{10}$"))
             {
                 ModelState.AddModelError("SODIENTHOAIKH", "Số điện thoại phải gồm đúng 10 chữ số!");
             }
 
-            // ModelState.IsValid tự động kiểm tra các ràng buộc từ Metadata
             if (ModelState.IsValid)
             {
-                // 2. Kiểm tra trùng Số điện thoại hoặc Email
-                var checkUser = db.KHACHHANG.FirstOrDefault(k => k.SODIENTHOAIKH == model.SODIENTHOAIKH || k.EMAILKH == model.EMAILKH);
+                var checkUser = db.KHACHHANG.FirstOrDefault(k =>
+                    k.SODIENTHOAIKH == model.SODIENTHOAIKH ||
+                    k.EMAILKH == model.EMAILKH);
+
                 if (checkUser != null)
                 {
                     ViewBag.Error = "Số điện thoại hoặc Email đã tồn tại trong hệ thống!";
                     return View(model);
                 }
 
-                // 3. Khởi tạo mã khóa chính tự động
                 model.MAKH = "KH" + DateTime.Now.ToString("HHmmssff");
-
-                // 4. Thiết lập các giá trị mặc định theo yêu cầu nghiệp vụ
-                model.SOLANBUNG = 0;              // Mặc định ban đầu là 0 lần bùng lịch
-                model.TRANGTHAITK = "Hoạt động";   // Mặc định tài khoản mở ngay khi đăng ký
+                model.SOLANBUNG = 0;
+                model.TRANGTHAITK = "Hoạt động";
 
                 try
                 {
@@ -141,13 +167,15 @@ namespace QLSanPickleball_65132651.Controllers
                 catch (System.Data.Entity.Validation.DbEntityValidationException ex)
                 {
                     string errorMsg = "Lỗi cấu trúc dữ liệu CSDL: <br/>";
+
                     foreach (var validationErrors in ex.EntityValidationErrors)
                     {
                         foreach (var validationError in validationErrors.ValidationErrors)
                         {
-                            errorMsg += $"- Trường <b>{validationError.PropertyName}</b>: {validationError.ErrorMessage}<br/>";
+                            errorMsg += "- Trường <b>" + validationError.PropertyName + "</b>: " + validationError.ErrorMessage + "<br/>";
                         }
                     }
+
                     ViewBag.Error = errorMsg;
                     return View(model);
                 }
@@ -161,9 +189,20 @@ namespace QLSanPickleball_65132651.Controllers
         // ==========================================
         public ActionResult Logout()
         {
-            Session.Clear(); // Xóa toàn bộ Session
-            return RedirectToAction("Index", "Home");
+            Session.Clear();
+            Session.Abandon();
+
+            return RedirectToAction("Login", "Account65132651");
         }
-    
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                db.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }
