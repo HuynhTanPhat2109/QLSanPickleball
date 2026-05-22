@@ -42,7 +42,7 @@ namespace QLSanPickleball_65132651.Controllers
             return null;
         }
 
-       
+
         // GET: PhieuDatSanNV65134364
         public ActionResult Index(
             string search,
@@ -101,50 +101,7 @@ namespace QLSanPickleball_65132651.Controllers
                 dsPhieu = dsPhieu.Where(p => p.NGAYDAT >= ngay && p.NGAYDAT < ngayMai);
             }
 
-            var dsPhieuRaw = dsPhieu
-    .OrderByDescending(p => p.NGAYDAT)
-    .ThenBy(p => p.GIOBATDAU)
-    .ThenBy(p => p.SAN != null ? p.SAN.TENSAN : p.MASAN)
-    .ToList();
-
-            // Gom nhóm theo mã GRP trước, nếu không có GRP thì dùng mã phiếu
-            var dsNhomPhieu = dsPhieuRaw
-                .GroupBy(p =>
-                {
-                    string maNhom = LayMaNhomTuGhiChu(p.GHICHU);
-                    return string.IsNullOrWhiteSpace(maNhom) ? p.MAPHIEUDAT : maNhom;
-                })
-                .Select(g => new
-                {
-                    MaNhom = g.Key,
-
-                    // Lấy ngày chơi đầu tiên trong nhóm để làm mốc sắp xếp
-                    NgayDauTien = g.Min(x => x.NGAYDAT),
-
-                    // Lấy giờ bắt đầu sớm nhất trong nhóm
-                    GioDauTien = g.Min(x => x.GIOBATDAU),
-
-                    TenSanDauTien = g.OrderBy(x => x.NGAYDAT)
-                                      .ThenBy(x => x.GIOBATDAU)
-                                      .Select(x => x.SAN != null ? x.SAN.TENSAN : x.MASAN)
-                                      .FirstOrDefault(),
-
-                    // Bên trong 1 nhóm vẫn sắp xếp tăng dần để khung giờ dễ đọc
-                    DanhSachPhieu = g.OrderBy(x => x.NGAYDAT)
-                                     .ThenBy(x => x.GIOBATDAU)
-                                     .ThenBy(x => x.SAN != null ? x.SAN.TENSAN : x.MASAN)
-                                     .ToList()
-                })
-
-                // Sắp xếp các nhóm giảm dần theo ngày: 22/05 lên trước 18/05
-                .OrderByDescending(g => g.NgayDauTien)
-
-                // Nếu cùng ngày thì giờ sớm hơn lên trước
-                .ThenBy(g => g.GioDauTien)
-                .ThenBy(g => g.TenSanDauTien)
-                .ToList();
-
-            int tongSoPhieu = dsNhomPhieu.Count;
+            int tongSoPhieu = dsPhieu.Count();
             int tongSoTrang = (int)Math.Ceiling((double)tongSoPhieu / pageSize);
 
             if (tongSoTrang == 0)
@@ -157,15 +114,33 @@ namespace QLSanPickleball_65132651.Controllers
                 page = tongSoTrang;
             }
 
-            var ketQua = dsNhomPhieu
+            var ketQua = dsPhieu
+                .OrderBy(p =>
+                    p.TRANGTHAIPHIEU == "Chờ xác nhận" ||
+                    p.TRANGTHAIPHIEU == "Chờ duyệt" ||
+                    p.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản" ? 1 :
+
+                    p.TRANGTHAIPHIEU == "Đã xác nhận" ||
+                    p.TRANGTHAIPHIEU == "Đang sử dụng" ? 2 :
+
+                    p.TRANGTHAIPHIEU == "Hoàn thành" ? 3 :
+
+                    p.TRANGTHAIPHIEU == "Đã hủy" ||
+                    p.TRANGTHAIPHIEU == "Đã huỷ" ||
+                    p.TRANGTHAIPHIEU == "Hủy" ||
+                    p.TRANGTHAIPHIEU == "Huy" ||
+                    p.TRANGTHAIPHIEU == "DaHuy" ||
+                    p.TRANGTHAIPHIEU == "Khách không đến" ||
+                    p.TRANGTHAIPHIEU == "Hủy do bảo trì" ? 4 :
+
+                    5
+                )
+                .ThenByDescending(p => p.NGAYDAT)
+                .ThenBy(p => p.GIOBATDAU)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .SelectMany(g => g.DanhSachPhieu)
                 .ToList();
 
-            // =========================================================
-            // TÍNH TIỀN DỊCH VỤ CHO TỪNG PHIẾU ĐỂ INDEX HIỂN THỊ ĐỒNG BỘ DETAILS
-            // =========================================================
             var dsMaPhieu = ketQua.Select(p => p.MAPHIEUDAT).ToList();
 
             var tienDichVuTheoPhieu = db.CHITIETDICHVUDAT
@@ -217,12 +192,56 @@ namespace QLSanPickleball_65132651.Controllers
                 return HttpNotFound();
             }
 
-            ViewBag.DanhSachDichVu = db.CHITIETDICHVUDAT
-                .Include(c => c.DICHVU)
-                .Where(c => c.MAPHIEUDAT == id)
+            string maNhom = LayMaNhomTuGhiChu(phieu.GHICHU);
+
+            var dsPhieuCungNhom = db.PHIEUDATSAN
+                .Include(p => p.KHACHHANG)
+                .Include(p => p.SAN)
+                .Include(p => p.SAN.LOAISAN)
+                .Include(p => p.NHANVIEN)
+                .Where(p =>
+                    p.MAPHIEUDAT == id ||
+                    (!string.IsNullOrEmpty(maNhom) && p.GHICHU != null && p.GHICHU.Contains(maNhom))
+                )
+                .OrderBy(p => p.MASAN)
+                .ThenBy(p => p.GIOBATDAU)
                 .ToList();
 
-            ViewBag.DaCoHoaDon = db.HOADON.Any(h => h.MAPHIEUDAT == id);
+            if (dsPhieuCungNhom == null || !dsPhieuCungNhom.Any())
+            {
+                dsPhieuCungNhom = new System.Collections.Generic.List<PHIEUDATSAN>();
+                dsPhieuCungNhom.Add(phieu);
+            }
+
+            var dsMaPhieu = dsPhieuCungNhom
+                .Select(p => p.MAPHIEUDAT)
+                .ToList();
+
+            var danhSachDichVu = db.CHITIETDICHVUDAT
+                .Include(c => c.DICHVU)
+                .Where(c => dsMaPhieu.Contains(c.MAPHIEUDAT))
+                .ToList();
+
+            decimal tongTienSan = dsPhieuCungNhom.Sum(p => p.TONGTIENTAMTINH);
+
+            decimal tongTienDichVu = danhSachDichVu.Any()
+                ? danhSachDichVu.Sum(c => c.THANHTIEN)
+                : 0m;
+
+            TimeSpan gioBatDauNhom = dsPhieuCungNhom.Min(p => p.GIOBATDAU);
+            TimeSpan gioKetThucNhom = dsPhieuCungNhom.Max(p => p.GIOKETTHUC);
+
+            ViewBag.MaNhomDatSan = maNhom;
+            ViewBag.DanhSachPhieuCungNhom = dsPhieuCungNhom;
+            ViewBag.DanhSachDichVu = danhSachDichVu;
+
+            ViewBag.TongTienSan = tongTienSan;
+            ViewBag.TongTienDichVu = tongTienDichVu;
+            ViewBag.TongTamTinh = tongTienSan + tongTienDichVu;
+
+            ViewBag.KhungGioNhom = gioBatDauNhom.ToString(@"hh\:mm") + " - " + gioKetThucNhom.ToString(@"hh\:mm");
+
+            ViewBag.DaCoHoaDon = db.HOADON.Any(h => dsMaPhieu.Contains(h.MAPHIEUDAT));
 
             return View(phieu);
         }
@@ -338,31 +357,76 @@ namespace QLSanPickleball_65132651.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            var phieu = db.PHIEUDATSAN.Find(id);
+            var phieuGoc = db.PHIEUDATSAN.Find(id);
 
-            if (phieu == null)
+            if (phieuGoc == null)
             {
                 return HttpNotFound();
             }
 
-            if (phieu.TRANGTHAIPHIEU != "Đã xác nhận")
+            if (phieuGoc.TRANGTHAIPHIEU != "Đã xác nhận")
             {
                 TempData["Error"] = "Chỉ phiếu đã xác nhận mới được chuyển sang khách vào sân.";
                 return RedirectToAction("Index");
             }
 
-            var san = db.SAN.Find(phieu.MASAN);
+            string maNhanVien = Session["MANV"] != null ? Session["MANV"].ToString() : "";
 
-            if (san != null && san.TRANGTHAISAN != "Bảo trì")
+            var dsPhieuCungNhom = LayDanhSachPhieuCungNhom(phieuGoc);
+
+            if (dsPhieuCungNhom == null || !dsPhieuCungNhom.Any())
             {
-                san.TRANGTHAISAN = "Đang sử dụng";
+                dsPhieuCungNhom = db.PHIEUDATSAN
+                    .Where(p => p.MAPHIEUDAT == id)
+                    .ToList();
+            }
+
+            foreach (var phieu in dsPhieuCungNhom)
+            {
+                bool daHuy =
+                    phieu.TRANGTHAIPHIEU == "Đã hủy" ||
+                    phieu.TRANGTHAIPHIEU == "Đã huỷ" ||
+                    phieu.TRANGTHAIPHIEU == "Hủy" ||
+                    phieu.TRANGTHAIPHIEU == "Huy" ||
+                    phieu.TRANGTHAIPHIEU == "DaHuy" ||
+                    phieu.TRANGTHAIPHIEU == "Khách không đến" ||
+                    phieu.TRANGTHAIPHIEU == "Hủy do bảo trì" ||
+                    phieu.TRANGTHAITHANHTOAN == "Đã hủy";
+
+                if (daHuy)
+                {
+                    continue;
+                }
+
+                phieu.MANV = maNhanVien;
+
+                // Đổi trạng thái phiếu để ngoài Index không còn đứng yên
+                phieu.TRANGTHAIPHIEU = "Đang sử dụng";
+
+                // Giữ trạng thái thanh toán đã đặt cọc / đã thanh toán
+                if (string.IsNullOrWhiteSpace(phieu.TRANGTHAITHANHTOAN) ||
+                    phieu.TRANGTHAITHANHTOAN == "ChuaThanhToan" ||
+                    phieu.TRANGTHAITHANHTOAN == "Cho_Chuyen_Khoan" ||
+                    phieu.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản")
+                {
+                    phieu.TRANGTHAITHANHTOAN = "Đã đặt cọc";
+                }
+
+                var san = db.SAN.Find(phieu.MASAN);
+
+                if (san != null && san.TRANGTHAISAN != "Bảo trì")
+                {
+                    // Nếu b đã đổi bảng sân chỉ còn Hoạt động/Bảo trì thì để Hoạt động
+                    san.TRANGTHAISAN = "Hoạt động";
+                }
             }
 
             db.SaveChanges();
 
-            TempData["Success"] = "Đã cập nhật khách vào sân.";
+            TempData["Success"] = "Đã cập nhật khách vào sân cho toàn bộ nhóm đặt sân.";
             return RedirectToAction("Index");
         }
+
 
         // GET: PhieuDatSanNV65134364/KetThucLuotChoi/P01
         public ActionResult KetThucLuotChoi(string id)
@@ -375,92 +439,61 @@ namespace QLSanPickleball_65132651.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            var phieu = db.PHIEUDATSAN.Find(id);
+            var phieuGoc = db.PHIEUDATSAN.Find(id);
 
-            if (phieu == null)
+            if (phieuGoc == null)
             {
                 return HttpNotFound();
             }
 
-            phieu.TRANGTHAIPHIEU = "Hoàn thành";
-            phieu.TRANGTHAITHANHTOAN = "Đã thanh toán 100%";
+            string maNhanVien = Session["MANV"] != null ? Session["MANV"].ToString() : "";
 
-            var san = db.SAN.Find(phieu.MASAN);
+            var dsPhieuCungNhom = LayDanhSachPhieuCungNhom(phieuGoc);
 
-            if (san != null && san.TRANGTHAISAN != "Bảo trì")
+            if (dsPhieuCungNhom == null || !dsPhieuCungNhom.Any())
             {
-                san.TRANGTHAISAN = "Trống";
+                dsPhieuCungNhom = db.PHIEUDATSAN
+                    .Where(p => p.MAPHIEUDAT == id)
+                    .ToList();
             }
 
-            db.SaveChanges();
-
-            TempData["Success"] = "Đã kết thúc lượt chơi và chuyển sân về Trống.";
-            return RedirectToAction("Index");
-        }
-
-        public ActionResult KhachKhongDen(string id)
-        {
-            var check = KiemTraQuyenNhanVien();
-            if (check != null) return check;
-
-            if (string.IsNullOrWhiteSpace(id))
+            foreach (var phieu in dsPhieuCungNhom)
             {
-                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
-            }
+                bool daHuy =
+                    phieu.TRANGTHAIPHIEU == "Đã hủy" ||
+                    phieu.TRANGTHAIPHIEU == "Đã huỷ" ||
+                    phieu.TRANGTHAIPHIEU == "Hủy" ||
+                    phieu.TRANGTHAIPHIEU == "Huy" ||
+                    phieu.TRANGTHAIPHIEU == "DaHuy" ||
+                    phieu.TRANGTHAIPHIEU == "Khách không đến" ||
+                    phieu.TRANGTHAIPHIEU == "Hủy do bảo trì" ||
+                    phieu.TRANGTHAITHANHTOAN == "Đã hủy";
 
-            var phieu = db.PHIEUDATSAN
-                .Include(p => p.KHACHHANG)
-                .Include(p => p.SAN)
-                .FirstOrDefault(p => p.MAPHIEUDAT == id);
-
-            if (phieu == null)
-            {
-                return HttpNotFound();
-            }
-
-            if (KhongChoHuySan(phieu))
-            {
-                TempData["Error"] = "Phiếu đã hoàn thành hoặc đã hủy nên không thể ghi nhận khách không đến.";
-                return RedirectToAction("Details", new { id = id });
-            }
-
-            phieu.TRANGTHAIPHIEU = "Khách không đến";
-            phieu.TRANGTHAITHANHTOAN = "Đã hủy";
-            phieu.MANV = Session["MANV"].ToString();
-
-            if (string.IsNullOrWhiteSpace(phieu.GHICHU))
-            {
-                phieu.GHICHU = "Khách không đến quá 20 phút.";
-            }
-            else
-            {
-                phieu.GHICHU += " | Khách không đến quá 20 phút.";
-            }
-
-            if (phieu.KHACHHANG != null)
-            {
-                phieu.KHACHHANG.SOLANBUNG += 1;
-
-                if (phieu.KHACHHANG.SOLANBUNG > 3)
+                if (daHuy)
                 {
-                    phieu.KHACHHANG.TRANGTHAITK = "Đã khóa";
+                    continue;
+                }
+
+                phieu.MANV = maNhanVien;
+                phieu.TRANGTHAIPHIEU = "Hoàn thành";
+                phieu.TRANGTHAITHANHTOAN = "Đã thanh toán 100%";
+
+                var san = db.SAN.Find(phieu.MASAN);
+
+                if (san != null && san.TRANGTHAISAN != "Bảo trì")
+                {
+                    // Vì sân của b giờ chỉ còn Hoạt động / Bảo trì
+                    san.TRANGTHAISAN = "Hoạt động";
                 }
             }
 
-            if (phieu.SAN != null && phieu.SAN.TRANGTHAISAN != "Bảo trì")
-            {
-                phieu.SAN.TRANGTHAISAN = "Trống";
-            }
             db.SaveChanges();
 
-            TempData["Success"] = "Đã ghi nhận khách không đến. Số lần bùng lịch hiện tại: "
-                + (phieu.KHACHHANG != null ? phieu.KHACHHANG.SOLANBUNG.ToString() : "0");
-
-            return RedirectToAction("Details", new { id = id });
+            TempData["Success"] = "Đã kết thúc lượt chơi. Phiếu đã chuyển sang Hoàn thành và Đã thanh toán 100%.";
+            return RedirectToAction("Index");
         }
 
 
-        // GET: PhieuDatSanNV65134364/HuyPhieu/P01
         // GET: PhieuDatSanNV65134364/HuyPhieu/P01
         public ActionResult HuyPhieu(string id)
         {
@@ -560,7 +593,12 @@ namespace QLSanPickleball_65132651.Controllers
 
             if (string.IsNullOrWhiteSpace(lyDoHuy))
             {
-                lyDoHuy = "Nhân viên hỗ trợ hủy sân";
+                lyDoHuy = "NV hỗ trợ hủy";
+            }
+
+            if (lyDoHuy.Length > 80)
+            {
+                lyDoHuy = lyDoHuy.Substring(0, 80);
             }
 
             string maNhanVien = Session["MANV"] != null ? Session["MANV"].ToString() : "";
@@ -589,16 +627,19 @@ namespace QLSanPickleball_65132651.Controllers
 
             decimal soTienHoan = tongTienTatCaPhieu * phanTramHoan / 100m;
 
-            DateTime thoiGianChoi = phieuGoc.NGAYDAT.Date + phieuGoc.GIOBATDAU;
-            double soGioTruocGioChoi = (thoiGianChoi - DateTime.Now).TotalHours;
+            string trangThaiThanhToanSauHuy = LayTrangThaiHoanTien(phanTramHoan);
 
-            string thongTinHoanTien =
-                " | Hỗ trợ hủy sân: " + DateTime.Now.ToString("dd/MM/yyyy HH:mm") +
-                " | NV: " + maNhanVien +
-                " | Lý do: " + lyDoHuy +
-                " | Trước giờ chơi: " + soGioTruocGioChoi.ToString("0.##") + " giờ" +
-                " | Hoàn: " + phanTramHoan + "%" +
-                " | Số tiền hoàn dự kiến: " + soTienHoan.ToString("N0") + "đ";
+            string ghiChuNgan = "Huy " + phanTramHoan + "% - " + soTienHoan.ToString("N0") + "d";
+
+            if (!string.IsNullOrWhiteSpace(lyDoHuy))
+            {
+                ghiChuNgan += " - " + lyDoHuy;
+            }
+
+            if (ghiChuNgan.Length > 180)
+            {
+                ghiChuNgan = ghiChuNgan.Substring(0, 180);
+            }
 
             foreach (var phieu in dsPhieuCungNhom)
             {
@@ -618,31 +659,61 @@ namespace QLSanPickleball_65132651.Controllers
 
                 phieu.MANV = maNhanVien;
                 phieu.TRANGTHAIPHIEU = "Đã hủy";
-                phieu.TRANGTHAITHANHTOAN = "Đã hủy";
+                phieu.TRANGTHAITHANHTOAN = trangThaiThanhToanSauHuy;
 
-                if (string.IsNullOrWhiteSpace(phieu.GHICHU))
+                string ghiChuCu = phieu.GHICHU ?? "";
+
+                if (ghiChuCu.Length > 80)
                 {
-                    phieu.GHICHU = thongTinHoanTien;
+                    ghiChuCu = ghiChuCu.Substring(0, 80);
+                }
+
+                if (string.IsNullOrWhiteSpace(ghiChuCu))
+                {
+                    phieu.GHICHU = ghiChuNgan;
                 }
                 else
                 {
-                    phieu.GHICHU = phieu.GHICHU + thongTinHoanTien;
+                    phieu.GHICHU = ghiChuCu + " | " + ghiChuNgan;
+                }
+
+                if (phieu.GHICHU != null && phieu.GHICHU.Length > 250)
+                {
+                    phieu.GHICHU = phieu.GHICHU.Substring(0, 250);
                 }
 
                 var san = db.SAN.Find(phieu.MASAN);
 
                 if (san != null && san.TRANGTHAISAN != "Bảo trì")
                 {
-                    san.TRANGTHAISAN = "Trống";
+                    san.TRANGTHAISAN = "Hoạt động";
                 }
             }
 
             db.SaveChanges();
 
-            TempData["Success"] = "Đã hủy sân thành công. Hoàn tiền dự kiến: " + phanTramHoan + "% - " + soTienHoan.ToString("N0") + "đ.";
-            return RedirectToAction("Details", new { id = maPhieuDat });
+            TempData["Success"] = "Đã hủy sân thành công. Mức hoàn: " + phanTramHoan + "% - Số tiền hoàn dự kiến: " + soTienHoan.ToString("N0") + "đ.";
+            return RedirectToAction("Index");
         }
+        private string LayTrangThaiHoanTien(int phanTramHoan)
+        {
+            if (phanTramHoan == 100)
+            {
+                return "Hoàn cọc 100%";
+            }
 
+            if (phanTramHoan == 50)
+            {
+                return "Hoàn cọc 50%";
+            }
+
+            if (phanTramHoan == 20)
+            {
+                return "Hoàn cọc 20%";
+            }
+
+            return "Không hoàn cọc";
+        }
         private bool KhongChoHuySan(PHIEUDATSAN phieu)
         {
             if (phieu == null)
@@ -877,42 +948,60 @@ namespace QLSanPickleball_65132651.Controllers
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
 
-            var phieu = db.PHIEUDATSAN
+            var phieuGoc = db.PHIEUDATSAN
                 .Include(p => p.KHACHHANG)
                 .Include(p => p.SAN)
                 .FirstOrDefault(p => p.MAPHIEUDAT == id);
 
-            if (phieu == null)
+            if (phieuGoc == null)
             {
                 return HttpNotFound();
             }
 
-            var hoaDonCu = db.HOADON.FirstOrDefault(h => h.MAPHIEUDAT == id);
+            var dsPhieuCungNhom = LayDanhSachPhieuCungNhom(phieuGoc);
+
+            if (dsPhieuCungNhom == null || !dsPhieuCungNhom.Any())
+            {
+                dsPhieuCungNhom = db.PHIEUDATSAN
+                    .Where(p => p.MAPHIEUDAT == id)
+                    .ToList();
+            }
+
+            var dsMaPhieu = dsPhieuCungNhom
+                .Select(p => p.MAPHIEUDAT)
+                .ToList();
+
+            var hoaDonCu = db.HOADON
+                .FirstOrDefault(h => dsMaPhieu.Contains(h.MAPHIEUDAT));
 
             if (hoaDonCu != null)
             {
-                TempData["Error"] = "Phiếu này đã có hóa đơn.";
+                TempData["Error"] = "Nhóm phiếu này đã có hóa đơn.";
                 return RedirectToAction("Details", "HoaDonNV65134364", new { id = hoaDonCu.SOHD });
             }
 
-            string maNhanVien = Session["MANV"].ToString();
+            string maNhanVien = Session["MANV"] != null ? Session["MANV"].ToString() : "";
 
-            decimal tienSan = phieu.TONGTIENTAMTINH;
+            decimal tienSan = dsPhieuCungNhom.Sum(p => p.TONGTIENTAMTINH);
 
             decimal tienDichVu = db.CHITIETDICHVUDAT
-                .Where(c => c.MAPHIEUDAT == id)
+                .Where(c => dsMaPhieu.Contains(c.MAPHIEUDAT))
                 .Select(c => c.THANHTIEN)
                 .DefaultIfEmpty(0)
                 .Sum();
 
-            decimal giamGiaHoiVien = TinhGiamGiaHoiVien(phieu.MAKH, tienSan + tienDichVu);
+            decimal giamGiaHoiVien = TinhGiamGiaHoiVien(phieuGoc.MAKH, tienSan + tienDichVu);
 
             decimal tongThanhToan = tienSan + tienDichVu - giamGiaHoiVien;
 
             HOADON hd = new HOADON
             {
                 SOHD = TaoMaHoaDonMoi(),
-                MAPHIEUDAT = phieu.MAPHIEUDAT,
+
+                // Hóa đơn vẫn liên kết 1 phiếu đại diện,
+                // nhưng tiền trong hóa đơn là tổng của cả nhóm.
+                MAPHIEUDAT = phieuGoc.MAPHIEUDAT,
+
                 MANV = maNhanVien,
                 NGAYLAP = DateTime.Now,
                 HINHTHUCTT = "Chuyển khoản",
@@ -924,15 +1013,34 @@ namespace QLSanPickleball_65132651.Controllers
 
             db.HOADON.Add(hd);
 
-            phieu.MANV = maNhanVien;
-            phieu.TRANGTHAIPHIEU = "Hoàn thành";
-            phieu.TRANGTHAITHANHTOAN = "Đã thanh toán 100%";
-
-            var san = db.SAN.Find(phieu.MASAN);
-
-            if (san != null && san.TRANGTHAISAN != "Bảo trì")
+            foreach (var phieu in dsPhieuCungNhom)
             {
-                san.TRANGTHAISAN = "Trống";
+                bool daHuy =
+                    phieu.TRANGTHAIPHIEU == "Đã hủy" ||
+                    phieu.TRANGTHAIPHIEU == "Đã huỷ" ||
+                    phieu.TRANGTHAIPHIEU == "Hủy" ||
+                    phieu.TRANGTHAIPHIEU == "Huy" ||
+                    phieu.TRANGTHAIPHIEU == "DaHuy" ||
+                    phieu.TRANGTHAIPHIEU == "Khách không đến" ||
+                    phieu.TRANGTHAIPHIEU == "Hủy do bảo trì" ||
+                    phieu.TRANGTHAITHANHTOAN == "Đã hủy" ||
+                    phieu.TRANGTHAITHANHTOAN == "Đã huỷ";
+
+                if (daHuy)
+                {
+                    continue;
+                }
+
+                phieu.MANV = maNhanVien;
+                phieu.TRANGTHAIPHIEU = "Hoàn thành";
+                phieu.TRANGTHAITHANHTOAN = "Đã thanh toán 100%";
+
+                var san = db.SAN.Find(phieu.MASAN);
+
+                if (san != null && san.TRANGTHAISAN != "Bảo trì")
+                {
+                    san.TRANGTHAISAN = "Hoạt động";
+                }
             }
 
             db.SaveChanges();
@@ -948,7 +1056,7 @@ namespace QLSanPickleball_65132651.Controllers
 
                 var dsDichVu = db.CHITIETDICHVUDAT
                     .Include(c => c.DICHVU)
-                    .Where(c => c.MAPHIEUDAT == hd.MAPHIEUDAT)
+                    .Where(c => dsMaPhieu.Contains(c.MAPHIEUDAT))
                     .ToList();
 
                 if (hoaDonGuiMail != null &&

@@ -752,7 +752,7 @@
             return;
         }
 
-        let danhSachGui = selectedSlots;
+        let danhSachGui = getMergedSlots();
         let ngayDat = document.getElementById("ngayDat").value;
 
         fetch('@Url.Action("TaoNhieuPhieuDat", "DatSan65132651")', {

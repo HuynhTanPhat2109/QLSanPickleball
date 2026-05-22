@@ -59,22 +59,12 @@ namespace QLSanPickleball_65132651.Controllers
         }
 
         // =========================================================
-        // ĐỒNG BỘ TRẠNG THÁI SÂN TỪ PHIẾU ĐẶT SÂN
+        // CHUẨN HÓA TRẠNG THÁI SÂN
+        // Chỉ còn 2 trạng thái: Hoạt động / Bảo trì
         // =========================================================
-        private void CapNhatTrangThaiSanTuLichDat()
+        private void ChuanHoaTrangThaiSan()
         {
-            DateTime homNay = DateTime.Today;
-            DateTime ngayMai = homNay.AddDays(1);
-            TimeSpan gioHienTai = DateTime.Now.TimeOfDay;
-
             var dsSan = db.SAN.ToList();
-
-            var dsPhieuHomNay = db.PHIEUDATSAN
-                .Where(p => p.NGAYDAT >= homNay
-                         && p.NGAYDAT < ngayMai
-                         && !TrangThaiHuySan.Contains(p.TRANGTHAIPHIEU))
-                .ToList();
-
             bool coThayDoi = false;
 
             foreach (var san in dsSan)
@@ -84,37 +74,9 @@ namespace QLSanPickleball_65132651.Controllers
                     continue;
                 }
 
-                string trangThaiMoi = "Trống";
-
-                var dsPhieuCuaSan = dsPhieuHomNay
-                    .Where(p => p.MASAN == san.MASAN)
-                    .ToList();
-
-                var phieuDangDienRa = dsPhieuCuaSan.FirstOrDefault(p =>
-                    p.GIOBATDAU <= gioHienTai &&
-                    p.GIOKETTHUC > gioHienTai
-                );
-
-                if (phieuDangDienRa != null)
+                if (san.TRANGTHAISAN != "Hoạt động")
                 {
-                    if (phieuDangDienRa.TRANGTHAIPHIEU == "Đã xác nhận")
-                    {
-                        trangThaiMoi = "Đang sử dụng";
-                    }
-                    else
-                    {
-                        trangThaiMoi = "Đang đặt";
-                    }
-                }
-                else
-                {
-                    bool coLichSapToi = dsPhieuCuaSan.Any(p => p.GIOBATDAU > gioHienTai);
-                    trangThaiMoi = coLichSapToi ? "Đang đặt" : "Trống";
-                }
-
-                if (san.TRANGTHAISAN != trangThaiMoi)
-                {
-                    san.TRANGTHAISAN = trangThaiMoi;
+                    san.TRANGTHAISAN = "Hoạt động";
                     coThayDoi = true;
                 }
             }
@@ -131,7 +93,7 @@ namespace QLSanPickleball_65132651.Controllers
             var check = KiemTraQuyenNhanVien();
             if (check != null) return check;
 
-            CapNhatTrangThaiSanTuLichDat();
+            ChuanHoaTrangThaiSan();
 
             string vaiTro = Session["VAITRO"] != null ? Session["VAITRO"].ToString() : "";
             ViewBag.LaAdminHoacQuanLy = vaiTro == "Admin" || vaiTro == "Quản lý";
@@ -162,9 +124,7 @@ namespace QLSanPickleball_65132651.Controllers
             ViewBag.LoaiSanList = new SelectList(db.LOAISAN.ToList(), "MALOAISAN", "TENLOAISAN", maLoaiSan);
 
             ViewBag.TongSan = db.SAN.Count();
-            ViewBag.SanTrong = db.SAN.Count(s => s.TRANGTHAISAN == "Trống");
-            ViewBag.SanDangDat = db.SAN.Count(s => s.TRANGTHAISAN == "Đang đặt");
-            ViewBag.SanDangSuDung = db.SAN.Count(s => s.TRANGTHAISAN == "Đang sử dụng");
+            ViewBag.SanHoatDong = db.SAN.Count(s => s.TRANGTHAISAN == "Hoạt động");
             ViewBag.SanBaoTri = db.SAN.Count(s => s.TRANGTHAISAN == "Bảo trì");
 
             return View(dsSan.OrderBy(s => s.MASAN).ToList());
@@ -203,11 +163,9 @@ namespace QLSanPickleball_65132651.Controllers
 
             ViewBag.TrangThaiList = new SelectList(new[]
             {
-                "Trống",
-                "Đang đặt",
-                "Đang sử dụng",
+                "Hoạt động",
                 "Bảo trì"
-            }, "Trống");
+            }, "Hoạt động");
 
             return View();
         }
@@ -227,7 +185,7 @@ namespace QLSanPickleball_65132651.Controllers
 
             if (string.IsNullOrWhiteSpace(san.TRANGTHAISAN))
             {
-                san.TRANGTHAISAN = "Trống";
+                san.TRANGTHAISAN = "Hoạt động";
             }
 
             KiemTraDuLieuSan(san, true);
@@ -245,9 +203,7 @@ namespace QLSanPickleball_65132651.Controllers
 
             ViewBag.TrangThaiList = new SelectList(new[]
             {
-                "Trống",
-                "Đang đặt",
-                "Đang sử dụng",
+                "Hoạt động",
                 "Bảo trì"
             }, san.TRANGTHAISAN);
 
@@ -276,9 +232,7 @@ namespace QLSanPickleball_65132651.Controllers
 
             ViewBag.TrangThaiList = new SelectList(new[]
             {
-                "Trống",
-                "Đang đặt",
-                "Đang sử dụng",
+                "Hoạt động",
                 "Bảo trì"
             }, san.TRANGTHAISAN);
 
@@ -308,9 +262,7 @@ namespace QLSanPickleball_65132651.Controllers
 
             ViewBag.TrangThaiList = new SelectList(new[]
             {
-                "Trống",
-                "Đang đặt",
-                "Đang sử dụng",
+                "Hoạt động",
                 "Bảo trì"
             }, san.TRANGTHAISAN);
 
@@ -395,11 +347,9 @@ namespace QLSanPickleball_65132651.Controllers
 
             ViewBag.TrangThaiList = new SelectList(new[]
             {
-                "Trống",
-                "Đang đặt",
-                "Đang sử dụng",
+                "Hoạt động",
                 "Bảo trì"
-            }, san.TRANGTHAISAN);
+            }, san.TRANGTHAISAN == "Bảo trì" ? "Bảo trì" : "Hoạt động");
 
             return View(san);
         }
@@ -446,13 +396,13 @@ namespace QLSanPickleball_65132651.Controllers
             }
             else
             {
-                TempData["Success"] = "Cập nhật trạng thái sân thành công!";
+                TempData["Success"] = "Đã chuyển sân sang Hoạt động.";
             }
 
             return RedirectToAction("Index");
         }
 
-        // GET: SAN65134364/ChuyenTrangThai/S01?trangThai=Trống
+        // GET: SAN65134364/ChuyenTrangThai/S01?trangThai=Hoạt động
         public ActionResult ChuyenTrangThai(string id, string trangThai)
         {
             var check = KiemTraQuyenNhanVien();
@@ -492,11 +442,12 @@ namespace QLSanPickleball_65132651.Controllers
             }
             else
             {
-                TempData["Success"] = "Cập nhật trạng thái sân thành công!";
+                TempData["Success"] = "Đã chuyển sân sang Hoạt động.";
             }
 
             return RedirectToAction("Index");
         }
+
         private int HuyPhieuChuaThanhToanKhiBaoTri(string maSan)
         {
             DateTime now = DateTime.Now;
@@ -530,11 +481,10 @@ namespace QLSanPickleball_65132651.Controllers
 
             return dsPhieuCanHuy.Count;
         }
+
         private bool LaTrangThaiSanHopLe(string trangThai)
         {
-            return trangThai == "Trống"
-                || trangThai == "Đang đặt"
-                || trangThai == "Đang sử dụng"
+            return trangThai == "Hoạt động"
                 || trangThai == "Bảo trì";
         }
 
@@ -579,6 +529,11 @@ namespace QLSanPickleball_65132651.Controllers
             if (string.IsNullOrWhiteSpace(san.TRANGTHAISAN))
             {
                 ModelState.AddModelError("TRANGTHAISAN", "Vui lòng chọn trạng thái sân.");
+            }
+
+            if (!LaTrangThaiSanHopLe(san.TRANGTHAISAN))
+            {
+                ModelState.AddModelError("TRANGTHAISAN", "Trạng thái sân chỉ được là Hoạt động hoặc Bảo trì.");
             }
 
             if (laThemMoi)

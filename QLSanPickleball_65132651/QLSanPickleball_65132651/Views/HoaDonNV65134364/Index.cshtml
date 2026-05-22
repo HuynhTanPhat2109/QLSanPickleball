@@ -7,61 +7,6 @@
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
-@functions {
-    public string LayMaNhomTuGhiChu(string ghiChu)
-    {
-        if (string.IsNullOrWhiteSpace(ghiChu))
-        {
-            return "";
-        }
-
-        int viTri = ghiChu.IndexOf("GRP");
-
-        if (viTri < 0)
-        {
-            return "";
-        }
-
-        string chuoiTuGRP = ghiChu.Substring(viTri);
-
-        int viTriKhoangTrang = chuoiTuGRP.IndexOf(" ");
-        if (viTriKhoangTrang > 0)
-        {
-            chuoiTuGRP = chuoiTuGRP.Substring(0, viTriKhoangTrang);
-        }
-
-        int viTriGach = chuoiTuGRP.IndexOf("|");
-        if (viTriGach > 0)
-        {
-            chuoiTuGRP = chuoiTuGRP.Substring(0, viTriGach);
-        }
-
-        return chuoiTuGRP.Trim();
-    }
-
-    public string LayKhoaNhomHoaDon(QLSanPickleball_65132651.Models.HOADON h)
-    {
-        string maNhom = "";
-
-        if (h.PHIEUDATSAN != null)
-        {
-            maNhom = LayMaNhomTuGhiChu(h.PHIEUDATSAN.GHICHU);
-        }
-
-        if (!string.IsNullOrWhiteSpace(maNhom))
-        {
-            return maNhom;
-        }
-
-        return h.SOHD;
-    }
-
-    public string FormatTime(TimeSpan time)
-    {
-        return time.ToString(@"hh\:mm");
-    }
-}
-
 <style>
     .page-head {
         display: flex;
@@ -141,11 +86,6 @@
         font-size: 14px;
     }
 
-        .form-control:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
-        }
-
     .btn-filter,
     .btn-reset {
         border: none;
@@ -162,19 +102,10 @@
         color: white;
     }
 
-        .btn-filter:hover {
-            background: #15803d;
-        }
-
     .btn-reset {
         background: #6b7280;
         color: white !important;
     }
-
-        .btn-reset:hover {
-            background: #4b5563;
-            text-decoration: none;
-        }
 
     .alert-success-custom {
         background: #dcfce7;
@@ -208,19 +139,16 @@
         box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
         padding: 16px 18px;
         display: grid;
-        grid-template-columns: 110px 1.25fr 1.8fr 1fr 1fr 150px;
+        grid-template-columns: 150px 1.4fr 1.4fr 1fr 1fr 150px;
         gap: 16px;
-        align-items: start;
-    }
-
-    .invoice-code {
-        text-align: center;
+        align-items: center;
     }
 
     .sohd {
         font-size: 21px;
         font-weight: 900;
         color: #111827;
+        word-break: break-word;
     }
 
     .maphieu {
@@ -232,6 +160,10 @@
         border-radius: 999px;
         font-size: 11px;
         font-weight: 900;
+        max-width: 130px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
     }
 
     .main-text {
@@ -297,11 +229,11 @@
         background: #f59e0b;
     }
 
-    .btn-action:hover {
+    .btn-action:hover,
+    .btn-reset:hover {
         opacity: 0.88;
         color: white;
         text-decoration: none;
-        transform: translateY(-1px);
     }
 
     .action-box {
@@ -363,13 +295,6 @@
         font-size: 13px;
     }
 
-        .page-btn:hover {
-            background: #eff6ff;
-            border-color: #2563eb;
-            color: #1d4ed8 !important;
-            text-decoration: none;
-        }
-
         .page-btn.active {
             background: #2563eb;
             border-color: #2563eb;
@@ -384,7 +309,7 @@
 
     @@media(max-width: 1200px) {
         .invoice-card {
-            grid-template-columns: 100px 1.3fr 1.2fr;
+            grid-template-columns: 1fr 1fr 1fr;
         }
 
         .action-box {
@@ -395,34 +320,21 @@
         }
     }
 
-    @@media(max-width: 950px) {
-        .filter-row {
-            grid-template-columns: 1fr 1fr;
-        }
-    }
-
     @@media(max-width: 700px) {
-        .invoice-card {
+        .invoice-card,
+        .filter-row {
             grid-template-columns: 1fr;
-        }
-
-        .invoice-code {
-            text-align: left;
         }
 
         .action-box {
             grid-column: auto;
-        }
-
-        .filter-row {
-            grid-template-columns: 1fr;
         }
     }
 </style>
 
 <div class="page-head">
     <div>
-        <div class="page-sub">Quản lý hóa đơn, tra cứu doanh thu và xem chi tiết thanh toán.</div>
+        <div class="page-sub">Hiển thị theo thời gian lập hóa đơn mới nhất lên trước.</div>
     </div>
 
     <div class="revenue-box">
@@ -486,26 +398,8 @@
 <div class="invoice-list">
     @if (Model != null && Model.Any())
     {
-        var dsNhomHoaDon = Model
-            .GroupBy(h => LayKhoaNhomHoaDon(h))
-            .Select(g => new
-            {
-                MaNhom = g.Key,
-                DanhSach = g.OrderBy(x => x.PHIEUDATSAN != null ? x.PHIEUDATSAN.GIOBATDAU : TimeSpan.Zero).ToList(),
-                HoaDonDaiDien = g.OrderByDescending(x => x.NGAYLAP).FirstOrDefault(),
-                TongTienSan = g.Sum(x => x.TIENTHUESAN),
-                TongTienDichVu = g.Sum(x => x.TIENDICHVU),
-                TongGiamGia = g.Sum(x => x.GIAMGIAHOIVIEN),
-                TongThanhToan = g.Sum(x => x.TONGTHANHTOAN)
-            })
-            .Where(g => g.HoaDonDaiDien != null)
-            .OrderByDescending(g => g.HoaDonDaiDien.NGAYLAP)
-            .ToList();
-
-        foreach (var nhom in dsNhomHoaDon)
+        foreach (var item in Model.OrderByDescending(h => h.NGAYLAP))
         {
-            var item = nhom.HoaDonDaiDien;
-
             string tenKhach = item.PHIEUDATSAN != null && item.PHIEUDATSAN.KHACHHANG != null
                 ? item.PHIEUDATSAN.KHACHHANG.HOTENKH
                 : "Không rõ";
@@ -516,22 +410,25 @@
 
             string tenNhanVien = item.NHANVIEN != null ? item.NHANVIEN.HOTENNV : "Không rõ";
 
-            <div class="invoice-card">
-                <div class="invoice-code">
-                    <div class="sohd">
-                        @if (nhom.DanhSach.Count > 1)
-                        {
-                            <span>@item.SOHD</span>
-                        }
-                        else
-                        {
-                            <span>@item.SOHD</span>
-                        }
-                    </div>
+            string tenSan = item.PHIEUDATSAN != null && item.PHIEUDATSAN.SAN != null
+                ? item.PHIEUDATSAN.SAN.TENSAN
+                : "Xem chi tiết";
 
-                    <div class="maphieu">
-                        @item.MAPHIEUDAT
-                    </div>
+            string khungGio = "";
+
+            if (item.PHIEUDATSAN != null)
+            {
+                khungGio = item.PHIEUDATSAN.NGAYDAT.ToString("dd/MM/yyyy")
+                    + " • "
+                    + item.PHIEUDATSAN.GIOBATDAU.ToString(@"hh\:mm")
+                    + " - "
+                    + item.PHIEUDATSAN.GIOKETTHUC.ToString(@"hh\:mm");
+            }
+
+            <div class="invoice-card">
+                <div>
+                    <div class="sohd">@item.SOHD</div>
+                    <div class="maphieu">@item.MAPHIEUDAT</div>
                 </div>
 
                 <div>
@@ -541,31 +438,9 @@
                 </div>
 
                 <div>
-                    <div class="info-label">Lịch sân</div>
-
-                    @foreach (var hd in nhom.DanhSach)
-                    {
-                        string tenSan = hd.PHIEUDATSAN != null && hd.PHIEUDATSAN.SAN != null
-                            ? hd.PHIEUDATSAN.SAN.TENSAN
-                            : "Không rõ";
-
-                        string maSan = hd.PHIEUDATSAN != null ? hd.PHIEUDATSAN.MASAN : "";
-
-                        <div class="main-text">@tenSan</div>
-
-                        if (hd.PHIEUDATSAN != null)
-                        {
-                            <div class="sub-text">
-                                @hd.PHIEUDATSAN.NGAYDAT.ToString("dd/MM/yyyy")
-                                · @FormatTime(hd.PHIEUDATSAN.GIOBATDAU) - @FormatTime(hd.PHIEUDATSAN.GIOKETTHUC)
-                                · @hd.TONGTHANHTOAN.ToString("N0") đ
-                            </div>
-                        }
-                        else
-                        {
-                            <div class="sub-text">Mã sân: @maSan</div>
-                        }
-                    }
+                    <div class="info-label">Lịch sân đại diện</div>
+                    <div class="main-text">@tenSan</div>
+                    <div class="sub-text">@khungGio</div>
                 </div>
 
                 <div>
@@ -576,24 +451,17 @@
 
                 <div>
                     <div class="info-label">Tổng tiền</div>
-                    <div class="money">@nhom.TongThanhToan.ToString("N0") đ</div>
+                    <div class="money">@item.TONGTHANHTOAN.ToString("N0") đ</div>
+                    <div class="sub-text">Sân: @item.TIENTHUESAN.ToString("N0") đ</div>
 
-                    <div class="sub-text">
-                        Sân: @nhom.TongTienSan.ToString("N0") đ
-                    </div>
-
-                    @if (nhom.TongTienDichVu > 0)
+                    @if (item.TIENDICHVU > 0)
                     {
-                        <div class="sub-text">
-                            DV: @nhom.TongTienDichVu.ToString("N0") đ
-                        </div>
+                        <div class="sub-text">DV: @item.TIENDICHVU.ToString("N0") đ</div>
                     }
 
-                    @if (nhom.TongGiamGia > 0)
+                    @if (item.GIAMGIAHOIVIEN > 0)
                     {
-                        <div class="sub-text">
-                            Giảm: @nhom.TongGiamGia.ToString("N0") đ
-                        </div>
+                        <div class="sub-text">Giảm: @item.GIAMGIAHOIVIEN.ToString("N0") đ</div>
                     }
 
                     <div class="sub-text">
@@ -603,7 +471,6 @@
 
                 <div class="action-box">
                     @Html.ActionLink("Chi tiết", "Details", "HoaDonNV65134364", new { id = item.SOHD }, new { @class = "btn-action btn-detail" })
-
                     @Html.ActionLink("In HĐ", "Details", "HoaDonNV65134364", new { id = item.SOHD }, new { @class = "btn-action btn-print" })
                 </div>
             </div>
@@ -611,9 +478,7 @@
     }
     else
     {
-        <div class="empty-card">
-            Không tìm thấy hóa đơn nào.
-        </div>
+        <div class="empty-card">Không tìm thấy hóa đơn nào.</div>
     }
 </div>
 
@@ -634,15 +499,8 @@
     int startPage = currentPage - 2;
     int endPage = currentPage + 2;
 
-    if (startPage < 1)
-    {
-        startPage = 1;
-    }
-
-    if (endPage > totalPages)
-    {
-        endPage = totalPages;
-    }
+    if (startPage < 1) { startPage = 1; }
+    if (endPage > totalPages) { endPage = totalPages; }
 }
 
 @if (totalItems > 0)
@@ -654,82 +512,19 @@
 
         <div class="pagination-list">
             @Html.ActionLink("Trước", "Index", "HoaDonNV65134364",
-                new
-                {
-                    page = currentPage - 1,
-                    search = ViewBag.Search,
-                    tuNgay = ViewBag.TuNgay,
-                    denNgay = ViewBag.DenNgay
-                },
-                new
-                {
-                    @class = currentPage <= 1 ? "page-btn disabled" : "page-btn"
-                })
-
-            @if (startPage > 1)
-            {
-                @Html.ActionLink("1", "Index", "HoaDonNV65134364",
-                    new
-                    {
-                        page = 1,
-                        search = ViewBag.Search,
-                        tuNgay = ViewBag.TuNgay,
-                        denNgay = ViewBag.DenNgay
-                    },
-                    new { @class = "page-btn" })
-
-                if (startPage > 2)
-                {
-                    <span class="page-btn disabled">...</span>
-                }
-            }
+                new { page = currentPage - 1, search = ViewBag.Search, tuNgay = ViewBag.TuNgay, denNgay = ViewBag.DenNgay },
+                new { @class = currentPage <= 1 ? "page-btn disabled" : "page-btn" })
 
             @for (int i = startPage; i <= endPage; i++)
             {
                 @Html.ActionLink(i.ToString(), "Index", "HoaDonNV65134364",
-                    new
-                    {
-                        page = i,
-                        search = ViewBag.Search,
-                        tuNgay = ViewBag.TuNgay,
-                        denNgay = ViewBag.DenNgay
-                    },
-                    new
-                    {
-                        @class = i == currentPage ? "page-btn active" : "page-btn"
-                    })
-            }
-
-            @if (endPage < totalPages)
-            {
-                if (endPage < totalPages - 1)
-                {
-                    <span class="page-btn disabled">...</span>
-                }
-
-                @Html.ActionLink(totalPages.ToString(), "Index", "HoaDonNV65134364",
-                    new
-                    {
-                        page = totalPages,
-                        search = ViewBag.Search,
-                        tuNgay = ViewBag.TuNgay,
-                        denNgay = ViewBag.DenNgay
-                    },
-                    new { @class = "page-btn" })
+                    new { page = i, search = ViewBag.Search, tuNgay = ViewBag.TuNgay, denNgay = ViewBag.DenNgay },
+                    new { @class = i == currentPage ? "page-btn active" : "page-btn" })
             }
 
             @Html.ActionLink("Sau", "Index", "HoaDonNV65134364",
-                new
-                {
-                    page = currentPage + 1,
-                    search = ViewBag.Search,
-                    tuNgay = ViewBag.TuNgay,
-                    denNgay = ViewBag.DenNgay
-                },
-                new
-                {
-                    @class = currentPage >= totalPages ? "page-btn disabled" : "page-btn"
-                })
+                new { page = currentPage + 1, search = ViewBag.Search, tuNgay = ViewBag.TuNgay, denNgay = ViewBag.DenNgay },
+                new { @class = currentPage >= totalPages ? "page-btn disabled" : "page-btn" })
         </div>
     </div>
 }

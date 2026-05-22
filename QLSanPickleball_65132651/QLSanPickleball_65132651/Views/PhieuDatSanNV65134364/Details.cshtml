@@ -1,12 +1,20 @@
 ﻿@using System
 @using System.Linq
+@using System.Collections.Generic
 @model QLSanPickleball_65132651.Models.PHIEUDATSAN
 
 @{
     ViewBag.Title = "Chi tiết phiếu đặt sân";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 
+    var danhSachPhieuCungNhom = ViewBag.DanhSachPhieuCungNhom as IEnumerable<QLSanPickleball_65132651.Models.PHIEUDATSAN>;
     var danhSachDichVu = ViewBag.DanhSachDichVu as IEnumerable<QLSanPickleball_65132651.Models.CHITIETDICHVUDAT>;
+
+    if (danhSachPhieuCungNhom == null || !danhSachPhieuCungNhom.Any())
+    {
+        danhSachPhieuCungNhom = new List<QLSanPickleball_65132651.Models.PHIEUDATSAN> { Model };
+    }
+
     bool daCoHoaDon = ViewBag.DaCoHoaDon != null && (bool)ViewBag.DaCoHoaDon;
 
     string tenSan = Model.SAN != null ? Model.SAN.TENSAN : Model.MASAN;
@@ -16,13 +24,26 @@
     string emailKhach = Model.KHACHHANG != null ? Model.KHACHHANG.EMAILKH : "";
     string tenNhanVien = Model.NHANVIEN != null ? Model.NHANVIEN.HOTENNV : "Chưa xử lý";
 
-    decimal tongTienDichVu = 0;
-    if (danhSachDichVu != null && danhSachDichVu.Any())
-    {
-        tongTienDichVu = danhSachDichVu.Sum(x => x.THANHTIEN);
-    }
+    decimal tongTienSan = ViewBag.TongTienSan == null
+        ? danhSachPhieuCungNhom.Sum(p => p.TONGTIENTAMTINH)
+        : Convert.ToDecimal(ViewBag.TongTienSan);
 
-    decimal tongTamTinh = Model.TONGTIENTAMTINH + tongTienDichVu;
+    decimal tongTienDichVu = ViewBag.TongTienDichVu == null
+        ? (danhSachDichVu != null && danhSachDichVu.Any() ? danhSachDichVu.Sum(x => x.THANHTIEN) : 0m)
+        : Convert.ToDecimal(ViewBag.TongTienDichVu);
+
+    decimal tongTamTinh = ViewBag.TongTamTinh == null
+        ? tongTienSan + tongTienDichVu
+        : Convert.ToDecimal(ViewBag.TongTamTinh);
+
+    string khungGioNhom = ViewBag.KhungGioNhom == null
+        ? danhSachPhieuCungNhom.Min(p => p.GIOBATDAU).ToString(@"hh\:mm") + " - " + danhSachPhieuCungNhom.Max(p => p.GIOKETTHUC).ToString(@"hh\:mm")
+        : ViewBag.KhungGioNhom.ToString();
+
+    string maNhom = ViewBag.MaNhomDatSan == null ? LayMaNhomTuGhiChu(Model.GHICHU) : ViewBag.MaNhomDatSan.ToString();
+
+    string minhChungPath = LayMinhChungTuGhiChu(Model.GHICHU);
+    string tenFileMinhChung = string.IsNullOrWhiteSpace(minhChungPath) ? "" : System.IO.Path.GetFileName(minhChungPath);
 
     string classPhieu = "st-gray";
 
@@ -46,7 +67,7 @@
     {
         classPhieu = "st-done";
     }
-    else if (Model.TRANGTHAIPHIEU == "Đã hủy" || Model.TRANGTHAIPHIEU == "Đã huỷ" || Model.TRANGTHAIPHIEU == "Hủy" || Model.TRANGTHAIPHIEU == "Huy" || Model.TRANGTHAIPHIEU == "DaHuy" || Model.TRANGTHAIPHIEU == "Khách không đến"|| Model.TRANGTHAIPHIEU == "Hủy do bảo trì")
+    else if (Model.TRANGTHAIPHIEU == "Đã hủy" || Model.TRANGTHAIPHIEU == "Đã huỷ" || Model.TRANGTHAIPHIEU == "Hủy" || Model.TRANGTHAIPHIEU == "Huy" || Model.TRANGTHAIPHIEU == "DaHuy" || Model.TRANGTHAIPHIEU == "Hủy do bảo trì")
     {
         classPhieu = "st-cancel";
     }
@@ -78,90 +99,99 @@
         classThanhToan = "st-cancel";
     }
 
-    bool choXacNhan = Model.TRANGTHAIPHIEU == "Chờ xác nhận"
-        || Model.TRANGTHAIPHIEU == "Chờ duyệt"
-        || Model.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản";
+    bool choXacNhan =
+        Model.TRANGTHAIPHIEU == "Chờ xác nhận" ||
+        Model.TRANGTHAIPHIEU == "Chờ duyệt" ||
+        Model.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản";
 
     bool daXacNhan = Model.TRANGTHAIPHIEU == "Đã xác nhận";
     bool daHoanThanh = Model.TRANGTHAIPHIEU == "Hoàn thành";
 
-    bool daHuy = Model.TRANGTHAIPHIEU == "Đã hủy"
-        || Model.TRANGTHAIPHIEU == "Đã huỷ"
-        || Model.TRANGTHAIPHIEU == "Hủy"
-        || Model.TRANGTHAIPHIEU == "Huy"
-        || Model.TRANGTHAIPHIEU == "DaHuy"
-        || Model.TRANGTHAITHANHTOAN == "Đã hủy"
-        || Model.TRANGTHAIPHIEU == "Khách không đến"
-        || Model.TRANGTHAIPHIEU == "Hủy do bảo trì"
-        || Model.TRANGTHAITHANHTOAN == "Đã huỷ";
+    bool daHuy =
+        Model.TRANGTHAIPHIEU == "Đã hủy" ||
+        Model.TRANGTHAIPHIEU == "Đã huỷ" ||
+        Model.TRANGTHAIPHIEU == "Hủy" ||
+        Model.TRANGTHAIPHIEU == "Huy" ||
+        Model.TRANGTHAIPHIEU == "DaHuy" ||
+        Model.TRANGTHAIPHIEU == "Hủy do bảo trì" ||
+        Model.TRANGTHAITHANHTOAN == "Đã hủy" ||
+        Model.TRANGTHAITHANHTOAN == "Đã huỷ";
 
     bool duocSuaDichVu = !daHuy && !daHoanThanh && !daCoHoaDon;
+}
 
-    string maNhom = "";
-    string minhChungPath = "";
-
-    if (!string.IsNullOrWhiteSpace(Model.GHICHU))
+@functions {
+    public string LayMaNhomTuGhiChu(string ghiChu)
     {
-        int viTriGRP = Model.GHICHU.IndexOf("GRP");
-
-        if (viTriGRP >= 0)
+        if (string.IsNullOrWhiteSpace(ghiChu))
         {
-            string temp = Model.GHICHU.Substring(viTriGRP).Trim();
-
-            int viTriSpace = temp.IndexOf(" ");
-            int viTriGach = temp.IndexOf("|");
-
-            int viTriCat = -1;
-
-            if (viTriSpace > 0 && viTriGach > 0)
-            {
-                viTriCat = Math.Min(viTriSpace, viTriGach);
-            }
-            else if (viTriSpace > 0)
-            {
-                viTriCat = viTriSpace;
-            }
-            else if (viTriGach > 0)
-            {
-                viTriCat = viTriGach;
-            }
-
-            maNhom = viTriCat > 0 ? temp.Substring(0, viTriCat).Trim() : temp.Trim();
+            return "";
         }
 
-        if (Model.GHICHU.Contains("Minh chứng:"))
-        {
-            int viTri = Model.GHICHU.IndexOf("Minh chứng:");
-            minhChungPath = Model.GHICHU.Substring(viTri + "Minh chứng:".Length).Trim();
+        int viTri = ghiChu.IndexOf("GRP");
 
-            int viTriGach2 = minhChungPath.IndexOf("|");
-            if (viTriGach2 > 0)
-            {
-                minhChungPath = minhChungPath.Substring(0, viTriGach2).Trim();
-            }
+        if (viTri < 0)
+        {
+            return "";
         }
+
+        string chuoiTuGRP = ghiChu.Substring(viTri);
+
+        int viTriGach = chuoiTuGRP.IndexOf("|");
+        if (viTriGach > 0)
+        {
+            chuoiTuGRP = chuoiTuGRP.Substring(0, viTriGach);
+        }
+
+        int viTriKhoangTrang = chuoiTuGRP.IndexOf(" ");
+        if (viTriKhoangTrang > 0)
+        {
+            chuoiTuGRP = chuoiTuGRP.Substring(0, viTriKhoangTrang);
+        }
+
+        return chuoiTuGRP.Trim();
     }
 
-    string tenFileMinhChung = "";
-    if (!string.IsNullOrWhiteSpace(minhChungPath))
+    public string LayMinhChungTuGhiChu(string ghiChu)
     {
-        tenFileMinhChung = System.IO.Path.GetFileName(minhChungPath);
+        if (string.IsNullOrWhiteSpace(ghiChu))
+        {
+            return "";
+        }
+
+        string key = "/Content/Uploads/MinhChungThanhToan/";
+        int viTri = ghiChu.IndexOf(key);
+
+        if (viTri < 0)
+        {
+            return "";
+        }
+
+        string path = ghiChu.Substring(viTri);
+
+        int viTriGach = path.IndexOf("|");
+        if (viTriGach > 0)
+        {
+            path = path.Substring(0, viTriGach);
+        }
+
+        return path.Trim();
     }
 }
 
 <style>
     .detail-wrapper {
-        max-width: 1150px;
+        max-width: 1440px;
         margin: 0 auto;
     }
 
     .page-head {
         display: flex;
         justify-content: space-between;
-        align-items: center;
-        margin-bottom: 18px;
-        gap: 12px;
+        align-items: flex-start;
+        gap: 14px;
         flex-wrap: wrap;
+        margin-bottom: 18px;
     }
 
         .page-head h2 {
@@ -172,14 +202,14 @@
         }
 
     .page-sub {
-        margin-top: 4px;
         color: #6b7280;
-        font-size: 14px;
+        margin-top: 5px;
+        font-weight: 700;
     }
 
     .top-actions {
         display: flex;
-        gap: 8px;
+        gap: 9px;
         flex-wrap: wrap;
         justify-content: flex-end;
     }
@@ -207,41 +237,41 @@
     .hero-card {
         background: linear-gradient(135deg, #0f172a, #1e3a8a);
         color: white;
-        border-radius: 20px;
-        padding: 24px;
-        box-shadow: 0 14px 35px rgba(15, 23, 42, 0.18);
-        margin-bottom: 18px;
+        border-radius: 22px;
+        padding: 26px;
         display: grid;
-        grid-template-columns: 130px 1fr auto;
-        gap: 18px;
+        grid-template-columns: 170px 1fr 240px;
+        gap: 22px;
         align-items: center;
+        box-shadow: 0 14px 35px rgba(15,23,42,0.16);
+        margin-bottom: 24px;
     }
 
     .hero-icon {
-        min-width: 110px;
-        height: 76px;
+        min-width: 140px;
+        height: 86px;
         border-radius: 22px;
         background: rgba(255,255,255,0.16);
+        border: 1px solid rgba(255,255,255,0.2);
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 17px;
         font-weight: 900;
-        border: 1px solid rgba(255,255,255,0.2);
+        font-size: 20px;
         padding: 0 12px;
-        white-space: nowrap;
+        word-break: break-word;
     }
 
     .hero-title {
-        font-size: 24px;
+        font-size: 28px;
         font-weight: 900;
-        margin-bottom: 6px;
+        margin-bottom: 7px;
     }
 
     .hero-meta {
         color: #bfdbfe;
-        font-size: 14px;
         line-height: 1.6;
+        font-weight: 700;
     }
 
     .hero-money {
@@ -251,46 +281,47 @@
     .hero-money-label {
         color: #bfdbfe;
         font-size: 13px;
-        font-weight: 800;
+        font-weight: 900;
         text-transform: uppercase;
+        letter-spacing: 1px;
     }
 
     .hero-money-value {
-        font-size: 28px;
+        margin-top: 8px;
+        font-size: 32px;
         font-weight: 900;
-        margin-top: 6px;
     }
 
     .grid-main {
         display: grid;
-        grid-template-columns: 1.3fr 0.9fr;
-        gap: 18px;
+        grid-template-columns: 1.35fr 0.9fr;
+        gap: 22px;
     }
 
     .card-box {
         background: white;
         border: 1px solid #e5e7eb;
-        border-radius: 18px;
-        box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
-        padding: 20px;
-        margin-bottom: 18px;
+        border-radius: 20px;
+        padding: 22px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+        margin-bottom: 22px;
     }
 
     .card-title {
-        font-size: 18px;
+        font-size: 19px;
         font-weight: 900;
         color: #111827;
-        margin-bottom: 14px;
+        margin-bottom: 16px;
         display: flex;
-        align-items: center;
         justify-content: space-between;
+        align-items: center;
         gap: 12px;
         flex-wrap: wrap;
     }
 
     .info-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
+        grid-template-columns: repeat(2, 1fr);
         gap: 14px;
     }
 
@@ -298,8 +329,8 @@
         border: 1px solid #e5e7eb;
         background: #f9fafb;
         border-radius: 14px;
-        padding: 14px;
-        min-width: 0;
+        padding: 14px 16px;
+        min-height: 72px;
     }
 
     .info-item-full {
@@ -311,62 +342,61 @@
         font-size: 12px;
         font-weight: 900;
         text-transform: uppercase;
-        margin-bottom: 6px;
+        margin-bottom: 7px;
     }
 
-    .info-value {
+    .info-value,
+    .code-value {
         color: #111827;
-        font-size: 15px;
-        font-weight: 800;
-        line-height: 1.45;
+        font-size: 16px;
+        font-weight: 900;
         word-break: break-word;
     }
 
     .code-value {
-        font-size: 20px;
-        font-weight: 900;
-        color: #111827;
-        letter-spacing: 0.3px;
-        word-break: normal;
-        white-space: nowrap;
+        font-size: 18px;
+        color: #0f172a;
     }
 
     .group-code {
-        display: inline-block;
         background: #eef2ff;
         color: #1d4ed8;
         padding: 8px 12px;
         border-radius: 999px;
-        font-size: 14px;
-        font-weight: 900;
-        word-break: normal;
-        white-space: nowrap;
-    }
-
-    .proof-link {
         display: inline-block;
-        background: #ecfeff;
-        color: #0e7490 !important;
-        padding: 8px 12px;
-        border-radius: 10px;
-        font-size: 13px;
         font-weight: 900;
-        text-decoration: none;
-        max-width: 100%;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
     }
 
-        .proof-link:hover {
-            background: #cffafe;
-            text-decoration: none;
+    .money-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 13px 0;
+        font-weight: 900;
+    }
+
+        .money-row:last-child {
+            border-bottom: none;
         }
+
+        .money-row span {
+            color: #6b7280;
+        }
+
+        .money-row strong {
+            color: #111827;
+        }
+
+    .money-total strong {
+        color: #047857;
+        font-size: 22px;
+    }
 
     .badge-status {
         padding: 8px 12px;
         border-radius: 999px;
-        font-size: 12px;
+        font-size: 13px;
         font-weight: 900;
         display: inline-block;
         white-space: nowrap;
@@ -407,54 +437,89 @@
         color: #374151;
     }
 
-    .money-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 11px 0;
-        border-bottom: 1px solid #e5e7eb;
+    .proof-link {
+        background: #ecfeff;
+        color: #0e7490;
+        padding: 9px 12px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+        .proof-link:hover {
+            text-decoration: none;
+            color: #155e75;
+            opacity: 0.9;
+        }
+
+    .proof-img {
+        width: 100%;
+        max-height: 420px;
+        object-fit: contain;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        background: #f9fafb;
+    }
+
+    .slot-list {
+        display: grid;
         gap: 12px;
     }
 
-        .money-row:last-child {
-            border-bottom: none;
-        }
-
-    .money-label {
-        color: #6b7280;
-        font-weight: 800;
+    .slot-item {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr 0.8fr;
+        gap: 12px;
+        align-items: center;
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 14px 16px;
     }
 
-    .money-value {
-        color: #111827;
+    .slot-name {
         font-weight: 900;
+        color: #111827;
     }
 
-    .money-total {
-        font-size: 22px;
+    .slot-sub {
+        color: #6b7280;
+        font-size: 13px;
+        font-weight: 700;
+        margin-top: 4px;
+    }
+
+    .slot-time {
+        font-weight: 900;
+        color: #1d4ed8;
+    }
+
+    .slot-money {
+        font-weight: 900;
         color: #047857;
+        text-align: right;
     }
 
     .service-table {
         width: 100%;
         border-collapse: collapse;
-        overflow: hidden;
-        border-radius: 14px;
     }
 
         .service-table th {
             background: #f3f4f6;
             color: #111827;
-            padding: 12px;
-            text-align: left;
+            padding: 11px;
+            font-size: 12px;
+            text-transform: uppercase;
             border-bottom: 1px solid #e5e7eb;
-            font-size: 13px;
         }
 
         .service-table td {
-            padding: 12px;
+            padding: 12px 11px;
             border-bottom: 1px solid #e5e7eb;
-            color: #374151;
+            color: #111827;
+            font-weight: 700;
         }
 
         .service-table tr:last-child td {
@@ -473,15 +538,6 @@
         color: #64748b;
         font-weight: 700;
         background: #f8fafc;
-    }
-
-    .proof-img {
-        width: 100%;
-        max-height: 420px;
-        object-fit: contain;
-        border-radius: 14px;
-        border: 1px solid #e5e7eb;
-        background: #f9fafb;
     }
 
     .btn-action {
@@ -535,18 +591,13 @@
         display: inline-block;
     }
 
+        .btn-action:hover,
         .btn-remove-service:hover {
             opacity: 0.88;
             color: white;
             text-decoration: none;
+            transform: translateY(-1px);
         }
-
-    .btn-action:hover {
-        opacity: 0.88;
-        color: white;
-        text-decoration: none;
-        transform: translateY(-1px);
-    }
 
     @@media(max-width: 950px) {
         .grid-main {
@@ -558,6 +609,14 @@
         }
 
         .hero-money {
+            text-align: left;
+        }
+
+        .slot-item {
+            grid-template-columns: 1fr;
+        }
+
+        .slot-money {
             text-align: left;
         }
     }
@@ -580,7 +639,6 @@
 <div class="detail-wrapper">
     <div class="page-head">
         <div>
-            <h2>Chi tiết phiếu đặt sân</h2>
             <div class="page-sub">Kiểm tra thông tin đặt sân, minh chứng thanh toán và xử lý nghiệp vụ.</div>
         </div>
 
@@ -609,16 +667,11 @@
                     onclick = "return confirm('Xác nhận khách vào sân?');"
                 })
 
-                @Html.ActionLink("Khách không đến", "KhachKhongDen", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new
-                {
-                    @class = "btn-action btn-cancel",
-                    onclick = "return confirm('Xác nhận khách không đến quá 20 phút và tính 1 lần bùng lịch?');"
-                })
 
                 @Html.ActionLink("Kết thúc", "KetThucLuotChoi", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new
                 {
                     @class = "btn-action btn-finish",
-                    onclick = "return confirm('Kết thúc lượt chơi và chuyển sân về Trống?');"
+                    onclick = "return confirm('Kết thúc lượt chơi?');"
                 })
 
                 if (!daCoHoaDon)
@@ -633,10 +686,8 @@
 
             @if (!daHuy && !daHoanThanh)
             {
-                @Html.ActionLink("Hỗ trợ hủy sân", "HoTroHuySan", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new
-                {
-                    @class = "btn-action btn-cancel"
-                })}
+                @Html.ActionLink("Hỗ trợ hủy sân", "HoTroHuySan", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new { @class = "btn-action btn-cancel" })
+            }
         </div>
     </div>
 
@@ -657,7 +708,7 @@
             <div class="hero-title">@tenSan</div>
             <div class="hero-meta">
                 Mã sân: @Model.MASAN • Loại sân: @loaiSan <br />
-                Ngày chơi: @Model.NGAYDAT.ToString("dd/MM/yyyy") • Giờ: @Model.GIOBATDAU.ToString(@"hh\:mm") - @Model.GIOKETTHUC.ToString(@"hh\:mm")
+                Ngày chơi: @Model.NGAYDAT.ToString("dd/MM/yyyy") • Giờ: @khungGioNhom
             </div>
         </div>
 
@@ -677,7 +728,7 @@
 
                 <div class="info-grid">
                     <div class="info-item">
-                        <div class="info-label">Mã phiếu</div>
+                        <div class="info-label">Mã phiếu đại diện</div>
                         <div class="code-value">@Model.MAPHIEUDAT</div>
                     </div>
 
@@ -764,6 +815,40 @@
             </div>
 
             <div class="card-box">
+                <div class="card-title">Các khung giờ trong nhóm</div>
+
+                @if (danhSachPhieuCungNhom != null && danhSachPhieuCungNhom.Any())
+                {
+                    <div class="slot-list">
+                        @foreach (var p in danhSachPhieuCungNhom)
+                        {
+                            string tenSanItem = p.SAN != null ? p.SAN.TENSAN : p.MASAN;
+                            string loaiSanItem = p.SAN != null && p.SAN.LOAISAN != null ? p.SAN.LOAISAN.TENLOAISAN : "";
+
+                            <div class="slot-item">
+                                <div>
+                                    <div class="slot-name">@tenSanItem</div>
+                                    <div class="slot-sub">Mã phiếu: @p.MAPHIEUDAT • Mã sân: @p.MASAN • @loaiSanItem</div>
+                                </div>
+
+                                <div class="slot-time">
+                                    @p.NGAYDAT.ToString("dd/MM/yyyy") • @p.GIOBATDAU.ToString(@"hh\:mm") - @p.GIOKETTHUC.ToString(@"hh\:mm")
+                                </div>
+
+                                <div class="slot-money">
+                                    @p.TONGTIENTAMTINH.ToString("N0") đ
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="empty-box">Không có dữ liệu khung giờ.</div>
+                }
+            </div>
+
+            <div class="card-box">
                 <div class="card-title">
                     <span>Dịch vụ đi kèm</span>
 
@@ -798,22 +883,20 @@
                                 string donViTinh = item.DICHVU != null ? item.DICHVU.DONVITINH : "";
 
                                 <tr>
-                                    <td><strong>@tenDV</strong></td>
+                                    <td>@tenDV</td>
                                     <td>@donViTinh</td>
                                     <td class="text-right">@item.DONGIA.ToString("N0") đ</td>
                                     <td class="text-right">@item.SOLUONG</td>
-                                    <td class="text-right"><strong>@item.THANHTIEN.ToString("N0") đ</strong></td>
+                                    <td class="text-right">@item.THANHTIEN.ToString("N0") đ</td>
 
                                     @if (duocSuaDichVu)
                                     {
                                         <td class="text-right">
-                                            @Html.ActionLink("Xóa", "XoaDichVu", "PhieuDatSanNV65134364",
-                                                new { maPhieuDat = Model.MAPHIEUDAT, maDV = item.MADV },
-                                                new
-                                                {
-                                                    @class = "btn-remove-service",
-                                                    onclick = "return confirm('Xóa dịch vụ " + tenDV + " khỏi phiếu này?');"
-                                                })
+                                            @Html.ActionLink("Xóa", "XoaDichVu", "PhieuDatSanNV65134364", new { maPhieuDat = item.MAPHIEUDAT, maDV = item.MADV }, new
+                                            {
+                                                @class = "btn-remove-service",
+                                                onclick = "return confirm('Xóa dịch vụ này khỏi phiếu?');"
+                                            })
                                         </td>
                                     }
                                 </tr>
@@ -833,18 +916,18 @@
                 <div class="card-title">Thanh toán</div>
 
                 <div class="money-row">
-                    <div class="money-label">Tiền sân</div>
-                    <div class="money-value">@Model.TONGTIENTAMTINH.ToString("N0") đ</div>
+                    <span>Tiền sân</span>
+                    <strong>@tongTienSan.ToString("N0") đ</strong>
                 </div>
 
                 <div class="money-row">
-                    <div class="money-label">Tiền dịch vụ</div>
-                    <div class="money-value">@tongTienDichVu.ToString("N0") đ</div>
+                    <span>Tiền dịch vụ</span>
+                    <strong>@tongTienDichVu.ToString("N0") đ</strong>
                 </div>
 
-                <div class="money-row">
-                    <div class="money-label">Tổng cộng</div>
-                    <div class="money-value money-total">@tongTamTinh.ToString("N0") đ</div>
+                <div class="money-row money-total">
+                    <span>Tổng cộng</span>
+                    <strong>@tongTamTinh.ToString("N0") đ</strong>
                 </div>
             </div>
 
@@ -869,7 +952,7 @@
 
                     <div class="info-item">
                         <div class="info-label">Khung giờ</div>
-                        <div class="info-value">@Model.GIOBATDAU.ToString(@"hh\:mm") - @Model.GIOKETTHUC.ToString(@"hh\:mm")</div>
+                        <div class="info-value">@khungGioNhom</div>
                     </div>
                 </div>
             </div>
@@ -880,12 +963,12 @@
                 @if (!string.IsNullOrWhiteSpace(minhChungPath))
                 {
                     <a href="@Url.Content(minhChungPath)" target="_blank">
-                        <img src="@Url.Content(minhChungPath)" class="proof-img" />
+                        <img src="@Url.Content(minhChungPath)" alt="Minh chứng thanh toán" class="proof-img" />
                     </a>
                 }
                 else
                 {
-                    <div class="empty-box">Chưa có minh chứng thanh toán.</div>
+                    <div class="empty-box">Chưa có ảnh minh chứng thanh toán.</div>
                 }
             </div>
         </div>

@@ -1,5 +1,6 @@
 ﻿using QLSanPickleball_65132651.Models;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Net;
@@ -27,7 +28,6 @@ namespace QLSanPickleball_65132651.Controllers
 
             return null;
         }
-
         // GET: HoaDonNV65134364
         public ActionResult Index(string search, DateTime? tuNgay, DateTime? denNgay, int page = 1)
         {
@@ -74,6 +74,10 @@ namespace QLSanPickleball_65132651.Controllers
                 dsHoaDon = dsHoaDon.Where(h => h.NGAYLAP < ngayKetThuc);
             }
 
+            ViewBag.TongDoanhThu = dsHoaDon.Any()
+                ? dsHoaDon.Sum(h => h.TONGTHANHTOAN)
+                : 0m;
+
             int tongSoHoaDon = dsHoaDon.Count();
             int tongSoTrang = (int)Math.Ceiling((double)tongSoHoaDon / pageSize);
 
@@ -89,6 +93,7 @@ namespace QLSanPickleball_65132651.Controllers
 
             var ketQua = dsHoaDon
                 .OrderByDescending(h => h.NGAYLAP)
+                .ThenByDescending(h => h.SOHD)
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
@@ -101,8 +106,6 @@ namespace QLSanPickleball_65132651.Controllers
             ViewBag.TotalPages = tongSoTrang;
             ViewBag.PageSize = pageSize;
             ViewBag.TotalItems = tongSoHoaDon;
-
-            ViewBag.TongDoanhThu = dsHoaDon.Any() ? dsHoaDon.Sum(h => h.TONGTHANHTOAN) : 0m;
 
             return View(ketQua);
         }
@@ -131,10 +134,66 @@ namespace QLSanPickleball_65132651.Controllers
                 return HttpNotFound();
             }
 
-            ViewBag.DanhSachDichVu = db.CHITIETDICHVUDAT
-                .Include(c => c.DICHVU)
-                .Where(c => c.MAPHIEUDAT == hoaDon.MAPHIEUDAT)
+            string maNhom = "";
+
+            if (hoaDon.PHIEUDATSAN != null)
+            {
+                maNhom = LayMaNhomTuGhiChu(hoaDon.PHIEUDATSAN.GHICHU);
+            }
+
+            List<PHIEUDATSAN> dsPhieuCungNhom;
+
+            if (!string.IsNullOrWhiteSpace(maNhom))
+            {
+                dsPhieuCungNhom = db.PHIEUDATSAN
+                    .Include(p => p.KHACHHANG)
+                    .Include(p => p.SAN)
+                    .Include(p => p.SAN.LOAISAN)
+                    .Include(p => p.NHANVIEN)
+                    .Where(p => p.GHICHU != null && p.GHICHU.Contains(maNhom))
+                    .OrderBy(p => p.NGAYDAT)
+                    .ThenBy(p => p.GIOBATDAU)
+                    .ThenBy(p => p.MASAN)
+                    .ToList();
+            }
+            else
+            {
+                dsPhieuCungNhom = db.PHIEUDATSAN
+                    .Include(p => p.KHACHHANG)
+                    .Include(p => p.SAN)
+                    .Include(p => p.SAN.LOAISAN)
+                    .Include(p => p.NHANVIEN)
+                    .Where(p => p.MAPHIEUDAT == hoaDon.MAPHIEUDAT)
+                    .ToList();
+            }
+
+            if (dsPhieuCungNhom == null || !dsPhieuCungNhom.Any())
+            {
+                dsPhieuCungNhom = new List<PHIEUDATSAN>();
+
+                if (hoaDon.PHIEUDATSAN != null)
+                {
+                    dsPhieuCungNhom.Add(hoaDon.PHIEUDATSAN);
+                }
+            }
+
+            var dsMaPhieu = dsPhieuCungNhom
+                .Select(p => p.MAPHIEUDAT)
                 .ToList();
+
+            var dsDichVu = db.CHITIETDICHVUDAT
+                .Include(c => c.DICHVU)
+                .Where(c => dsMaPhieu.Contains(c.MAPHIEUDAT))
+                .ToList();
+
+            ViewBag.MaNhomDatSan = maNhom;
+            ViewBag.DanhSachPhieuCungNhom = dsPhieuCungNhom;
+            ViewBag.DanhSachDichVu = dsDichVu;
+
+            ViewBag.TongTienSan = hoaDon.TIENTHUESAN;
+            ViewBag.TongTienDichVu = hoaDon.TIENDICHVU;
+            ViewBag.TongGiamGia = hoaDon.GIAMGIAHOIVIEN;
+            ViewBag.TongThanhToan = hoaDon.TONGTHANHTOAN;
 
             return View(hoaDon);
         }

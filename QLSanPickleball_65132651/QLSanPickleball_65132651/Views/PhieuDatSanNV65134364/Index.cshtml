@@ -41,6 +41,7 @@
 
         return chuoiTuGRP.Trim();
     }
+
     public string LayKhoaNhom(QLSanPickleball_65132651.Models.PHIEUDATSAN p)
     {
         string maNhom = LayMaNhomTuGhiChu(p.GHICHU);
@@ -55,36 +56,126 @@
 
     public string LayTrangThaiDaiDien(IEnumerable<QLSanPickleball_65132651.Models.PHIEUDATSAN> ds)
     {
-        if (ds.Any(p => p.TRANGTHAIPHIEU == "Chờ xác nhận" || p.TRANGTHAIPHIEU == "Chờ duyệt"))
+        if (ds.Any(p =>
+            p.TRANGTHAIPHIEU == "Chờ xác nhận" ||
+            p.TRANGTHAIPHIEU == "Chờ duyệt" ||
+            p.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản"))
+        {
             return "Chờ xác nhận";
+        }
+
+        if (ds.Any(p => p.TRANGTHAIPHIEU == "Đang sử dụng"))
+        {
+            return "Đang sử dụng";
+        }
 
         if (ds.Any(p => p.TRANGTHAIPHIEU == "Đã xác nhận"))
+        {
             return "Đã xác nhận";
+        }
 
         if (ds.Any(p => p.TRANGTHAIPHIEU == "Hoàn thành"))
+        {
             return "Hoàn thành";
+        }
 
-        if (ds.Any(p => p.TRANGTHAIPHIEU == "Đã hủy" || p.TRANGTHAIPHIEU == "Đã huỷ" || p.TRANGTHAIPHIEU == "Hủy" || p.TRANGTHAIPHIEU == "Huy" || p.TRANGTHAIPHIEU == "DaHuy"))
+        if (ds.Any(p =>
+            p.TRANGTHAIPHIEU == "Đã hủy" ||
+            p.TRANGTHAIPHIEU == "Đã huỷ" ||
+            p.TRANGTHAIPHIEU == "Hủy" ||
+            p.TRANGTHAIPHIEU == "Huy" ||
+            p.TRANGTHAIPHIEU == "DaHuy" ||
+            p.TRANGTHAIPHIEU == "Khách không đến" ||
+            p.TRANGTHAIPHIEU == "Hủy do bảo trì"))
+        {
             return "Đã hủy";
+        }
 
         return ds.First().TRANGTHAIPHIEU;
     }
 
     public string LayThanhToanDaiDien(IEnumerable<QLSanPickleball_65132651.Models.PHIEUDATSAN> ds)
     {
+        if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Hoàn cọc 100%"))
+        {
+            return "Hoàn cọc 100%";
+        }
+
+        if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Hoàn cọc 50%"))
+        {
+            return "Hoàn cọc 50%";
+        }
+
+        if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Hoàn cọc 20%"))
+        {
+            return "Hoàn cọc 20%";
+        }
+
+        if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Không hoàn cọc"))
+        {
+            return "Không hoàn cọc";
+        }
+
         if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản"))
+        {
             return "Chờ xác nhận chuyển khoản";
+        }
 
         if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Đã đặt cọc"))
+        {
             return "Đã đặt cọc";
+        }
 
         if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Đã thanh toán 100%"))
+        {
             return "Đã thanh toán 100%";
+        }
 
         if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Đã hủy" || p.TRANGTHAITHANHTOAN == "Đã huỷ"))
+        {
             return "Đã hủy";
+        }
 
         return ds.First().TRANGTHAITHANHTOAN;
+    }
+
+    public int LayThuTuSapXep(string trangThaiPhieu, string trangThaiThanhToan)
+    {
+        if (trangThaiPhieu == "Chờ xác nhận" ||
+            trangThaiPhieu == "Chờ duyệt" ||
+            trangThaiThanhToan == "Chờ xác nhận chuyển khoản")
+        {
+            return 1;
+        }
+
+        if (trangThaiPhieu == "Đã xác nhận" || trangThaiPhieu == "Đang sử dụng")
+        {
+            return 2;
+        }
+
+        if (trangThaiPhieu == "Hoàn thành")
+        {
+            return 3;
+        }
+
+        if (trangThaiPhieu == "Đã hủy" ||
+            trangThaiPhieu == "Đã huỷ" ||
+            trangThaiPhieu == "Hủy" ||
+            trangThaiPhieu == "Huy" ||
+            trangThaiPhieu == "DaHuy" ||
+            trangThaiPhieu == "Khách không đến" ||
+            trangThaiPhieu == "Hủy do bảo trì" ||
+            trangThaiThanhToan == "Hoàn cọc 100%" ||
+            trangThaiThanhToan == "Hoàn cọc 50%" ||
+            trangThaiThanhToan == "Hoàn cọc 20%" ||
+            trangThaiThanhToan == "Không hoàn cọc" ||
+            trangThaiThanhToan == "Đã hủy" ||
+            trangThaiThanhToan == "Đã huỷ")
+        {
+            return 4;
+        }
+
+        return 5;
     }
 
     public string FormatTime(TimeSpan time)
@@ -151,12 +242,6 @@
         font-size: 14px;
     }
 
-        .form-control:focus,
-        .form-select:focus {
-            border-color: #2563eb;
-            box-shadow: 0 0 0 3px rgba(37,99,235,0.12);
-        }
-
     .btn-filter,
     .btn-reset {
         border: none;
@@ -173,19 +258,10 @@
         color: white;
     }
 
-        .btn-filter:hover {
-            background: #15803d;
-        }
-
     .btn-reset {
         background: #6b7280;
         color: white !important;
     }
-
-        .btn-reset:hover {
-            background: #4b5563;
-            text-decoration: none;
-        }
 
     .alert-success-custom {
         background: #dcfce7;
@@ -222,45 +298,22 @@
 
     .booking-top {
         display: grid;
-        grid-template-columns:1.4fr 1.3fr 1fr 1.35fr 1fr;
+        grid-template-columns: 300px 1.2fr 1fr 1.1fr 180px;
         gap: 16px;
         align-items: center;
         padding: 18px 20px;
     }
 
-
-    .ma-phieu {
-        font-size: 22px;
-        font-weight: 900;
-        color: #0f172a;
-        line-height: 1.15;
-        word-break: break-word;
-    }
-
-    .ma-nhom {
-        display: inline-block;
-        margin-top: 8px;
-        font-size: 12px;
-        color: #64748b;
-        background: #f1f5f9;
-        padding: 5px 10px;
-        border-radius: 999px;
-        max-width: 155px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
     .court-box {
         display: flex;
         align-items: center;
-        gap: 12px;
+        gap: 14px;
         min-width: 0;
     }
 
     .court-avatar {
-        width: 58px;
-        height: 58px;
+        width: 64px;
+        height: 64px;
         border-radius: 18px;
         background: linear-gradient(135deg, #2563eb, #1e40af);
         color: white;
@@ -270,13 +323,14 @@
         font-weight: 900;
         flex-shrink: 0;
         box-shadow: 0 8px 16px rgba(37,99,235,0.25);
+        font-size: 20px;
     }
 
     .main-text {
         font-weight: 900;
         color: #111827;
         font-size: 16px;
-        line-height: 1.3;
+        line-height: 1.35;
         word-break: break-word;
     }
 
@@ -284,7 +338,8 @@
         color: #6b7280;
         font-size: 13px;
         margin-top: 4px;
-        line-height: 1.35;
+        line-height: 1.45;
+        font-weight: 700;
     }
 
     .info-label {
@@ -306,7 +361,7 @@
 
     .money {
         color: #047857;
-        font-size: 18px;
+        font-size: 20px;
         font-weight: 900;
         white-space: nowrap;
     }
@@ -314,12 +369,12 @@
     .status-stack {
         display: flex;
         flex-direction: column;
-        align-items: end;
-        gap: 7px;
+        align-items: flex-end;
+        gap: 8px;
     }
 
     .badge-status {
-        padding: 7px 11px;
+        padding: 8px 12px;
         border-radius: 999px;
         font-size: 12px;
         font-weight: 900;
@@ -423,11 +478,11 @@
         background: #dc2626;
     }
 
-    .btn-action:hover {
+    .btn-action:hover,
+    .btn-reset:hover {
         opacity: 0.88;
         color: white;
         text-decoration: none;
-        transform: translateY(-1px);
     }
 
     .empty-card {
@@ -482,13 +537,6 @@
         font-size: 13px;
     }
 
-        .page-btn:hover {
-            background: #eff6ff;
-            border-color: #2563eb;
-            color: #1d4ed8 !important;
-            text-decoration: none;
-        }
-
         .page-btn.active {
             background: #2563eb;
             border-color: #2563eb;
@@ -501,27 +549,14 @@
             cursor: not-allowed;
         }
 
-    @@media(max-width: 1350px) {
-        .booking-top {
-            grid-template-columns: 170px 1.4fr 1.25fr 1fr;
-        }
-
-        .status-stack {
-            grid-column: span 2;
-        }
-    }
-
     @@media(max-width: 1100px) {
-        .filter-row {
-            grid-template-columns: 1fr 1fr;
-        }
-
+        .filter-row,
         .booking-top {
             grid-template-columns: 1fr 1fr;
         }
 
         .status-stack {
-            grid-column: auto;
+            align-items: flex-start;
         }
 
         .booking-actions {
@@ -550,10 +585,6 @@
             display: grid;
             grid-template-columns: 1fr 1fr;
         }
-
-        .ma-nhom {
-            max-width: 100%;
-        }
     }
 
     @@media(max-width: 480px) {
@@ -565,7 +596,7 @@
 
 <div class="page-head">
     <div>
-        <div class="page-sub">Theo dõi, xác nhận thanh toán, xử lý khách vào sân, hỗ trợ hủy sân và lập hóa đơn.</div>
+        <div class="page-sub">Sắp xếp theo: Chờ xác nhận → Đã xác nhận → Hoàn thành → Đã hủy.</div>
     </div>
 </div>
 
@@ -606,13 +637,12 @@
                 <label class="form-label">Trạng thái phiếu</label>
                 <select name="trangThaiPhieu" class="form-select">
                     <option value="">-- Tất cả --</option>
-                    <option value="Tam_Giu" @(ViewBag.TrangThaiPhieu == "Tam_Giu" ? "selected" : "")>Tạm giữ</option>
-                    <option value="Cho_Thanh_Toan" @(ViewBag.TrangThaiPhieu == "Cho_Thanh_Toan" ? "selected" : "")>Chờ thanh toán</option>
-                    <option value="Chờ duyệt" @(ViewBag.TrangThaiPhieu == "Chờ duyệt" ? "selected" : "")>Chờ duyệt</option>
                     <option value="Chờ xác nhận" @(ViewBag.TrangThaiPhieu == "Chờ xác nhận" ? "selected" : "")>Chờ xác nhận</option>
                     <option value="Đã xác nhận" @(ViewBag.TrangThaiPhieu == "Đã xác nhận" ? "selected" : "")>Đã xác nhận</option>
+                    <option value="Đang sử dụng" @(ViewBag.TrangThaiPhieu == "Đang sử dụng" ? "selected" : "")>Đang sử dụng</option>
                     <option value="Hoàn thành" @(ViewBag.TrangThaiPhieu == "Hoàn thành" ? "selected" : "")>Hoàn thành</option>
                     <option value="Đã hủy" @(ViewBag.TrangThaiPhieu == "Đã hủy" ? "selected" : "")>Đã hủy</option>
+                    <option value="Khách không đến" @(ViewBag.TrangThaiPhieu == "Khách không đến" ? "selected" : "")>Khách không đến</option>
                 </select>
             </div>
 
@@ -620,12 +650,13 @@
                 <label class="form-label">Thanh toán</label>
                 <select name="trangThaiThanhToan" class="form-select">
                     <option value="">-- Tất cả --</option>
-                    <option value="ChuaThanhToan" @(ViewBag.TrangThaiThanhToan == "ChuaThanhToan" ? "selected" : "")>Chưa thanh toán</option>
-                    <option value="Cho_Chuyen_Khoan" @(ViewBag.TrangThaiThanhToan == "Cho_Chuyen_Khoan" ? "selected" : "")>Chờ chuyển khoản</option>
                     <option value="Chờ xác nhận chuyển khoản" @(ViewBag.TrangThaiThanhToan == "Chờ xác nhận chuyển khoản" ? "selected" : "")>Chờ xác nhận CK</option>
                     <option value="Đã đặt cọc" @(ViewBag.TrangThaiThanhToan == "Đã đặt cọc" ? "selected" : "")>Đã đặt cọc</option>
                     <option value="Đã thanh toán 100%" @(ViewBag.TrangThaiThanhToan == "Đã thanh toán 100%" ? "selected" : "")>Đã thanh toán 100%</option>
-                    <option value="Đã hủy" @(ViewBag.TrangThaiThanhToan == "Đã hủy" ? "selected" : "")>Đã hủy</option>
+                    <option value="Hoàn cọc 100%" @(ViewBag.TrangThaiThanhToan == "Hoàn cọc 100%" ? "selected" : "")>Hoàn cọc 100%</option>
+                    <option value="Hoàn cọc 50%" @(ViewBag.TrangThaiThanhToan == "Hoàn cọc 50%" ? "selected" : "")>Hoàn cọc 50%</option>
+                    <option value="Hoàn cọc 20%" @(ViewBag.TrangThaiThanhToan == "Hoàn cọc 20%" ? "selected" : "")>Hoàn cọc 20%</option>
+                    <option value="Không hoàn cọc" @(ViewBag.TrangThaiThanhToan == "Không hoàn cọc" ? "selected" : "")>Không hoàn cọc</option>
                 </select>
             </div>
 
@@ -644,48 +675,35 @@
     @if (Model != null && Model.Any())
     {
         var dsNhomPhieu = Model
-        .GroupBy(p => LayKhoaNhom(p))
-        .Select(g => new
-        {
-            MaNhom = g.Key,
+            .GroupBy(p => LayKhoaNhom(p))
+            .Select(g => new
+            {
+                MaNhom = g.Key,
+                DanhSach = g.OrderBy(p => p.NGAYDAT)
+                            .ThenBy(p => p.GIOBATDAU)
+                            .ThenBy(p => p.SAN != null ? p.SAN.TENSAN : p.MASAN)
+                            .ToList(),
+                PhieuDaiDien = g.OrderBy(p => p.NGAYDAT.Date + p.GIOBATDAU).FirstOrDefault(),
+                ThoiGianBatDauNhom = g.Min(p => p.NGAYDAT.Date + p.GIOBATDAU),
+                ThoiGianKetThucNhom = g.Max(p => p.NGAYDAT.Date + p.GIOKETTHUC)
+            })
+            .Where(g => g.PhieuDaiDien != null)
+            .OrderBy(g => LayThuTuSapXep(LayTrangThaiDaiDien(g.DanhSach), LayThanhToanDaiDien(g.DanhSach)))
+            .ThenByDescending(g => g.ThoiGianBatDauNhom.Date)
+            .ThenBy(g => g.ThoiGianBatDauNhom.TimeOfDay)
+            .ToList();
 
-            DanhSach = g.OrderBy(p => p.NGAYDAT)
-                        .ThenBy(p => p.GIOBATDAU)
-                        .ThenBy(p => p.SAN != null ? p.SAN.TENSAN : p.MASAN)
-                        .ToList(),
-
-            PhieuDaiDien = g
-                .OrderBy(p => p.NGAYDAT.Date + p.GIOBATDAU)
-                .FirstOrDefault(),
-
-            ThoiGianBatDauNhom = g
-                .Min(p => p.NGAYDAT.Date + p.GIOBATDAU),
-
-            ThoiGianKetThucNhom = g
-                .Max(p => p.NGAYDAT.Date + p.GIOKETTHUC)
-        })
-        .Where(g => g.PhieuDaiDien != null)
-
-        // Sắp xếp ngày đặt giảm dần: 22/05 lên trước 18/05
-        .OrderByDescending(g => g.ThoiGianBatDauNhom.Date)
-
-        // Nếu cùng ngày thì giờ sớm hơn lên trước
-        .ThenBy(g => g.ThoiGianBatDauNhom.TimeOfDay)
-
-        .ToList();
+        int sttNhom = 1;
 
         foreach (var nhom in dsNhomPhieu)
         {
             var item = nhom.PhieuDaiDien;
             var dsCungNhom = nhom.DanhSach;
 
-            string tenSan = item.SAN != null ? item.SAN.TENSAN : item.MASAN;
             string tenKhach = item.KHACHHANG != null ? item.KHACHHANG.HOTENKH : "Khách vãng lai";
             string sdtKhach = item.KHACHHANG != null ? item.KHACHHANG.SODIENTHOAIKH : "";
             string tenNhanVien = item.NHANVIEN != null ? item.NHANVIEN.HOTENNV : "Chưa xử lý";
             string maNhom = LayMaNhomTuGhiChu(item.GHICHU);
-            DateTime thoiGianKetThuc = item.NGAYDAT.Date + item.GIOKETTHUC;
-            bool daQuaGio = DateTime.Now > thoiGianKetThuc;
 
             decimal tienDichVu = 0m;
 
@@ -703,25 +721,16 @@
             decimal tongTienSan = dsCungNhom.Sum(p => p.TONGTIENTAMTINH);
             decimal tongTamTinh = tongTienSan + tienDichVu;
 
-
             string trangThaiPhieuDaiDien = LayTrangThaiDaiDien(dsCungNhom);
             string trangThaiThanhToanDaiDien = LayThanhToanDaiDien(dsCungNhom);
 
             string classPhieu = "st-gray";
 
-            if (trangThaiPhieuDaiDien == "Tam_Giu")
-            {
-                classPhieu = "st-temp";
-            }
-            else if (trangThaiPhieuDaiDien == "Cho_Thanh_Toan")
-            {
-                classPhieu = "st-pay";
-            }
-            else if (trangThaiPhieuDaiDien == "Chờ duyệt" || trangThaiPhieuDaiDien == "Chờ xác nhận")
+            if (trangThaiPhieuDaiDien == "Chờ xác nhận")
             {
                 classPhieu = "st-wait";
             }
-            else if (trangThaiPhieuDaiDien == "Đã xác nhận")
+            else if (trangThaiPhieuDaiDien == "Đã xác nhận" || trangThaiPhieuDaiDien == "Đang sử dụng")
             {
                 classPhieu = "st-confirm";
             }
@@ -729,22 +738,14 @@
             {
                 classPhieu = "st-done";
             }
-            else if (trangThaiPhieuDaiDien == "Đã hủy" || trangThaiPhieuDaiDien == "Đã huỷ" || trangThaiPhieuDaiDien == "Hủy" || item.TRANGTHAIPHIEU == "Huy" || item.TRANGTHAIPHIEU == "DaHuy")
+            else if (trangThaiPhieuDaiDien == "Đã hủy")
             {
                 classPhieu = "st-cancel";
             }
 
             string classThanhToan = "st-gray";
 
-            if (trangThaiThanhToanDaiDien == "ChuaThanhToan")
-            {
-                classThanhToan = "st-temp";
-            }
-            else if (trangThaiThanhToanDaiDien == "Cho_Chuyen_Khoan")
-            {
-                classThanhToan = "st-pay";
-            }
-            else if (trangThaiThanhToanDaiDien == "Chờ xác nhận chuyển khoản")
+            if (trangThaiThanhToanDaiDien == "Chờ xác nhận chuyển khoản")
             {
                 classThanhToan = "st-wait";
             }
@@ -756,47 +757,55 @@
             {
                 classThanhToan = "st-done";
             }
-            else if (trangThaiThanhToanDaiDien == "Đã hủy" || trangThaiThanhToanDaiDien == "Đã huỷ")
+            else if (trangThaiThanhToanDaiDien == "Hoàn cọc 100%")
+            {
+                classThanhToan = "st-confirm";
+            }
+            else if (trangThaiThanhToanDaiDien == "Hoàn cọc 50%")
+            {
+                classThanhToan = "st-gray";
+            }
+            else if (trangThaiThanhToanDaiDien == "Hoàn cọc 20%")
+            {
+                classThanhToan = "st-pay";
+            }
+            else if (trangThaiThanhToanDaiDien == "Không hoàn cọc" || trangThaiThanhToanDaiDien == "Đã hủy")
             {
                 classThanhToan = "st-cancel";
             }
 
             bool choXacNhan = trangThaiPhieuDaiDien == "Chờ xác nhận"
-            || trangThaiPhieuDaiDien == "Chờ duyệt"
-            || trangThaiThanhToanDaiDien == "Chờ xác nhận chuyển khoản";
+                || trangThaiThanhToanDaiDien == "Chờ xác nhận chuyển khoản";
 
-            bool daXacNhan = trangThaiPhieuDaiDien == "Đã xác nhận";
+            bool daXacNhan = trangThaiPhieuDaiDien == "Đã xác nhận" || trangThaiPhieuDaiDien == "Đang sử dụng";
 
             bool daHoanThanh = trangThaiPhieuDaiDien == "Hoàn thành";
 
             bool daHuy = trangThaiPhieuDaiDien == "Đã hủy"
-                || trangThaiPhieuDaiDien == "Đã huỷ"
-                || trangThaiPhieuDaiDien == "Hủy"
-                || trangThaiPhieuDaiDien == "Huy"
-                || trangThaiPhieuDaiDien == "DaHuy"
-                || trangThaiThanhToanDaiDien == "Đã hủy"
-                || trangThaiPhieuDaiDien == "Khách không đến"
-                || trangThaiPhieuDaiDien == "Hủy do bảo trì"
-                || trangThaiThanhToanDaiDien == "Đã huỷ";
+                || trangThaiThanhToanDaiDien == "Hoàn cọc 100%"
+                || trangThaiThanhToanDaiDien == "Hoàn cọc 50%"
+                || trangThaiThanhToanDaiDien == "Hoàn cọc 20%"
+                || trangThaiThanhToanDaiDien == "Không hoàn cọc"
+                || trangThaiThanhToanDaiDien == "Đã hủy";
 
             <div class="booking-card">
                 <div class="booking-top">
-
                     <div class="court-box">
-                        <div class="court-avatar">
-                            @dsCungNhom.Count
-                        </div>
+                        <div class="court-avatar">@sttNhom</div>
 
                         <div>
-
-                            @foreach (var pSlot in dsCungNhom)
+                            @foreach (var pSan in dsCungNhom)
                             {
-                                string tenSanSlot = pSlot.SAN != null ? pSlot.SAN.TENSAN : pSlot.MASAN;
+                                string tenSanItem = pSan.SAN != null ? pSan.SAN.TENSAN : pSan.MASAN;
 
                                 <div class="sub-text">
-                                    @tenSanSlot:
-                                    @FormatTime(pSlot.GIOBATDAU) - @FormatTime(pSlot.GIOKETTHUC)
+                                    @tenSanItem: @FormatTime(pSan.GIOBATDAU) - @FormatTime(pSan.GIOKETTHUC)
                                 </div>
+                            }
+
+                            @if (!string.IsNullOrWhiteSpace(maNhom))
+                            {
+                                <div class="sub-text">Nhóm: @maNhom</div>
                             }
                         </div>
                     </div>
@@ -811,10 +820,8 @@
 
                     <div>
                         <div class="info-label">Ngày đặt</div>
-                        <div class="info-value">@item.NGAYDAT.ToString("dd/MM/yyyy")</div>
-                        <div class="sub-text">
-                            Bắt đầu: @FormatTime(dsCungNhom.Min(p => p.GIOBATDAU))
-                        </div>
+                        <div class="info-value">@nhom.ThoiGianBatDauNhom.ToString("dd/MM/yyyy")</div>
+                        <div class="sub-text">Bắt đầu: @nhom.ThoiGianBatDauNhom.ToString("HH:mm")</div>
                     </div>
 
                     <div>
@@ -824,14 +831,12 @@
                         @if (tienDichVu > 0)
                         {
                             <div class="sub-text">
-                                Sân: @tongTienSan.ToString("N0") đ • DV: @tienDichVu.ToString("N0") đ
+                                Tiền sân: @tongTienSan.ToString("N0") đ • DV: @tienDichVu.ToString("N0") đ
                             </div>
                         }
                         else
                         {
-                            <div class="sub-text">
-                                Tiền sân: @tongTienSan.ToString("N0") đ
-                            </div>
+                            <div class="sub-text">Tiền sân: @tongTienSan.ToString("N0") đ</div>
                         }
                     </div>
 
@@ -848,49 +853,49 @@
 
                     <div class="action-box">
                         @Html.ActionLink("Chi tiết", "Details", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new { @class = "btn-action btn-detail" })
-                        @if (!daQuaGio)
+
+                        @if (choXacNhan && !daHuy)
                         {
-                            if (choXacNhan && !daHuy)
+                            @Html.ActionLink("Xác nhận", "XacNhanThanhToan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
                             {
-                                @Html.ActionLink("Xác nhận", "XacNhanThanhToan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
-                                {
-                                    @class = "btn-action btn-confirm",
-                                    onclick = "return confirm('Xác nhận thanh toán cho phiếu " + item.MAPHIEUDAT + "?');"
-                                })
-                            }
+                                @class = "btn-action btn-confirm",
+                                onclick = "return confirm('Xác nhận thanh toán cho nhóm phiếu này?');"
+                            })
+                        }
 
-                            if (daXacNhan && !daHuy)
+                        @if (daXacNhan && !daHuy)
+                        {
+                            @Html.ActionLink("Vào sân", "KhachVaoSan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
                             {
-                                @Html.ActionLink("Vào sân", "KhachVaoSan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
-                                {
-                                    @class = "btn-action btn-start",
-                                    onclick = "return confirm('Xác nhận khách vào sân?');"
-                                })
+                                @class = "btn-action btn-start",
+                                onclick = "return confirm('Xác nhận khách vào sân?');"
+                            })
 
-                                @Html.ActionLink("Kết thúc", "KetThucLuotChoi", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
-                                {
-                                    @class = "btn-action btn-finish",
-                                    onclick = "return confirm('Kết thúc lượt chơi và chuyển sân về Trống?');"
-                                })
-
-                                @Html.ActionLink("Lập HĐ", "LapHoaDon", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
-                                {
-                                    @class = "btn-action btn-invoice",
-                                    onclick = "return confirm('Lập hóa đơn cho phiếu " + item.MAPHIEUDAT + "?');"
-                                })
-                            }
-
-                            if (!daHuy && !daHoanThanh)
+                            @Html.ActionLink("Kết thúc", "KetThucLuotChoi", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
                             {
-                                @Html.ActionLink("Hỗ trợ hủy", "HoTroHuySan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
-                                {
-                                    @class = "btn-action btn-cancel"
-                                })
-                            }
+                                @class = "btn-action btn-finish",
+                                onclick = "return confirm('Kết thúc lượt chơi và chuyển phiếu sang hoàn thành?');"
+                            })
+
+                            @Html.ActionLink("Lập HĐ", "LapHoaDon", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
+                            {
+                                @class = "btn-action btn-invoice",
+                                onclick = "return confirm('Lập hóa đơn cho nhóm phiếu này?');"
+                            })
+                        }
+
+                        @if (!daHuy && !daHoanThanh)
+                        {
+                            @Html.ActionLink("Hỗ trợ hủy", "HoTroHuySan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
+                            {
+                                @class = "btn-action btn-cancel"
+                            })
                         }
                     </div>
                 </div>
             </div>
+
+            sttNhom++;
         }
     }
     else
@@ -951,25 +956,6 @@
                     @class = currentPage <= 1 ? "page-btn disabled" : "page-btn"
                 })
 
-            @if (startPage > 1)
-            {
-                @Html.ActionLink("1", "Index", "PhieuDatSanNV65134364",
-                    new
-                    {
-                        page = 1,
-                        search = ViewBag.Search,
-                        trangThaiPhieu = ViewBag.TrangThaiPhieu,
-                        trangThaiThanhToan = ViewBag.TrangThaiThanhToan,
-                        ngayDat = ViewBag.NgayDat
-                    },
-                    new { @class = "page-btn" })
-
-                if (startPage > 2)
-                {
-                    <span class="page-btn disabled">...</span>
-                }
-            }
-
             @for (int i = startPage; i <= endPage; i++)
             {
                 @Html.ActionLink(i.ToString(), "Index", "PhieuDatSanNV65134364",
@@ -985,25 +971,6 @@
                     {
                         @class = i == currentPage ? "page-btn active" : "page-btn"
                     })
-            }
-
-            @if (endPage < totalPages)
-            {
-                if (endPage < totalPages - 1)
-                {
-                    <span class="page-btn disabled">...</span>
-                }
-
-                @Html.ActionLink(totalPages.ToString(), "Index", "PhieuDatSanNV65134364",
-                    new
-                    {
-                        page = totalPages,
-                        search = ViewBag.Search,
-                        trangThaiPhieu = ViewBag.TrangThaiPhieu,
-                        trangThaiThanhToan = ViewBag.TrangThaiThanhToan,
-                        ngayDat = ViewBag.NgayDat
-                    },
-                    new { @class = "page-btn" })
             }
 
             @Html.ActionLink("Sau", "Index", "PhieuDatSanNV65134364",

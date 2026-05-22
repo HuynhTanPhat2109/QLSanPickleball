@@ -48,7 +48,7 @@
 
     .stat-grid {
         display: grid;
-        grid-template-columns: repeat(5, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 14px;
         margin-bottom: 18px;
     }
@@ -77,14 +77,6 @@
 
     .green {
         color: #16a34a;
-    }
-
-    .yellow {
-        color: #ca8a04;
-    }
-
-    .red {
-        color: #dc2626;
     }
 
     .gray {
@@ -267,19 +259,9 @@
         color: #1d4ed8;
     }
 
-    .status-free {
+    .status-active {
         background: #dcfce7;
         color: #166534;
-    }
-
-    .status-booked {
-        background: #fef3c7;
-        color: #92400e;
-    }
-
-    .status-playing {
-        background: #fee2e2;
-        color: #991b1b;
     }
 
     .status-maintain {
@@ -322,7 +304,7 @@
     }
 
     .btn-status {
-        padding: 6px 9px;
+        padding: 7px 11px;
         border-radius: 8px;
         text-decoration: none;
         font-size: 12px;
@@ -331,16 +313,8 @@
         font-weight: 900;
     }
 
-    .btn-free {
+    .btn-active {
         background: #16a34a;
-    }
-
-    .btn-booked {
-        background: #ca8a04;
-    }
-
-    .btn-playing {
-        background: #dc2626;
     }
 
     .btn-maintain {
@@ -386,6 +360,9 @@
 
 <div class="page-header">
     <div>
+        <div class="page-sub">
+            Trạng thái sân chỉ gồm Hoạt động và Bảo trì.
+        </div>
     </div>
 
     @if (laAdminHoacQuanLy)
@@ -415,18 +392,8 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-label">Sân trống</div>
-        <div class="stat-value green">@ViewBag.SanTrong</div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-label">Đang đặt</div>
-        <div class="stat-value yellow">@ViewBag.SanDangDat</div>
-    </div>
-
-    <div class="stat-card">
-        <div class="stat-label">Đang sử dụng</div>
-        <div class="stat-value red">@ViewBag.SanDangSuDung</div>
+        <div class="stat-label">Hoạt động</div>
+        <div class="stat-value green">@ViewBag.SanHoatDong</div>
     </div>
 
     <div class="stat-card">
@@ -460,9 +427,7 @@
                 <label class="form-label">Trạng thái</label>
                 <select name="trangThai" class="form-select">
                     <option value="">-- Tất cả --</option>
-                    <option value="Trống" @(ViewBag.TrangThai == "Trống" ? "selected" : "")>Trống</option>
-                    <option value="Đang đặt" @(ViewBag.TrangThai == "Đang đặt" ? "selected" : "")>Đang đặt</option>
-                    <option value="Đang sử dụng" @(ViewBag.TrangThai == "Đang sử dụng" ? "selected" : "")>Đang sử dụng</option>
+                    <option value="Hoạt động" @(ViewBag.TrangThai == "Hoạt động" ? "selected" : "")>Hoạt động</option>
                     <option value="Bảo trì" @(ViewBag.TrangThai == "Bảo trì" ? "selected" : "")>Bảo trì</option>
                 </select>
             </div>
@@ -504,20 +469,14 @@
                         typeClass = "type-vip";
                     }
 
-                    string statusClass = "status-free";
+                    string trangThaiHienThi = item.TRANGTHAISAN;
 
-                    if (item.TRANGTHAISAN == "Đang đặt")
+                    if (trangThaiHienThi == "Trống" || trangThaiHienThi == "Đang đặt" || trangThaiHienThi == "Đang sử dụng")
                     {
-                        statusClass = "status-booked";
+                        trangThaiHienThi = "Hoạt động";
                     }
-                    else if (item.TRANGTHAISAN == "Đang sử dụng")
-                    {
-                        statusClass = "status-playing";
-                    }
-                    else if (item.TRANGTHAISAN == "Bảo trì")
-                    {
-                        statusClass = "status-maintain";
-                    }
+
+                    string statusClass = trangThaiHienThi == "Bảo trì" ? "status-maintain" : "status-active";
 
                     <tr>
                         <td class="text-center">
@@ -547,34 +506,18 @@
 
                         <td class="text-center">
                             <span class="badge-status @statusClass">
-                                @item.TRANGTHAISAN
+                                @trangThaiHienThi
                             </span>
                         </td>
 
                         <td>
                             <div class="status-actions">
-                                @Html.ActionLink("Trống", "ChuyenTrangThai", "SAN65134364",
-                                    new { id = item.MASAN, trangThai = "Trống" },
+                                @Html.ActionLink("Hoạt động", "ChuyenTrangThai", "SAN65134364",
+                                    new { id = item.MASAN, trangThai = "Hoạt động" },
                                     new
                                     {
-                                        @class = "btn-status btn-free",
-                                        onclick = "return confirm('Chuyển sân " + item.TENSAN + " sang trạng thái Trống?');"
-                                    })
-
-                                @Html.ActionLink("Đặt", "ChuyenTrangThai", "SAN65134364",
-                                    new { id = item.MASAN, trangThai = "Đang đặt" },
-                                    new
-                                    {
-                                        @class = "btn-status btn-booked",
-                                        onclick = "return confirm('Chuyển sân " + item.TENSAN + " sang trạng thái Đang đặt?');"
-                                    })
-
-                                @Html.ActionLink("Sử dụng", "ChuyenTrangThai", "SAN65134364",
-                                    new { id = item.MASAN, trangThai = "Đang sử dụng" },
-                                    new
-                                    {
-                                        @class = "btn-status btn-playing",
-                                        onclick = "return confirm('Chuyển sân " + item.TENSAN + " sang trạng thái Đang sử dụng?');"
+                                        @class = "btn-status btn-active",
+                                        onclick = "return confirm('Chuyển sân " + item.TENSAN + " sang trạng thái Hoạt động?');"
                                     })
 
                                 @Html.ActionLink("Bảo trì", "ChuyenTrangThai", "SAN65134364",
