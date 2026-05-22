@@ -7,6 +7,61 @@
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
 }
 
+@functions {
+    public string LayMaNhomTuGhiChu(string ghiChu)
+    {
+        if (string.IsNullOrWhiteSpace(ghiChu))
+        {
+            return "";
+        }
+
+        int viTri = ghiChu.IndexOf("GRP");
+
+        if (viTri < 0)
+        {
+            return "";
+        }
+
+        string chuoiTuGRP = ghiChu.Substring(viTri);
+
+        int viTriKhoangTrang = chuoiTuGRP.IndexOf(" ");
+        if (viTriKhoangTrang > 0)
+        {
+            chuoiTuGRP = chuoiTuGRP.Substring(0, viTriKhoangTrang);
+        }
+
+        int viTriGach = chuoiTuGRP.IndexOf("|");
+        if (viTriGach > 0)
+        {
+            chuoiTuGRP = chuoiTuGRP.Substring(0, viTriGach);
+        }
+
+        return chuoiTuGRP.Trim();
+    }
+
+    public string LayKhoaNhomHoaDon(QLSanPickleball_65132651.Models.HOADON h)
+    {
+        string maNhom = "";
+
+        if (h.PHIEUDATSAN != null)
+        {
+            maNhom = LayMaNhomTuGhiChu(h.PHIEUDATSAN.GHICHU);
+        }
+
+        if (!string.IsNullOrWhiteSpace(maNhom))
+        {
+            return maNhom;
+        }
+
+        return h.SOHD;
+    }
+
+    public string FormatTime(TimeSpan time)
+    {
+        return time.ToString(@"hh\:mm");
+    }
+}
+
 <style>
     .page-head {
         display: flex;
@@ -151,11 +206,11 @@
         border: 1px solid #e5e7eb;
         border-radius: 18px;
         box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
-        padding: 18px;
+        padding: 16px 18px;
         display: grid;
-        grid-template-columns: 120px 1.3fr 1.2fr 1fr 1fr 180px;
-        gap: 14px;
-        align-items: center;
+        grid-template-columns: 110px 1.25fr 1.8fr 1fr 1fr 150px;
+        gap: 16px;
+        align-items: start;
     }
 
     .invoice-code {
@@ -431,8 +486,26 @@
 <div class="invoice-list">
     @if (Model != null && Model.Any())
     {
-        foreach (var item in Model)
+        var dsNhomHoaDon = Model
+            .GroupBy(h => LayKhoaNhomHoaDon(h))
+            .Select(g => new
+            {
+                MaNhom = g.Key,
+                DanhSach = g.OrderBy(x => x.PHIEUDATSAN != null ? x.PHIEUDATSAN.GIOBATDAU : TimeSpan.Zero).ToList(),
+                HoaDonDaiDien = g.OrderByDescending(x => x.NGAYLAP).FirstOrDefault(),
+                TongTienSan = g.Sum(x => x.TIENTHUESAN),
+                TongTienDichVu = g.Sum(x => x.TIENDICHVU),
+                TongGiamGia = g.Sum(x => x.GIAMGIAHOIVIEN),
+                TongThanhToan = g.Sum(x => x.TONGTHANHTOAN)
+            })
+            .Where(g => g.HoaDonDaiDien != null)
+            .OrderByDescending(g => g.HoaDonDaiDien.NGAYLAP)
+            .ToList();
+
+        foreach (var nhom in dsNhomHoaDon)
         {
+            var item = nhom.HoaDonDaiDien;
+
             string tenKhach = item.PHIEUDATSAN != null && item.PHIEUDATSAN.KHACHHANG != null
                 ? item.PHIEUDATSAN.KHACHHANG.HOTENKH
                 : "Không rõ";
@@ -441,18 +514,24 @@
                 ? item.PHIEUDATSAN.KHACHHANG.SODIENTHOAIKH
                 : "";
 
-            string tenSan = item.PHIEUDATSAN != null && item.PHIEUDATSAN.SAN != null
-                ? item.PHIEUDATSAN.SAN.TENSAN
-                : "Không rõ";
-
-            string maSan = item.PHIEUDATSAN != null ? item.PHIEUDATSAN.MASAN : "";
-
             string tenNhanVien = item.NHANVIEN != null ? item.NHANVIEN.HOTENNV : "Không rõ";
 
             <div class="invoice-card">
                 <div class="invoice-code">
-                    <div class="sohd">@item.SOHD</div>
-                    <div class="maphieu">@item.MAPHIEUDAT</div>
+                    <div class="sohd">
+                        @if (nhom.DanhSach.Count > 1)
+                        {
+                            <span>@item.SOHD</span>
+                        }
+                        else
+                        {
+                            <span>@item.SOHD</span>
+                        }
+                    </div>
+
+                    <div class="maphieu">
+                        @item.MAPHIEUDAT
+                    </div>
                 </div>
 
                 <div>
@@ -462,9 +541,31 @@
                 </div>
 
                 <div>
-                    <div class="info-label">Sân</div>
-                    <div class="main-text">@tenSan</div>
-                    <div class="sub-text">Mã sân: @maSan</div>
+                    <div class="info-label">Lịch sân</div>
+
+                    @foreach (var hd in nhom.DanhSach)
+                    {
+                        string tenSan = hd.PHIEUDATSAN != null && hd.PHIEUDATSAN.SAN != null
+                            ? hd.PHIEUDATSAN.SAN.TENSAN
+                            : "Không rõ";
+
+                        string maSan = hd.PHIEUDATSAN != null ? hd.PHIEUDATSAN.MASAN : "";
+
+                        <div class="main-text">@tenSan</div>
+
+                        if (hd.PHIEUDATSAN != null)
+                        {
+                            <div class="sub-text">
+                                @hd.PHIEUDATSAN.NGAYDAT.ToString("dd/MM/yyyy")
+                                · @FormatTime(hd.PHIEUDATSAN.GIOBATDAU) - @FormatTime(hd.PHIEUDATSAN.GIOKETTHUC)
+                                · @hd.TONGTHANHTOAN.ToString("N0") đ
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="sub-text">Mã sân: @maSan</div>
+                        }
+                    }
                 </div>
 
                 <div>
@@ -475,8 +576,29 @@
 
                 <div>
                     <div class="info-label">Tổng tiền</div>
-                    <div class="money">@item.TONGTHANHTOAN.ToString("N0") đ</div>
-                    <div class="sub-text"><span class="payment-badge">@item.HINHTHUCTT</span></div>
+                    <div class="money">@nhom.TongThanhToan.ToString("N0") đ</div>
+
+                    <div class="sub-text">
+                        Sân: @nhom.TongTienSan.ToString("N0") đ
+                    </div>
+
+                    @if (nhom.TongTienDichVu > 0)
+                    {
+                        <div class="sub-text">
+                            DV: @nhom.TongTienDichVu.ToString("N0") đ
+                        </div>
+                    }
+
+                    @if (nhom.TongGiamGia > 0)
+                    {
+                        <div class="sub-text">
+                            Giảm: @nhom.TongGiamGia.ToString("N0") đ
+                        </div>
+                    }
+
+                    <div class="sub-text">
+                        <span class="payment-badge">@item.HINHTHUCTT</span>
+                    </div>
                 </div>
 
                 <div class="action-box">

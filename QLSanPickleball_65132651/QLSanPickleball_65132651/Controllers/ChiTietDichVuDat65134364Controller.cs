@@ -1,11 +1,35 @@
 ﻿using QLSanPickleball_65132651.Models;
 using System;
+using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
 using System.Web.Mvc;
 
 namespace QLSanPickleball_65132651.Controllers
 {
+    public class ChiTietDichVuDatNhomDTO
+    {
+        public string MaNhomDatSan { get; set; }
+        public string MaPhieuDaiDien { get; set; }
+
+        public string TenKhachHang { get; set; }
+        public string SoDienThoai { get; set; }
+
+        public string DanhSachKhungGio { get; set; }
+
+        public string MaDV { get; set; }
+        public string TenDV { get; set; }
+        public string DonViTinh { get; set; }
+
+        public int SoLuong { get; set; }
+        public decimal DonGia { get; set; }
+        public decimal ThanhTien { get; set; }
+
+        public DateTime NgayDat { get; set; }
+        public DateTime ThoiGianBatDau { get; set; }
+
+    }
+
     public class ChiTietDichVuDat65134364Controller : Controller
     {
         private QLSanEntities db = new QLSanEntities();
@@ -27,7 +51,6 @@ namespace QLSanPickleball_65132651.Controllers
             return null;
         }
 
-        // GET: ChiTietDichVuDat65134364
         public ActionResult Index(
             string search,
             DateTime? tuNgay,
@@ -45,7 +68,7 @@ namespace QLSanPickleball_65132651.Controllers
                 page = 1;
             }
 
-            var dsChiTiet = db.CHITIETDICHVUDAT
+            var dsChiTietQuery = db.CHITIETDICHVUDAT
                 .Include(c => c.DICHVU)
                 .Include(c => c.PHIEUDATSAN)
                 .Include(c => c.PHIEUDATSAN.KHACHHANG)
@@ -54,7 +77,7 @@ namespace QLSanPickleball_65132651.Controllers
 
             if (!string.IsNullOrWhiteSpace(search))
             {
-                dsChiTiet = dsChiTiet.Where(c =>
+                dsChiTietQuery = dsChiTietQuery.Where(c =>
                     c.MAPHIEUDAT.Contains(search) ||
                     c.MADV.Contains(search) ||
                     c.DICHVU.TENDV.Contains(search) ||
@@ -69,7 +92,7 @@ namespace QLSanPickleball_65132651.Controllers
             {
                 DateTime ngayBatDau = tuNgay.Value.Date;
 
-                dsChiTiet = dsChiTiet.Where(c =>
+                dsChiTietQuery = dsChiTietQuery.Where(c =>
                     c.PHIEUDATSAN.NGAYDAT >= ngayBatDau
                 );
             }
@@ -78,12 +101,97 @@ namespace QLSanPickleball_65132651.Controllers
             {
                 DateTime ngayKetThuc = denNgay.Value.Date.AddDays(1);
 
-                dsChiTiet = dsChiTiet.Where(c =>
+                dsChiTietQuery = dsChiTietQuery.Where(c =>
                     c.PHIEUDATSAN.NGAYDAT < ngayKetThuc
                 );
             }
 
-            int tongSoDong = dsChiTiet.Count();
+            var dsChiTietRaw = dsChiTietQuery
+                .OrderBy(c => c.PHIEUDATSAN.NGAYDAT)
+                .ThenBy(c => c.PHIEUDATSAN.GIOBATDAU)
+                .ThenBy(c => c.DICHVU.TENDV)
+                .ToList();
+
+            var dsNhom = dsChiTietRaw
+                .GroupBy(c => new
+                {
+                    MaNhom = LayKhoaNhom(c.PHIEUDATSAN),
+                    MaDV = c.MADV
+                })
+                .Select(g =>
+                {
+                    var itemDau = g
+                        .OrderBy(x => x.PHIEUDATSAN.NGAYDAT)
+                        .ThenBy(x => x.PHIEUDATSAN.GIOBATDAU)
+                        .First();
+
+                    string maNhom = g.Key.MaNhom;
+
+                    var dsPhieuCungNhom = LayDanhSachPhieuCungNhom(maNhom, itemDau.MAPHIEUDAT);
+
+                    string danhSachKhungGio = string.Join(" | ", dsPhieuCungNhom.Select(p =>
+                        (p.SAN != null ? p.SAN.TENSAN : p.MASAN)
+                        + ": "
+                        + p.GIOBATDAU.ToString(@"hh\:mm")
+                        + " - "
+                        + p.GIOKETTHUC.ToString(@"hh\:mm")
+                    ));
+
+                    /*
+                        Nếu dữ liệu cũ bị lưu trùng:
+                        PDS01: Bóng x 2
+                        PDS02: Bóng x 2
+                        thì không được Sum = 4.
+                        Dùng Max để hiểu đúng khách chọn 2 bóng cho cả lần đặt.
+                    */
+                    int soLuongDung = g.Max(x => x.SOLUONG);
+                    decimal donGia = itemDau.DONGIA;
+                    decimal thanhTienDung = soLuongDung * donGia;
+
+                    return new ChiTietDichVuDatNhomDTO
+                    {
+                        MaNhomDatSan = maNhom,
+                        MaPhieuDaiDien = itemDau.MAPHIEUDAT,
+
+                        TenKhachHang = itemDau.PHIEUDATSAN != null && itemDau.PHIEUDATSAN.KHACHHANG != null
+                            ? itemDau.PHIEUDATSAN.KHACHHANG.HOTENKH
+                            : "Khách vãng lai",
+
+                        SoDienThoai = itemDau.PHIEUDATSAN != null && itemDau.PHIEUDATSAN.KHACHHANG != null
+                            ? itemDau.PHIEUDATSAN.KHACHHANG.SODIENTHOAIKH
+                            : "",
+
+                        DanhSachKhungGio = danhSachKhungGio,
+
+                        MaDV = itemDau.MADV,
+
+                        TenDV = itemDau.DICHVU != null
+                            ? itemDau.DICHVU.TENDV
+                            : itemDau.MADV,
+
+                        DonViTinh = itemDau.DICHVU != null
+                            ? itemDau.DICHVU.DONVITINH
+                            : "",
+
+                        SoLuong = soLuongDung,
+                        DonGia = donGia,
+                        ThanhTien = thanhTienDung,
+
+                        NgayDat = itemDau.PHIEUDATSAN != null
+                            ? itemDau.PHIEUDATSAN.NGAYDAT
+                            : DateTime.MinValue,
+
+                                                ThoiGianBatDau = itemDau.PHIEUDATSAN != null
+                            ? itemDau.PHIEUDATSAN.NGAYDAT.Date + itemDau.PHIEUDATSAN.GIOBATDAU
+                            : DateTime.MinValue
+                    };
+                })
+                .OrderByDescending(x => x.ThoiGianBatDau)
+                .ThenBy(x => x.TenKhachHang)
+                .ThenBy(x => x.TenDV)
+                .ToList();
+
+            int tongSoDong = dsNhom.Count;
             int tongSoTrang = (int)Math.Ceiling((double)tongSoDong / pageSize);
 
             if (tongSoTrang == 0)
@@ -96,10 +204,7 @@ namespace QLSanPickleball_65132651.Controllers
                 page = tongSoTrang;
             }
 
-            var ketQua = dsChiTiet
-                .OrderByDescending(c => c.PHIEUDATSAN.NGAYDAT)
-                .ThenByDescending(c => c.MAPHIEUDAT)
-                .ThenBy(c => c.DICHVU.TENDV)
+            var ketQua = dsNhom
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
                 .ToList();
@@ -114,21 +219,86 @@ namespace QLSanPickleball_65132651.Controllers
             ViewBag.TotalItems = tongSoDong;
 
             ViewBag.TongSoDong = tongSoDong;
+            ViewBag.TongSoLuong = dsNhom.Sum(c => c.SoLuong);
+            ViewBag.TongTienDichVu = dsNhom.Sum(c => c.ThanhTien);
 
-            ViewBag.TongSoLuong = dsChiTiet.Any()
-                ? dsChiTiet.Sum(c => c.SOLUONG)
-                : 0;
-
-            ViewBag.TongTienDichVu = dsChiTiet.Any()
-                ? dsChiTiet.Sum(c => c.THANHTIEN)
-                : 0m;
-
-            ViewBag.SoPhieuCoDichVu = dsChiTiet
-                .Select(c => c.MAPHIEUDAT)
+            ViewBag.SoPhieuCoDichVu = dsNhom
+                .Select(c => c.MaNhomDatSan)
                 .Distinct()
                 .Count();
 
             return View(ketQua);
+        }
+
+        private string LayKhoaNhom(PHIEUDATSAN phieu)
+        {
+            if (phieu == null)
+            {
+                return "";
+            }
+
+            string maNhom = LayMaNhomTuGhiChu(phieu.GHICHU);
+
+            if (!string.IsNullOrWhiteSpace(maNhom))
+            {
+                return maNhom;
+            }
+
+            return phieu.MAPHIEUDAT;
+        }
+
+        private string LayMaNhomTuGhiChu(string ghiChu)
+        {
+            if (string.IsNullOrWhiteSpace(ghiChu))
+            {
+                return "";
+            }
+
+            int viTri = ghiChu.IndexOf("GRP");
+
+            if (viTri < 0)
+            {
+                return "";
+            }
+
+            string chuoiTuGRP = ghiChu.Substring(viTri);
+
+            int viTriKhoangTrang = chuoiTuGRP.IndexOf(" ");
+            if (viTriKhoangTrang > 0)
+            {
+                chuoiTuGRP = chuoiTuGRP.Substring(0, viTriKhoangTrang);
+            }
+
+            int viTriGach = chuoiTuGRP.IndexOf("|");
+            if (viTriGach > 0)
+            {
+                chuoiTuGRP = chuoiTuGRP.Substring(0, viTriGach);
+            }
+
+            return chuoiTuGRP.Trim();
+        }
+
+        private List<PHIEUDATSAN> LayDanhSachPhieuCungNhom(string maNhom, string maPhieuDaiDien)
+        {
+            if (!string.IsNullOrWhiteSpace(maNhom) && maNhom.StartsWith("GRP"))
+            {
+                var ds = db.PHIEUDATSAN
+                    .Include(p => p.SAN)
+                    .Where(p => p.GHICHU != null && p.GHICHU.Contains(maNhom))
+                    .OrderBy(p => p.NGAYDAT)
+                    .ThenBy(p => p.GIOBATDAU)
+                    .ToList();
+
+                if (ds.Any())
+                {
+                    return ds;
+                }
+            }
+
+            return db.PHIEUDATSAN
+                .Include(p => p.SAN)
+                .Where(p => p.MAPHIEUDAT == maPhieuDaiDien)
+                .ToList();
         }
 
         protected override void Dispose(bool disposing)

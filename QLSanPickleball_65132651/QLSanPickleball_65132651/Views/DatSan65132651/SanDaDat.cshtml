@@ -11,9 +11,20 @@
     {
         if (string.IsNullOrWhiteSpace(tt)) return "badge-secondary";
 
-        if (tt.Contains("Chờ xác nhận")) return "badge-warning";
-        if (tt.Contains("Đã xác nhận") || tt.Contains("Da xac nhan")) return "badge-success";
-        if (tt.Contains("Hủy") || tt.Contains("Huỷ") || tt.Contains("DaHuy")) return "badge-danger";
+        if (tt.Contains("Chờ xác nhận") || tt.Contains("Chờ duyệt"))
+            return "badge-warning";
+
+        if (tt.Contains("Đã xác nhận") || tt.Contains("Da xac nhan"))
+            return "badge-success";
+
+        if (tt.Contains("Hoàn thành") || tt.Contains("Hoan thanh"))
+            return "badge-done";
+
+        if (tt.Contains("Khách không đến"))
+            return "badge-danger";
+
+        if (tt.Contains("Hủy") || tt.Contains("Huỷ") || tt.Contains("DaHuy"))
+            return "badge-danger";
 
         return "badge-info";
     };
@@ -132,6 +143,11 @@
     .badge-secondary {
         background: #e5e7eb;
         color: #374151;
+    }
+
+    .badge-done {
+        background: #dbeafe;
+        color: #1d4ed8;
     }
 
     .booking-card-body {

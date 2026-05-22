@@ -139,6 +139,37 @@ namespace QLSanPickleball_65132651.Controllers
             return View(hoaDon);
         }
 
+        private string LayMaNhomTuGhiChu(string ghiChu)
+        {
+            if (string.IsNullOrWhiteSpace(ghiChu))
+            {
+                return "";
+            }
+
+            int viTri = ghiChu.IndexOf("GRP");
+
+            if (viTri < 0)
+            {
+                return "";
+            }
+
+            string chuoiTuGRP = ghiChu.Substring(viTri);
+
+            int viTriKhoangTrang = chuoiTuGRP.IndexOf(" ");
+            if (viTriKhoangTrang > 0)
+            {
+                chuoiTuGRP = chuoiTuGRP.Substring(0, viTriKhoangTrang);
+            }
+
+            int viTriGach = chuoiTuGRP.IndexOf("|");
+            if (viTriGach > 0)
+            {
+                chuoiTuGRP = chuoiTuGRP.Substring(0, viTriGach);
+            }
+
+            return chuoiTuGRP.Trim();
+        }
+
         protected override void Dispose(bool disposing)
         {
             if (disposing)

@@ -842,6 +842,9 @@ namespace QLSanPickleball_65132651.Controllers
                         return Json(new { success = false, message = "Số điện thoại phải gồm đúng 10 chữ số." });
                     }
 
+                    sdtKhach = sdtKhach.Trim();
+                    tenKhach = tenKhach.Trim();
+
                     var khTonTai = db.KHACHHANG.FirstOrDefault(k => k.SODIENTHOAIKH == sdtKhach);
 
                     string maKhachHang;
@@ -849,6 +852,18 @@ namespace QLSanPickleball_65132651.Controllers
                     if (khTonTai != null)
                     {
                         maKhachHang = khTonTai.MAKH;
+
+                        khTonTai.HOTENKH = tenKhach;
+
+                        if (string.IsNullOrWhiteSpace(khTonTai.MATKHAUKH))
+                        {
+                            khTonTai.MATKHAUKH = "Kvl@123456";
+                        }
+
+                        if (string.IsNullOrWhiteSpace(khTonTai.TRANGTHAITK))
+                        {
+                            khTonTai.TRANGTHAITK = "Hoạt động";
+                        }
                     }
                     else
                     {
@@ -857,23 +872,21 @@ namespace QLSanPickleball_65132651.Controllers
                         KHACHHANG khMoi = new KHACHHANG
                         {
                             MAKH = maKhachHang,
-                            HOTENKH = tenKhach.Trim(),
+                            HOTENKH = tenKhach,
                             NGAYSINH = DateTime.Today,
                             GIOITINH = "Khác",
                             DIACHI = "",
-                            SODIENTHOAIKH = sdtKhach.Trim(),
+                            SODIENTHOAIKH = sdtKhach,
                             EMAILKH = maKhachHang.ToLower() + "@khachvanglai.com",
-                            MATKHAUKH = "12345678",
+
+                            // Mật khẩu mặc định hợp lệ: có chữ hoa, chữ thường, số, ký tự đặc biệt
+                            MATKHAUKH = "Kvl@123456",
+
                             SOLANBUNG = 0,
                             TRANGTHAITK = "Hoạt động"
                         };
 
                         db.KHACHHANG.Add(khMoi);
-                    }
-
-                    foreach (var p in dsPhieu)
-                    {
-                        p.MAKH = maKhachHang;
                     }
 
                     db.SaveChanges();
@@ -1161,11 +1174,6 @@ namespace QLSanPickleball_65132651.Controllers
         // =========================================================
         private void LuuDichVuKhachChonVaoChiTiet(string maNhomDatSan, List<PHIEUDATSAN> dsPhieu)
         {
-            if (string.IsNullOrWhiteSpace(maNhomDatSan) || dsPhieu == null || !dsPhieu.Any())
-            {
-                return;
-            }
-
             var dichVuChon = Session["DichVuChon_" + maNhomDatSan] as List<DichVuChonDTO>;
 
             if (dichVuChon == null || !dichVuChon.Any())
@@ -1173,12 +1181,16 @@ namespace QLSanPickleball_65132651.Controllers
                 return;
             }
 
-            // Dịch vụ khách chọn là cho cả nhóm đặt sân.
-            // Nếu lưu vào tất cả phiếu thì tiền dịch vụ bị nhân lên nhiều lần.
-            // Vì vậy lưu vào phiếu đại diện đầu tiên của nhóm.
+            if (dsPhieu == null || !dsPhieu.Any())
+            {
+                return;
+            }
+
+            // Chỉ lấy 1 phiếu đại diện đầu tiên trong nhóm đặt sân.
+            // Không lưu dịch vụ lặp cho từng khung giờ.
             var phieuDaiDien = dsPhieu
-                .OrderBy(p => p.GIOBATDAU)
-                .ThenBy(p => p.MASAN)
+                .OrderBy(p => p.NGAYDAT)
+                .ThenBy(p => p.GIOBATDAU)
                 .FirstOrDefault();
 
             if (phieuDaiDien == null)
@@ -1200,62 +1212,28 @@ namespace QLSanPickleball_65132651.Controllers
                     continue;
                 }
 
-                if (dichVu.TRANGTHAIKD != "Đang kinh doanh")
+                var chiTietCu = db.CHITIETDICHVUDAT
+                    .FirstOrDefault(c => c.MAPHIEUDAT == phieuDaiDien.MAPHIEUDAT
+                                      && c.MADV == dichVu.MADV);
+
+                if (chiTietCu != null)
                 {
-                    throw new Exception("Dịch vụ " + dichVu.TENDV + " hiện không còn kinh doanh.");
+                    chiTietCu.SOLUONG = item.soLuong;
+                    chiTietCu.DONGIA = dichVu.DONGIA;
+                    chiTietCu.THANHTIEN = item.soLuong * dichVu.DONGIA;
                 }
-
-                int soLuongMoi = item.soLuong;
-                decimal donGia = dichVu.DONGIA;
-                decimal thanhTien = soLuongMoi * donGia;
-
-                var chiTietCu = db.CHITIETDICHVUDAT.FirstOrDefault(c =>
-                    c.MAPHIEUDAT == phieuDaiDien.MAPHIEUDAT &&
-                    c.MADV == dichVu.MADV
-                );
-
-                if (chiTietCu == null)
+                else
                 {
-                    if (dichVu.SOLUONGTON < soLuongMoi)
-                    {
-                        throw new Exception("Dịch vụ " + dichVu.TENDV + " không đủ tồn kho. Hiện còn " + dichVu.SOLUONGTON + ".");
-                    }
-
                     CHITIETDICHVUDAT chiTietMoi = new CHITIETDICHVUDAT
                     {
                         MAPHIEUDAT = phieuDaiDien.MAPHIEUDAT,
                         MADV = dichVu.MADV,
-                        SOLUONG = soLuongMoi,
-                        DONGIA = donGia,
-                        THANHTIEN = thanhTien
+                        SOLUONG = item.soLuong,
+                        DONGIA = dichVu.DONGIA,
+                        THANHTIEN = item.soLuong * dichVu.DONGIA
                     };
 
                     db.CHITIETDICHVUDAT.Add(chiTietMoi);
-
-                    dichVu.SOLUONGTON -= soLuongMoi;
-                }
-                else
-                {
-                    // Chống trường hợp gửi lại làm trừ kho sai.
-                    int chenhLech = soLuongMoi - chiTietCu.SOLUONG;
-
-                    if (chenhLech > 0)
-                    {
-                        if (dichVu.SOLUONGTON < chenhLech)
-                        {
-                            throw new Exception("Dịch vụ " + dichVu.TENDV + " không đủ tồn kho. Hiện còn " + dichVu.SOLUONGTON + ".");
-                        }
-
-                        dichVu.SOLUONGTON -= chenhLech;
-                    }
-                    else if (chenhLech < 0)
-                    {
-                        dichVu.SOLUONGTON += Math.Abs(chenhLech);
-                    }
-
-                    chiTietCu.SOLUONG = soLuongMoi;
-                    chiTietCu.DONGIA = donGia;
-                    chiTietCu.THANHTIEN = thanhTien;
                 }
             }
         }

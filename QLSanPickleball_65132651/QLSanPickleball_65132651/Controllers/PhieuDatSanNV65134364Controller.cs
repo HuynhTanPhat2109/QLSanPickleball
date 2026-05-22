@@ -101,7 +101,50 @@ namespace QLSanPickleball_65132651.Controllers
                 dsPhieu = dsPhieu.Where(p => p.NGAYDAT >= ngay && p.NGAYDAT < ngayMai);
             }
 
-            int tongSoPhieu = dsPhieu.Count();
+            var dsPhieuRaw = dsPhieu
+    .OrderByDescending(p => p.NGAYDAT)
+    .ThenBy(p => p.GIOBATDAU)
+    .ThenBy(p => p.SAN != null ? p.SAN.TENSAN : p.MASAN)
+    .ToList();
+
+            // Gom nhóm theo mã GRP trước, nếu không có GRP thì dùng mã phiếu
+            var dsNhomPhieu = dsPhieuRaw
+                .GroupBy(p =>
+                {
+                    string maNhom = LayMaNhomTuGhiChu(p.GHICHU);
+                    return string.IsNullOrWhiteSpace(maNhom) ? p.MAPHIEUDAT : maNhom;
+                })
+                .Select(g => new
+                {
+                    MaNhom = g.Key,
+
+                    // Lấy ngày chơi đầu tiên trong nhóm để làm mốc sắp xếp
+                    NgayDauTien = g.Min(x => x.NGAYDAT),
+
+                    // Lấy giờ bắt đầu sớm nhất trong nhóm
+                    GioDauTien = g.Min(x => x.GIOBATDAU),
+
+                    TenSanDauTien = g.OrderBy(x => x.NGAYDAT)
+                                      .ThenBy(x => x.GIOBATDAU)
+                                      .Select(x => x.SAN != null ? x.SAN.TENSAN : x.MASAN)
+                                      .FirstOrDefault(),
+
+                    // Bên trong 1 nhóm vẫn sắp xếp tăng dần để khung giờ dễ đọc
+                    DanhSachPhieu = g.OrderBy(x => x.NGAYDAT)
+                                     .ThenBy(x => x.GIOBATDAU)
+                                     .ThenBy(x => x.SAN != null ? x.SAN.TENSAN : x.MASAN)
+                                     .ToList()
+                })
+
+                // Sắp xếp các nhóm giảm dần theo ngày: 22/05 lên trước 18/05
+                .OrderByDescending(g => g.NgayDauTien)
+
+                // Nếu cùng ngày thì giờ sớm hơn lên trước
+                .ThenBy(g => g.GioDauTien)
+                .ThenBy(g => g.TenSanDauTien)
+                .ToList();
+
+            int tongSoPhieu = dsNhomPhieu.Count;
             int tongSoTrang = (int)Math.Ceiling((double)tongSoPhieu / pageSize);
 
             if (tongSoTrang == 0)
@@ -114,11 +157,10 @@ namespace QLSanPickleball_65132651.Controllers
                 page = tongSoTrang;
             }
 
-            var ketQua = dsPhieu
-                .OrderByDescending(p => p.NGAYDAT)
-                .ThenBy(p => p.GIOBATDAU)
+            var ketQua = dsNhomPhieu
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
+                .SelectMany(g => g.DanhSachPhieu)
                 .ToList();
 
             // =========================================================

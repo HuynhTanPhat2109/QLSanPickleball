@@ -1,6 +1,6 @@
 ﻿@using System
 @using System.Linq
-@model IEnumerable<QLSanPickleball_65132651.Models.CHITIETDICHVUDAT>
+@model IEnumerable<QLSanPickleball_65132651.Controllers.ChiTietDichVuDatNhomDTO>
 
 @{
     ViewBag.Title = "Chi tiết dịch vụ đặt";
@@ -156,19 +156,24 @@
         box-shadow: 0 10px 25px rgba(15, 23, 42, 0.06);
         padding: 18px;
         display: grid;
-        grid-template-columns: 120px 1.3fr 1.2fr 1fr 1fr 150px;
+        grid-template-columns: 125px 1.25fr 1.25fr 1.6fr 1fr 140px;
         gap: 14px;
-        align-items: center;
+        align-items: start;
     }
 
+        .detail-card > div {
+            align-self: start;
+        }
+
     .code-box {
-        text-align: center;
+        text-align: left;
     }
 
     .ma-phieu {
-        font-size: 18px;
+        font-size: 17px;
         font-weight: 900;
         color: #111827;
+        line-height: 1.25;
     }
 
     .ma-dv {
@@ -186,6 +191,7 @@
         font-size: 15px;
         font-weight: 900;
         color: #111827;
+        line-height: 1.35;
     }
 
     .sub-text {
@@ -207,6 +213,7 @@
         color: #111827;
         font-size: 15px;
         font-weight: 800;
+        line-height: 1.35;
     }
 
     .money {
@@ -224,6 +231,19 @@
         font-size: 13px;
         font-weight: 900;
     }
+
+    .slot-box {
+        max-width: 100%;
+    }
+
+    .slot-line {
+        padding: 5px 0;
+        border-bottom: 1px dashed #e5e7eb;
+    }
+
+        .slot-line:last-child {
+            border-bottom: none;
+        }
 
     .btn-action {
         padding: 8px 12px;
@@ -321,7 +341,7 @@
 
     @@media(max-width: 1200px) {
         .detail-card {
-            grid-template-columns: 110px 1.3fr 1fr;
+            grid-template-columns: 120px 1fr 1fr;
         }
 
         .action-box {
@@ -342,10 +362,6 @@
     @@media(max-width: 720px) {
         .detail-card {
             grid-template-columns: 1fr;
-        }
-
-        .code-box {
-            text-align: left;
         }
 
         .filter-row {
@@ -371,7 +387,7 @@
     </div>
 
     <div class="stat-card">
-        <div class="stat-label">Số phiếu có dịch vụ</div>
+        <div class="stat-label">Số lần đặt có dịch vụ</div>
         <div class="stat-value stat-purple">@ViewBag.SoPhieuCoDichVu</div>
     </div>
 
@@ -433,66 +449,70 @@
     {
         foreach (var item in Model)
         {
-            string tenDV = item.DICHVU != null ? item.DICHVU.TENDV : item.MADV;
-            string donViTinh = item.DICHVU != null ? item.DICHVU.DONVITINH : "";
-
-            string tenKhach = item.PHIEUDATSAN != null && item.PHIEUDATSAN.KHACHHANG != null
-                ? item.PHIEUDATSAN.KHACHHANG.HOTENKH
-                : "Không rõ";
-
-            string sdtKhach = item.PHIEUDATSAN != null && item.PHIEUDATSAN.KHACHHANG != null
-                ? item.PHIEUDATSAN.KHACHHANG.SODIENTHOAIKH
-                : "";
-
-            string tenSan = item.PHIEUDATSAN != null && item.PHIEUDATSAN.SAN != null
-                ? item.PHIEUDATSAN.SAN.TENSAN
-                : "Không rõ";
-
-            string maSan = item.PHIEUDATSAN != null ? item.PHIEUDATSAN.MASAN : "";
-
-            DateTime? ngayDat = item.PHIEUDATSAN != null ? (DateTime?)item.PHIEUDATSAN.NGAYDAT : null;
-
             <div class="detail-card">
                 <div class="code-box">
-                    <div class="ma-phieu">@item.MAPHIEUDAT</div>
-                    <div class="ma-dv">@item.MADV</div>
+                    <div class="ma-phieu">@item.MaPhieuDaiDien</div>
+                    <div class="ma-dv">@item.MaDV</div>
                 </div>
 
                 <div>
                     <div class="info-label">Dịch vụ</div>
-                    <div class="main-text">@tenDV</div>
-                    <div class="sub-text">Đơn vị: @donViTinh</div>
+                    <div class="main-text">@item.TenDV</div>
+                    <div class="sub-text">Đơn vị: @(string.IsNullOrWhiteSpace(item.DonViTinh) ? "Không rõ" : item.DonViTinh)</div>
                 </div>
 
                 <div>
                     <div class="info-label">Khách hàng</div>
-                    <div class="main-text">@tenKhach</div>
-                    <div class="sub-text">@(string.IsNullOrWhiteSpace(sdtKhach) ? "Không có SĐT" : sdtKhach)</div>
+                    <div class="main-text">@item.TenKhachHang</div>
+                    <div class="sub-text">@(string.IsNullOrWhiteSpace(item.SoDienThoai) ? "Không có SĐT" : item.SoDienThoai)</div>
                 </div>
 
-                <div>
-                    <div class="info-label">Sân / Ngày chơi</div>
-                    <div class="info-value">@tenSan</div>
-                    <div class="sub-text">
-                        Mã sân: @maSan
-                        @if (ngayDat.HasValue)
+                <div class="slot-box">
+                    <div class="info-label">Sân / khung giờ</div>
+
+                    @{
+                        var dsKhungGio = string.IsNullOrWhiteSpace(item.DanhSachKhungGio)
+                            ? new string[0]
+                            : item.DanhSachKhungGio.Split('|');
+                    }
+
+                    @if (dsKhungGio.Any())
+                    {
+                        foreach (var dong in dsKhungGio)
                         {
-                            <span> • @ngayDat.Value.ToString("dd/MM/yyyy")</span>
+                            <div class="slot-line">
+                                <div class="info-value">@dong.Trim()</div>
+                            </div>
                         }
-                    </div>
+                    }
+                    else
+                    {
+                        <div class="info-value">Không rõ</div>
+                    }
+
+                    <div class="sub-text">Ngày chơi: @item.NgayDat.ToString("dd/MM/yyyy")</div>
                 </div>
 
                 <div>
                     <div class="info-label">Số lượng / Thành tiền</div>
+
                     <div>
-                        <span class="qty-badge">SL: @item.SOLUONG</span>
+                        <span class="qty-badge">
+                            SL: @item.SoLuong @(string.IsNullOrWhiteSpace(item.DonViTinh) ? "" : item.DonViTinh)
+                        </span>
                     </div>
-                    <div class="money" style="margin-top:6px;">@item.THANHTIEN.ToString("N0") đ</div>
-                    <div class="sub-text">Đơn giá: @item.DONGIA.ToString("N0") đ</div>
+
+                    <div class="money" style="margin-top:6px;">
+                        @item.ThanhTien.ToString("N0") đ
+                    </div>
+
+                    <div class="sub-text">
+                        Đơn giá: @item.DonGia.ToString("N0") đ
+                    </div>
                 </div>
 
                 <div class="action-box">
-                    @Html.ActionLink("Xem phiếu", "Details", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new { @class = "btn-action btn-detail" })
+                    @Html.ActionLink("Xem phiếu", "Details", "PhieuDatSanNV65134364", new { id = item.MaPhieuDaiDien }, new { @class = "btn-action btn-detail" })
                 </div>
             </div>
         }

@@ -41,6 +41,51 @@
 
         return chuoiTuGRP.Trim();
     }
+    public string LayKhoaNhom(QLSanPickleball_65132651.Models.PHIEUDATSAN p)
+    {
+        string maNhom = LayMaNhomTuGhiChu(p.GHICHU);
+
+        if (!string.IsNullOrWhiteSpace(maNhom))
+        {
+            return maNhom;
+        }
+
+        return p.MAPHIEUDAT;
+    }
+
+    public string LayTrangThaiDaiDien(IEnumerable<QLSanPickleball_65132651.Models.PHIEUDATSAN> ds)
+    {
+        if (ds.Any(p => p.TRANGTHAIPHIEU == "Chờ xác nhận" || p.TRANGTHAIPHIEU == "Chờ duyệt"))
+            return "Chờ xác nhận";
+
+        if (ds.Any(p => p.TRANGTHAIPHIEU == "Đã xác nhận"))
+            return "Đã xác nhận";
+
+        if (ds.Any(p => p.TRANGTHAIPHIEU == "Hoàn thành"))
+            return "Hoàn thành";
+
+        if (ds.Any(p => p.TRANGTHAIPHIEU == "Đã hủy" || p.TRANGTHAIPHIEU == "Đã huỷ" || p.TRANGTHAIPHIEU == "Hủy" || p.TRANGTHAIPHIEU == "Huy" || p.TRANGTHAIPHIEU == "DaHuy"))
+            return "Đã hủy";
+
+        return ds.First().TRANGTHAIPHIEU;
+    }
+
+    public string LayThanhToanDaiDien(IEnumerable<QLSanPickleball_65132651.Models.PHIEUDATSAN> ds)
+    {
+        if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản"))
+            return "Chờ xác nhận chuyển khoản";
+
+        if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Đã đặt cọc"))
+            return "Đã đặt cọc";
+
+        if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Đã thanh toán 100%"))
+            return "Đã thanh toán 100%";
+
+        if (ds.Any(p => p.TRANGTHAITHANHTOAN == "Đã hủy" || p.TRANGTHAITHANHTOAN == "Đã huỷ"))
+            return "Đã hủy";
+
+        return ds.First().TRANGTHAITHANHTOAN;
+    }
 
     public string FormatTime(TimeSpan time)
     {
@@ -177,15 +222,12 @@
 
     .booking-top {
         display: grid;
-        grid-template-columns: 180px 1.4fr 1.3fr 1fr 1fr 1.35fr;
+        grid-template-columns:1.4fr 1.3fr 1fr 1.35fr 1fr;
         gap: 16px;
         align-items: center;
         padding: 18px 20px;
     }
 
-    .code-box {
-        min-width: 0;
-    }
 
     .ma-phieu {
         font-size: 22px;
@@ -272,7 +314,7 @@
     .status-stack {
         display: flex;
         flex-direction: column;
-        align-items: flex-start;
+        align-items: end;
         gap: 7px;
     }
 
@@ -601,8 +643,42 @@
 <div class="booking-list">
     @if (Model != null && Model.Any())
     {
-        foreach (var item in Model)
+        var dsNhomPhieu = Model
+        .GroupBy(p => LayKhoaNhom(p))
+        .Select(g => new
         {
+            MaNhom = g.Key,
+
+            DanhSach = g.OrderBy(p => p.NGAYDAT)
+                        .ThenBy(p => p.GIOBATDAU)
+                        .ThenBy(p => p.SAN != null ? p.SAN.TENSAN : p.MASAN)
+                        .ToList(),
+
+            PhieuDaiDien = g
+                .OrderBy(p => p.NGAYDAT.Date + p.GIOBATDAU)
+                .FirstOrDefault(),
+
+            ThoiGianBatDauNhom = g
+                .Min(p => p.NGAYDAT.Date + p.GIOBATDAU),
+
+            ThoiGianKetThucNhom = g
+                .Max(p => p.NGAYDAT.Date + p.GIOKETTHUC)
+        })
+        .Where(g => g.PhieuDaiDien != null)
+
+        // Sắp xếp ngày đặt giảm dần: 22/05 lên trước 18/05
+        .OrderByDescending(g => g.ThoiGianBatDauNhom.Date)
+
+        // Nếu cùng ngày thì giờ sớm hơn lên trước
+        .ThenBy(g => g.ThoiGianBatDauNhom.TimeOfDay)
+
+        .ToList();
+
+        foreach (var nhom in dsNhomPhieu)
+        {
+            var item = nhom.PhieuDaiDien;
+            var dsCungNhom = nhom.DanhSach;
+
             string tenSan = item.SAN != null ? item.SAN.TENSAN : item.MASAN;
             string tenKhach = item.KHACHHANG != null ? item.KHACHHANG.HOTENKH : "Khách vãng lai";
             string sdtKhach = item.KHACHHANG != null ? item.KHACHHANG.SODIENTHOAIKH : "";
@@ -613,102 +689,115 @@
 
             decimal tienDichVu = 0m;
 
-            if (tienDichVuTheoPhieu != null && tienDichVuTheoPhieu.ContainsKey(item.MAPHIEUDAT))
+            if (tienDichVuTheoPhieu != null)
             {
-                tienDichVu = tienDichVuTheoPhieu[item.MAPHIEUDAT];
+                foreach (var pNhom in dsCungNhom)
+                {
+                    if (tienDichVuTheoPhieu.ContainsKey(pNhom.MAPHIEUDAT))
+                    {
+                        tienDichVu += tienDichVuTheoPhieu[pNhom.MAPHIEUDAT];
+                    }
+                }
             }
 
-            decimal tongTamTinh = item.TONGTIENTAMTINH + tienDichVu;
+            decimal tongTienSan = dsCungNhom.Sum(p => p.TONGTIENTAMTINH);
+            decimal tongTamTinh = tongTienSan + tienDichVu;
+
+
+            string trangThaiPhieuDaiDien = LayTrangThaiDaiDien(dsCungNhom);
+            string trangThaiThanhToanDaiDien = LayThanhToanDaiDien(dsCungNhom);
 
             string classPhieu = "st-gray";
 
-            if (item.TRANGTHAIPHIEU == "Tam_Giu")
+            if (trangThaiPhieuDaiDien == "Tam_Giu")
             {
                 classPhieu = "st-temp";
             }
-            else if (item.TRANGTHAIPHIEU == "Cho_Thanh_Toan")
+            else if (trangThaiPhieuDaiDien == "Cho_Thanh_Toan")
             {
                 classPhieu = "st-pay";
             }
-            else if (item.TRANGTHAIPHIEU == "Chờ duyệt" || item.TRANGTHAIPHIEU == "Chờ xác nhận")
+            else if (trangThaiPhieuDaiDien == "Chờ duyệt" || trangThaiPhieuDaiDien == "Chờ xác nhận")
             {
                 classPhieu = "st-wait";
             }
-            else if (item.TRANGTHAIPHIEU == "Đã xác nhận")
+            else if (trangThaiPhieuDaiDien == "Đã xác nhận")
             {
                 classPhieu = "st-confirm";
             }
-            else if (item.TRANGTHAIPHIEU == "Hoàn thành")
+            else if (trangThaiPhieuDaiDien == "Hoàn thành")
             {
                 classPhieu = "st-done";
             }
-            else if (item.TRANGTHAIPHIEU == "Đã hủy" || item.TRANGTHAIPHIEU == "Đã huỷ" || item.TRANGTHAIPHIEU == "Hủy" || item.TRANGTHAIPHIEU == "Huy" || item.TRANGTHAIPHIEU == "DaHuy")
+            else if (trangThaiPhieuDaiDien == "Đã hủy" || trangThaiPhieuDaiDien == "Đã huỷ" || trangThaiPhieuDaiDien == "Hủy" || item.TRANGTHAIPHIEU == "Huy" || item.TRANGTHAIPHIEU == "DaHuy")
             {
                 classPhieu = "st-cancel";
             }
 
             string classThanhToan = "st-gray";
 
-            if (item.TRANGTHAITHANHTOAN == "ChuaThanhToan")
+            if (trangThaiThanhToanDaiDien == "ChuaThanhToan")
             {
                 classThanhToan = "st-temp";
             }
-            else if (item.TRANGTHAITHANHTOAN == "Cho_Chuyen_Khoan")
+            else if (trangThaiThanhToanDaiDien == "Cho_Chuyen_Khoan")
             {
                 classThanhToan = "st-pay";
             }
-            else if (item.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản")
+            else if (trangThaiThanhToanDaiDien == "Chờ xác nhận chuyển khoản")
             {
                 classThanhToan = "st-wait";
             }
-            else if (item.TRANGTHAITHANHTOAN == "Đã đặt cọc")
+            else if (trangThaiThanhToanDaiDien == "Đã đặt cọc")
             {
                 classThanhToan = "st-confirm";
             }
-            else if (item.TRANGTHAITHANHTOAN == "Đã thanh toán 100%")
+            else if (trangThaiThanhToanDaiDien == "Đã thanh toán 100%")
             {
                 classThanhToan = "st-done";
             }
-            else if (item.TRANGTHAITHANHTOAN == "Đã hủy" || item.TRANGTHAITHANHTOAN == "Đã huỷ")
+            else if (trangThaiThanhToanDaiDien == "Đã hủy" || trangThaiThanhToanDaiDien == "Đã huỷ")
             {
                 classThanhToan = "st-cancel";
             }
 
-            bool choXacNhan = item.TRANGTHAIPHIEU == "Chờ xác nhận"
-                || item.TRANGTHAIPHIEU == "Chờ duyệt"
-                || item.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản";
+            bool choXacNhan = trangThaiPhieuDaiDien == "Chờ xác nhận"
+            || trangThaiPhieuDaiDien == "Chờ duyệt"
+            || trangThaiThanhToanDaiDien == "Chờ xác nhận chuyển khoản";
 
-            bool daXacNhan = item.TRANGTHAIPHIEU == "Đã xác nhận";
+            bool daXacNhan = trangThaiPhieuDaiDien == "Đã xác nhận";
 
-            bool daHoanThanh = item.TRANGTHAIPHIEU == "Hoàn thành";
+            bool daHoanThanh = trangThaiPhieuDaiDien == "Hoàn thành";
 
-            bool daHuy = item.TRANGTHAIPHIEU == "Đã hủy"
-                || item.TRANGTHAIPHIEU == "Đã huỷ"
-                || item.TRANGTHAIPHIEU == "Hủy"
-                || item.TRANGTHAIPHIEU == "Huy"
-                || item.TRANGTHAIPHIEU == "DaHuy"
-                || item.TRANGTHAITHANHTOAN == "Đã hủy"
-                || item.TRANGTHAIPHIEU == "Khách không đến"
-                | item.TRANGTHAIPHIEU == "Hủy do bảo trì"
-                || item.TRANGTHAITHANHTOAN == "Đã huỷ";
+            bool daHuy = trangThaiPhieuDaiDien == "Đã hủy"
+                || trangThaiPhieuDaiDien == "Đã huỷ"
+                || trangThaiPhieuDaiDien == "Hủy"
+                || trangThaiPhieuDaiDien == "Huy"
+                || trangThaiPhieuDaiDien == "DaHuy"
+                || trangThaiThanhToanDaiDien == "Đã hủy"
+                || trangThaiPhieuDaiDien == "Khách không đến"
+                || trangThaiPhieuDaiDien == "Hủy do bảo trì"
+                || trangThaiThanhToanDaiDien == "Đã huỷ";
 
             <div class="booking-card">
                 <div class="booking-top">
-                    <div class="code-box">
-                        <div class="ma-phieu">@item.MAPHIEUDAT</div>
-
-                        @if (!string.IsNullOrWhiteSpace(maNhom))
-                        {
-                            <div class="ma-nhom" title="@maNhom">@maNhom</div>
-                        }
-                    </div>
 
                     <div class="court-box">
-                        <div class="court-avatar">@item.MASAN</div>
+                        <div class="court-avatar">
+                            @dsCungNhom.Count
+                        </div>
 
                         <div>
-                            <div class="main-text">@tenSan</div>
-                            <div class="sub-text">Mã sân: @item.MASAN</div>
+
+                            @foreach (var pSlot in dsCungNhom)
+                            {
+                                string tenSanSlot = pSlot.SAN != null ? pSlot.SAN.TENSAN : pSlot.MASAN;
+
+                                <div class="sub-text">
+                                    @tenSanSlot:
+                                    @FormatTime(pSlot.GIOBATDAU) - @FormatTime(pSlot.GIOKETTHUC)
+                                </div>
+                            }
                         </div>
                     </div>
 
@@ -721,9 +810,11 @@
                     </div>
 
                     <div>
-                        <div class="info-label">Ngày & giờ</div>
+                        <div class="info-label">Ngày đặt</div>
                         <div class="info-value">@item.NGAYDAT.ToString("dd/MM/yyyy")</div>
-                        <div class="sub-text">@FormatTime(item.GIOBATDAU) - @FormatTime(item.GIOKETTHUC)</div>
+                        <div class="sub-text">
+                            Bắt đầu: @FormatTime(dsCungNhom.Min(p => p.GIOBATDAU))
+                        </div>
                     </div>
 
                     <div>
@@ -733,14 +824,20 @@
                         @if (tienDichVu > 0)
                         {
                             <div class="sub-text">
-                                Sân: @item.TONGTIENTAMTINH.ToString("N0") đ • DV: @tienDichVu.ToString("N0") đ
+                                Sân: @tongTienSan.ToString("N0") đ • DV: @tienDichVu.ToString("N0") đ
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="sub-text">
+                                Tiền sân: @tongTienSan.ToString("N0") đ
                             </div>
                         }
                     </div>
 
                     <div class="status-stack">
-                        <span class="badge-status @classPhieu">@item.TRANGTHAIPHIEU</span>
-                        <span class="badge-status @classThanhToan">@item.TRANGTHAITHANHTOAN</span>
+                        <span class="badge-status @classPhieu">@trangThaiPhieuDaiDien</span>
+                        <span class="badge-status @classThanhToan">@trangThaiThanhToanDaiDien</span>
                     </div>
                 </div>
 
