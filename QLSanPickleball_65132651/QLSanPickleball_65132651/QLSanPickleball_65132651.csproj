@@ -302,6 +302,7 @@
     <Content Include="Views\THAMSO65134364\Index.cshtml" />
     <Content Include="Views\SAN65134364\CapNhatTrangThai.cshtml" />
     <Content Include="Views\PhieuDatSanNV65134364\HoTroHuySan.cshtml" />
+    <Content Include="Views\DatSan65132651\SanDaDat.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

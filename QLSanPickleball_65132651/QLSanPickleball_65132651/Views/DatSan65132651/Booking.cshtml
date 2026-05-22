@@ -544,7 +544,13 @@
                                     }
                                     else if (daDat)
                                     {
-                                        <div class="slot slot-booked" title="Khung giờ đã có người đặt">
+                                        <div class="slot slot-booked js-slot" 
+                                             title="Khung giờ đã có người đặt"
+                                             data-masan="@san.MASAN"
+                                             data-tensan="@san.TENSAN"
+                                             data-start="@startText"
+                                             data-end="@endText"
+                                             data-price="@giaData">
                                         </div>
                                     }
                                     else if (khongCoGia)
@@ -555,7 +561,7 @@
                                     }
                                     else
                                     {
-                                        <div class="slot slot-empty"
+                                        <div class="slot slot-empty js-slot"
                                              title="Trống - @giaText đ"
                                              data-masan="@san.MASAN"
                                              data-tensan="@san.TENSAN"
@@ -609,34 +615,35 @@
         return parseInt(parts[0]) * 60 + parseInt(parts[1]);
     };
 
-    document.querySelectorAll('.slot-empty').forEach(cell => {
-        cell.addEventListener('click', function () {
-            let slotInfo = {
-                maSan: this.dataset.masan,
-                tenSan: this.dataset.tensan,
-                start: this.dataset.start,
-                end: this.dataset.end,
-                price: parseFloat(this.dataset.price)
-            };
+    document.querySelector(".schedule-container").addEventListener("click", function (e) {
+        let cell = e.target.closest(".slot-empty");
 
-            if (this.classList.contains('slot-selected')) {
-                this.classList.remove('slot-selected');
+        if (!cell) return;
 
-                this.innerHTML = '<span class="slot-price"></span>';
+        let slotInfo = {
+            maSan: cell.dataset.masan,
+            tenSan: cell.dataset.tensan,
+            start: cell.dataset.start,
+            end: cell.dataset.end,
+            price: parseFloat(cell.dataset.price)
+        };
 
-                selectedSlots = selectedSlots.filter(s =>
-                    !(s.maSan === slotInfo.maSan && s.start === slotInfo.start)
-                );
-            }
-            else {
-                this.classList.add('slot-selected');
-                this.innerHTML = '<i class="fas fa-check"></i>';
+        if (cell.classList.contains("slot-selected")) {
+            cell.classList.remove("slot-selected");
+            cell.innerHTML = '<span class="slot-price"></span>';
 
-                selectedSlots.push(slotInfo);
-            }
+            selectedSlots = selectedSlots.filter(s =>
+                !(s.maSan === slotInfo.maSan && s.start === slotInfo.start)
+            );
+        }
+        else {
+            cell.classList.add("slot-selected");
+            cell.innerHTML = '<i class="fas fa-check"></i>';
 
-            renderSummary();
-        });
+            selectedSlots.push(slotInfo);
+        }
+
+        renderSummary();
     });
 
     function renderSummary() {
@@ -773,4 +780,81 @@
             alert("Có lỗi khi giữ chỗ. Vui lòng thử lại.");
         });
     }
+
+    function isOverlap(startA, endA, startB, endB) {
+    return timeToMinutes(startA) < timeToMinutes(endB) &&
+           timeToMinutes(endA) > timeToMinutes(startB);
+    }
+
+    function slotDangBiDat(cell, dsDat) {
+        return dsDat.some(p =>
+            p.maSan === cell.dataset.masan &&
+            isOverlap(cell.dataset.start, cell.dataset.end, p.start, p.end)
+        );
+    }
+
+    function xoaSlotDaChonNeuBiNguoiKhacDat(cell) {
+        selectedSlots = selectedSlots.filter(s =>
+            !(s.maSan === cell.dataset.masan && s.start === cell.dataset.start)
+        );
+
+        cell.classList.remove("slot-selected");
+        cell.innerHTML = "";
+        renderSummary();
+    }
+
+    function doiThanhDaDat(cell) {
+        if (cell.classList.contains("slot-selected")) {
+            xoaSlotDaChonNeuBiNguoiKhacDat(cell);
+        }
+
+        cell.classList.remove("slot-empty");
+        cell.classList.add("slot-booked");
+        cell.title = "Khung giờ đã có người đặt";
+        cell.innerHTML = "";
+    }
+
+    function doiThanhTrong(cell) {
+        cell.classList.remove("slot-booked");
+        cell.classList.add("slot-empty");
+
+        let price = parseFloat(cell.dataset.price || "0");
+        let priceText = formatNumber(price);
+
+        cell.title = "Trống - " + priceText + " đ";
+        cell.innerHTML = '<span class="slot-price"></span>';
+    }
+
+    function capNhatLichRealtime() {
+        let ngay = document.getElementById("ngayDat").value;
+
+        fetch('@Url.Action("LayTrangThaiLich", "DatSan65132651")' + '?ngay=' + encodeURIComponent(ngay), {
+            method: 'GET',
+            cache: 'no-store'
+        })
+        .then(res => res.json())
+        .then(res => {
+            if (!res.success) return;
+
+            let dsDat = res.data || [];
+
+            document.querySelectorAll(".js-slot").forEach(cell => {
+                let biDat = slotDangBiDat(cell, dsDat);
+
+                if (biDat && !cell.classList.contains("slot-booked")) {
+                    doiThanhDaDat(cell);
+                }
+
+                if (!biDat && cell.classList.contains("slot-booked")) {
+                    doiThanhTrong(cell);
+                }
+            });
+        })
+        .catch(() => {
+            // Không cần alert để tránh làm phiền khách.
+        });
+    }
+
+    // Cứ 2 giây tự kiểm tra lại trạng thái sân.
+    setInterval(capNhatLichRealtime, 2000);
 </script>

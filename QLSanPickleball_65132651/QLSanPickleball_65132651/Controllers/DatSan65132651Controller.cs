@@ -25,6 +25,38 @@ namespace QLSanPickleball_65132651.Controllers
         public string maDV { get; set; }
         public int soLuong { get; set; }
     }
+    public class SanDaDatChiTietDTO
+    {
+        public string TenSan { get; set; }
+        public string LoaiSan { get; set; }
+        public DateTime NgayDat { get; set; }
+        public TimeSpan GioBatDau { get; set; }
+        public TimeSpan GioKetThuc { get; set; }
+        public decimal TienSan { get; set; }
+    }
+
+    public class SanDaDatNhomDTO
+    {
+        public string MaNhomDatSan { get; set; }
+
+        public DateTime? NgayGioDat { get; set; }
+
+        public string TenKhachHang { get; set; }
+        public string SoDienThoai { get; set; }
+        public string TrangThaiPhieu { get; set; }
+        public string TrangThaiThanhToan { get; set; }
+        public decimal TongTienSan { get; set; }
+        public decimal TongTienDichVu { get; set; }
+        public decimal TongThanhToan { get; set; }
+        public List<SanDaDatChiTietDTO> ChiTiet { get; set; }
+    }
+
+    public class SanDaDatViewModel
+    {
+        public bool LaDangNhap { get; set; }
+        public string SoDienThoaiTraCuu { get; set; }
+        public List<SanDaDatNhomDTO> DanhSach { get; set; }
+    }
 
     public class DatSan65132651Controller : Controller
     {
@@ -393,6 +425,70 @@ namespace QLSanPickleball_65132651.Controllers
             ViewBag.LaVangLai = string.IsNullOrEmpty(LayMaKhachHangDangNhap());
 
             return View(dsSan);
+        }
+
+        [HttpGet]
+        public JsonResult LayTrangThaiLich(string ngay)
+        {
+            try
+            {
+                DonRacTamGiu();
+
+                DateTime ngayDat;
+
+                bool ngayHopLe = DateTime.TryParseExact(
+                    ngay,
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.None,
+                    out ngayDat
+                );
+
+                if (!ngayHopLe)
+                {
+                    return Json(new
+                    {
+                        success = false,
+                        message = "Ngày không hợp lệ."
+                    }, JsonRequestBehavior.AllowGet);
+                }
+
+                DateTime ngayBatDau = ngayDat.Date;
+                DateTime ngayKetThuc = ngayBatDau.AddDays(1);
+
+                var dsPhieu = db.PHIEUDATSAN
+                    .Where(p => p.NGAYDAT >= ngayBatDau
+                             && p.NGAYDAT < ngayKetThuc
+                             && !TrangThaiHuy.Contains(p.TRANGTHAIPHIEU))
+                    .Select(p => new
+                    {
+                        maSan = p.MASAN,
+                        start = p.GIOBATDAU,
+                        end = p.GIOKETTHUC
+                    })
+                    .ToList()
+                    .Select(p => new
+                    {
+                        maSan = p.maSan,
+                        start = p.start.ToString(@"hh\:mm"),
+                        end = p.end.ToString(@"hh\:mm")
+                    })
+                    .ToList();
+
+                return Json(new
+                {
+                    success = true,
+                    data = dsPhieu
+                }, JsonRequestBehavior.AllowGet);
+            }
+            catch (Exception ex)
+            {
+                return Json(new
+                {
+                    success = false,
+                    message = ex.Message
+                }, JsonRequestBehavior.AllowGet);
+            }
         }
 
         // =========================================================
@@ -1168,6 +1264,137 @@ namespace QLSanPickleball_65132651.Controllers
         {
             ViewBag.MaNhomDatSan = id;
             return View();
+        }
+
+        private string TachMaNhomTuGhiChu(string ghiChu)
+        {
+            if (string.IsNullOrWhiteSpace(ghiChu))
+            {
+                return "";
+            }
+
+            return ghiChu.Split('|')[0].Trim();
+        }
+
+        public ActionResult SanDaDat(string sdt)
+        {
+            DonRacTamGiu();
+
+            string maKhachDangNhap = LayMaKhachHangDangNhap();
+            bool laDangNhap = !string.IsNullOrEmpty(maKhachDangNhap);
+
+            SanDaDatViewModel model = new SanDaDatViewModel
+            {
+                LaDangNhap = laDangNhap,
+                SoDienThoaiTraCuu = sdt,
+                DanhSach = new List<SanDaDatNhomDTO>()
+            };
+
+            List<string> dsMaKH = new List<string>();
+
+            if (laDangNhap)
+            {
+                dsMaKH.Add(maKhachDangNhap);
+            }
+            else
+            {
+                if (string.IsNullOrWhiteSpace(sdt))
+                {
+                    return View(model);
+                }
+
+                sdt = sdt.Trim();
+
+                if (!System.Text.RegularExpressions.Regex.IsMatch(sdt, @"^[0-9]{10}$"))
+                {
+                    ViewBag.Error = "Số điện thoại phải gồm đúng 10 chữ số.";
+                    return View(model);
+                }
+
+                dsMaKH = db.KHACHHANG
+                    .Where(k => k.SODIENTHOAIKH == sdt)
+                    .Select(k => k.MAKH)
+                    .ToList();
+
+                if (!dsMaKH.Any())
+                {
+                    ViewBag.Error = "Không tìm thấy lịch đặt nào theo số điện thoại này.";
+                    return View(model);
+                }
+            }
+
+            var dsPhieu = db.PHIEUDATSAN
+                .Include(p => p.SAN)
+                .Include(p => p.SAN.LOAISAN)
+                .Include(p => p.KHACHHANG)
+                .Where(p => p.MAKH != null
+                         && dsMaKH.Contains(p.MAKH)
+                         && p.TRANGTHAIPHIEU != "Tam_Giu"
+                         && p.TRANGTHAIPHIEU != "Cho_Thanh_Toan")
+                .OrderByDescending(p => p.NGAYDAT)
+                .ThenBy(p => p.GIOBATDAU)
+                .ToList();
+
+            var nhomPhieu = dsPhieu
+                .GroupBy(p => TachMaNhomTuGhiChu(p.GHICHU))
+                .ToList();
+
+            foreach (var nhom in nhomPhieu)
+            {
+                var dsTrongNhom = nhom.ToList();
+                var phieuDau = dsTrongNhom.FirstOrDefault();
+
+                if (phieuDau == null)
+                {
+                    continue;
+                }
+
+                var dsMaPhieu = dsTrongNhom.Select(p => p.MAPHIEUDAT).ToList();
+
+                decimal tongTienDichVu = db.CHITIETDICHVUDAT
+                    .Where(c => dsMaPhieu.Contains(c.MAPHIEUDAT))
+                    .Select(c => (decimal?)c.THANHTIEN)
+                    .Sum() ?? 0;
+
+                decimal tongTienSan = dsTrongNhom.Sum(p => p.TONGTIENTAMTINH);
+
+                SanDaDatNhomDTO item = new SanDaDatNhomDTO
+                {
+                    MaNhomDatSan = nhom.Key,
+                    NgayGioDat = LayThoiGianTaoTuMaNhom(nhom.Key),
+                    TenKhachHang = phieuDau.KHACHHANG == null ? "" : phieuDau.KHACHHANG.HOTENKH,
+                    SoDienThoai = phieuDau.KHACHHANG == null ? "" : phieuDau.KHACHHANG.SODIENTHOAIKH,
+                    TrangThaiPhieu = phieuDau.TRANGTHAIPHIEU,
+                    TrangThaiThanhToan = phieuDau.TRANGTHAITHANHTOAN,
+                    TongTienSan = tongTienSan,
+                    TongTienDichVu = tongTienDichVu,
+                    TongThanhToan = tongTienSan + tongTienDichVu,
+                    ChiTiet = dsTrongNhom
+                        .OrderBy(p => p.NGAYDAT)
+                        .ThenBy(p => p.GIOBATDAU)
+                        .ThenBy(p => p.SAN == null ? p.MASAN : p.SAN.TENSAN)
+                        .Select(p => new SanDaDatChiTietDTO
+                        {
+                            TenSan = p.SAN == null ? p.MASAN : p.SAN.TENSAN,
+                            LoaiSan = p.SAN == null || p.SAN.LOAISAN == null
+                                ? "Chưa phân loại"
+                                : p.SAN.LOAISAN.TENLOAISAN,
+                            NgayDat = p.NGAYDAT,
+                            GioBatDau = p.GIOBATDAU,
+                            GioKetThuc = p.GIOKETTHUC,
+                            TienSan = p.TONGTIENTAMTINH
+                        })
+                        .ToList()
+                };
+
+                model.DanhSach.Add(item);
+            }
+
+            model.DanhSach = model.DanhSach
+                .OrderByDescending(x => x.ChiTiet.FirstOrDefault() == null ? DateTime.MinValue : x.ChiTiet.First().NgayDat)
+                .ToList();
+
+            return View(model);
         }
 
         protected override void Dispose(bool disposing)

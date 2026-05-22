@@ -164,7 +164,7 @@
                 <ul class="navbar-nav align-items-center">
                     <li class="nav-item"><a class="nav-link" href="@Url.Action("Index", "Home")">Trang chủ</a></li>
                     <li class="nav-item"><a class="nav-link" href="@Url.Action("ChonHinhThucDat", "DatSan65132651")"><i class="fas fa-futbol me-1"></i> Đặt sân</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Sân đã đặt</a></li>
+                    <li class="nav-item"><a class="nav-link" href="@Url.Action("SanDaDat", "DatSan65132651")">Sân đã đặt</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Bản đồ</a></li>
                 </ul>
             </div>
@@ -222,7 +222,7 @@
                         </li>
 
                         <li>
-                            <a class="dropdown-item custom-item py-2" href="#">
+                            <a class="dropdown-item custom-item py-2" href="@Url.Action("SanDaDat", "DatSan65132651")">
                                 <i class="fas fa-history me-2 text-primary"></i>
                                 Lịch sử đặt sân
                             </a>
