@@ -18,6 +18,8 @@ namespace QLSanPickleball_65132651.Controllers
             "Đã hủy",
             "Đã huỷ",
             "Huy",
+            "Khách không đến",
+            "Hủy do bảo trì",
             "Hủy"
         };
 
@@ -428,10 +430,25 @@ namespace QLSanPickleball_65132651.Controllers
                 return RedirectToAction("CapNhatTrangThai", new { id = MASAN });
             }
 
+            int soPhieuBiHuy = 0;
+
+            if (TRANGTHAISAN == "Bảo trì")
+            {
+                soPhieuBiHuy = HuyPhieuChuaThanhToanKhiBaoTri(MASAN);
+            }
+
             san.TRANGTHAISAN = TRANGTHAISAN;
             db.SaveChanges();
 
-            TempData["Success"] = "Cập nhật trạng thái sân thành công!";
+            if (TRANGTHAISAN == "Bảo trì")
+            {
+                TempData["Success"] = "Đã chuyển sân sang Bảo trì. Số phiếu chưa thanh toán bị tự hủy: " + soPhieuBiHuy;
+            }
+            else
+            {
+                TempData["Success"] = "Cập nhật trạng thái sân thành công!";
+            }
+
             return RedirectToAction("Index");
         }
 
@@ -459,13 +476,60 @@ namespace QLSanPickleball_65132651.Controllers
                 return RedirectToAction("Index");
             }
 
+            int soPhieuBiHuy = 0;
+
+            if (trangThai == "Bảo trì")
+            {
+                soPhieuBiHuy = HuyPhieuChuaThanhToanKhiBaoTri(id);
+            }
+
             san.TRANGTHAISAN = trangThai;
             db.SaveChanges();
 
-            TempData["Success"] = "Cập nhật trạng thái sân thành công!";
+            if (trangThai == "Bảo trì")
+            {
+                TempData["Success"] = "Đã chuyển sân sang Bảo trì. Số phiếu chưa thanh toán bị tự hủy: " + soPhieuBiHuy;
+            }
+            else
+            {
+                TempData["Success"] = "Cập nhật trạng thái sân thành công!";
+            }
+
             return RedirectToAction("Index");
         }
+        private int HuyPhieuChuaThanhToanKhiBaoTri(string maSan)
+        {
+            DateTime now = DateTime.Now;
 
+            var dsPhieuCanHuy = db.PHIEUDATSAN
+                .Where(p => p.MASAN == maSan
+                    && p.NGAYDAT >= DateTime.Today
+                    && !TrangThaiHuySan.Contains(p.TRANGTHAIPHIEU)
+                    && p.TRANGTHAIPHIEU != "Hoàn thành"
+                    && p.TRANGTHAITHANHTOAN != "Đã thanh toán 100%"
+                    && p.TRANGTHAITHANHTOAN != "Đã đặt cọc")
+                .ToList();
+
+            foreach (var phieu in dsPhieuCanHuy)
+            {
+                phieu.TRANGTHAIPHIEU = "Hủy do bảo trì";
+                phieu.TRANGTHAITHANHTOAN = "Đã hủy";
+
+                string ghiChuBaoTri =
+                    " | Hệ thống tự hủy do sân bảo trì lúc " + now.ToString("dd/MM/yyyy HH:mm");
+
+                if (string.IsNullOrWhiteSpace(phieu.GHICHU))
+                {
+                    phieu.GHICHU = ghiChuBaoTri;
+                }
+                else
+                {
+                    phieu.GHICHU += ghiChuBaoTri;
+                }
+            }
+
+            return dsPhieuCanHuy.Count;
+        }
         private bool LaTrangThaiSanHopLe(string trangThai)
         {
             return trangThai == "Trống"

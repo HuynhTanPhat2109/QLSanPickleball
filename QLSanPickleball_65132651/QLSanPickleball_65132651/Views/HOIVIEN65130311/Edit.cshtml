@@ -1,0 +1,216 @@
+﻿@model QLSanPickleball_65132651.Models.HOIVIEN
+
+@{
+    ViewBag.Title = "Sửa hội viên";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .edit-wrapper {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        padding: 24px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 28px;
+    }
+
+    .avatar-box {
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 22px;
+        text-align: center;
+        background: #f9fafb;
+    }
+
+    .avatar-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 42px;
+        font-weight: bold;
+        margin: 0 auto 16px auto;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: bold;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+    }
+
+    .readonly-input {
+        background: #f3f4f6;
+    }
+
+    .action-bar {
+        margin-top: 24px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .btn-save {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 11px 18px;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    .btn-back {
+        background: #6b7280;
+        color: white !important;
+        padding: 11px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    .btn-detail {
+        background: #0ea5e9;
+        color: white !important;
+        padding: 11px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    @@media(max-width:850px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="edit-wrapper">
+    <div class="form-card">
+
+        ```
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+
+            @Html.HiddenFor(m => m.MAHOIVIEN)
+
+            <div class="form-grid">
+
+                <div class="avatar-box">
+                    <div class="avatar-circle">HV</div>
+                    <h4>@Model.KHACHHANG.HOTENKH</h4>
+                    <p>Thông tin chỉnh sửa hội viên.</p>
+                </div>
+
+                <div>
+
+                    <div class="info-grid">
+
+                        <div>
+                            <label class="form-label">Mã hội viên</label>
+                            <input type="text"
+                                   value="@Model.MAHOIVIEN"
+                                   class="form-control readonly-input"
+                                   readonly />
+                        </div>
+
+                        <div>
+                            <label class="form-label">Khách hàng</label>
+                            @Html.DropDownList("MAKH", null, "-- Chọn khách hàng --", new { @class = "form-select" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Nhân viên</label>
+                            @Html.DropDownList("MANV", null, "-- Chọn nhân viên --", new { @class = "form-select" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Loại thẻ</label>
+                            @Html.DropDownListFor(m => m.LOAITHE,
+                                (SelectList)ViewBag.LoaiTheList,
+                                "-- Chọn loại thẻ --",
+                                new { @class = "form-select" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Ngày bắt đầu</label>
+                            @Html.TextBoxFor(m => m.NGAYBATDAU, "{0:dd/MM/yyyy}",
+                                new { @class = "form-control", placeholder = "dd/MM/yyyy", id = "NGAYBATDAU" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Ngày kết thúc</label>
+                            @Html.TextBoxFor(m => m.NGAYKETTHUC, "{0:dd/MM/yyyy}",
+                                new { @class = "form-control", placeholder = "dd/MM/yyyy", id = "NGAYKETTHUC", @readonly = "readonly" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Phí đăng ký</label>
+                            @Html.TextBoxFor(m => m.PHIDANGKY,
+                                new { @class = "form-control", type = "number" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Trạng thái phí</label>
+                            @Html.DropDownListFor(m => m.TRANGTHAIPHI,
+                                (SelectList)ViewBag.TrangThaiPhiList,
+                                "-- Chọn trạng thái --",
+                                new { @class = "form-select" })
+                        </div>
+
+                    </div>
+
+                    <div class="action-bar">
+                        @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn-back" })
+
+                        @Html.ActionLink("Chi tiết",
+                            "Details",
+                            new { id = Model.MAHOIVIEN },
+                            new { @class = "btn-detail" })
+
+                        <button type="submit" class="btn-save">
+                            Lưu thay đổi
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        }
+
+    </div>
+    ```
+
+</div>

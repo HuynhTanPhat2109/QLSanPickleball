@@ -20,7 +20,9 @@ namespace QLSanPickleball_65132651.Controllers
             "Đã hủy",
             "Đã huỷ",
             "Huy",
-            "Hủy"
+            "Hủy",
+            "Khách không đến",
+            "Hủy do bảo trì"
         };
 
         private ActionResult KiemTraQuyenNhanVien()
@@ -353,6 +355,68 @@ namespace QLSanPickleball_65132651.Controllers
             TempData["Success"] = "Đã kết thúc lượt chơi và chuyển sân về Trống.";
             return RedirectToAction("Index");
         }
+
+        public ActionResult KhachKhongDen(string id)
+        {
+            var check = KiemTraQuyenNhanVien();
+            if (check != null) return check;
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            var phieu = db.PHIEUDATSAN
+                .Include(p => p.KHACHHANG)
+                .Include(p => p.SAN)
+                .FirstOrDefault(p => p.MAPHIEUDAT == id);
+
+            if (phieu == null)
+            {
+                return HttpNotFound();
+            }
+
+            if (KhongChoHuySan(phieu))
+            {
+                TempData["Error"] = "Phiếu đã hoàn thành hoặc đã hủy nên không thể ghi nhận khách không đến.";
+                return RedirectToAction("Details", new { id = id });
+            }
+
+            phieu.TRANGTHAIPHIEU = "Khách không đến";
+            phieu.TRANGTHAITHANHTOAN = "Đã hủy";
+            phieu.MANV = Session["MANV"].ToString();
+
+            if (string.IsNullOrWhiteSpace(phieu.GHICHU))
+            {
+                phieu.GHICHU = "Khách không đến quá 20 phút.";
+            }
+            else
+            {
+                phieu.GHICHU += " | Khách không đến quá 20 phút.";
+            }
+
+            if (phieu.KHACHHANG != null)
+            {
+                phieu.KHACHHANG.SOLANBUNG += 1;
+
+                if (phieu.KHACHHANG.SOLANBUNG > 3)
+                {
+                    phieu.KHACHHANG.TRANGTHAITK = "Đã khóa";
+                }
+            }
+
+            if (phieu.SAN != null && phieu.SAN.TRANGTHAISAN != "Bảo trì")
+            {
+                phieu.SAN.TRANGTHAISAN = "Trống";
+            }
+            db.SaveChanges();
+
+            TempData["Success"] = "Đã ghi nhận khách không đến. Số lần bùng lịch hiện tại: "
+                + (phieu.KHACHHANG != null ? phieu.KHACHHANG.SOLANBUNG.ToString() : "0");
+
+            return RedirectToAction("Details", new { id = id });
+        }
+
 
         // GET: PhieuDatSanNV65134364/HuyPhieu/P01
         // GET: PhieuDatSanNV65134364/HuyPhieu/P01
