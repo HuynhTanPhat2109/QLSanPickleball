@@ -46,7 +46,7 @@
     {
         classPhieu = "st-done";
     }
-    else if (Model.TRANGTHAIPHIEU == "Đã hủy" || Model.TRANGTHAIPHIEU == "Đã huỷ" || Model.TRANGTHAIPHIEU == "Hủy" || Model.TRANGTHAIPHIEU == "Huy" || Model.TRANGTHAIPHIEU == "DaHuy")
+    else if (Model.TRANGTHAIPHIEU == "Đã hủy" || Model.TRANGTHAIPHIEU == "Đã huỷ" || Model.TRANGTHAIPHIEU == "Hủy" || Model.TRANGTHAIPHIEU == "Huy" || Model.TRANGTHAIPHIEU == "DaHuy" || Model.TRANGTHAIPHIEU == "Khách không đến"|| Model.TRANGTHAIPHIEU == "Hủy do bảo trì")
     {
         classPhieu = "st-cancel";
     }
@@ -91,6 +91,8 @@
         || Model.TRANGTHAIPHIEU == "Huy"
         || Model.TRANGTHAIPHIEU == "DaHuy"
         || Model.TRANGTHAITHANHTOAN == "Đã hủy"
+        || Model.TRANGTHAIPHIEU == "Khách không đến"
+        || Model.TRANGTHAIPHIEU == "Hủy do bảo trì"
         || Model.TRANGTHAITHANHTOAN == "Đã huỷ";
 
     bool duocSuaDichVu = !daHuy && !daHoanThanh && !daCoHoaDon;
@@ -607,6 +609,12 @@
                     onclick = "return confirm('Xác nhận khách vào sân?');"
                 })
 
+                @Html.ActionLink("Khách không đến", "KhachKhongDen", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new
+                {
+                    @class = "btn-action btn-cancel",
+                    onclick = "return confirm('Xác nhận khách không đến quá 20 phút và tính 1 lần bùng lịch?');"
+                })
+
                 @Html.ActionLink("Kết thúc", "KetThucLuotChoi", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new
                 {
                     @class = "btn-action btn-finish",
@@ -628,7 +636,7 @@
                 @Html.ActionLink("Hỗ trợ hủy sân", "HoTroHuySan", "PhieuDatSanNV65134364", new { id = Model.MAPHIEUDAT }, new
                 {
                     @class = "btn-action btn-cancel"
-                })          }
+                })}
         </div>
     </div>
 

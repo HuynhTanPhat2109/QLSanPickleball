@@ -1,0 +1,238 @@
+﻿@model QLSanPickleball_65132651.Models.HOIVIEN
+
+@{
+    ViewBag.Title = "Thêm hội viên";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .create-wrapper {
+        max-width: 1000px;
+        margin: 0 auto;
+    }
+
+    .form-card {
+        background: white;
+        border-radius: 14px;
+        border: 1px solid #e5e7eb;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        padding: 24px;
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 260px 1fr;
+        gap: 28px;
+    }
+
+    .avatar-box {
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 22px;
+        text-align: center;
+        background: #f9fafb;
+    }
+
+    .avatar-circle {
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 42px;
+        font-weight: bold;
+        margin: 0 auto 16px auto;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .form-label {
+        display: block;
+        font-weight: bold;
+        color: #374151;
+        margin-bottom: 6px;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 8px;
+    }
+
+    .action-bar {
+        margin-top: 24px;
+        display: flex;
+        gap: 10px;
+        justify-content: flex-end;
+    }
+
+    .btn-save {
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 11px 18px;
+        border-radius: 8px;
+        font-weight: bold;
+    }
+
+    .btn-back {
+        background: #6b7280;
+        color: white !important;
+        padding: 11px 18px;
+        border-radius: 8px;
+        text-decoration: none;
+        font-weight: bold;
+    }
+
+    @@media(max-width: 850px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="create-wrapper">
+    <div class="form-card">
+
+        ```
+        @using (Html.BeginForm())
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="form-grid">
+
+                <div class="avatar-box">
+                    <div class="avatar-circle">HV</div>
+                    <h4>Hội viên mới</h4>
+                    <p>Quản lý đăng ký hội viên và trạng thái thanh toán.</p>
+                </div>
+
+                <div>
+
+                    <div class="info-grid">
+
+                        <div>
+                            <label class="form-label">Mã hội viên</label>
+                            @Html.TextBoxFor(m => m.MAHOIVIEN, new { @class = "form-control" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Khách hàng</label>
+                            @Html.DropDownList("MAKH", null, "-- Chọn khách hàng --", new { @class = "form-select" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Nhân viên duyệt</label>
+                            @Html.DropDownList("MANV", null, "-- Chọn nhân viên --", new { @class = "form-select" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Loại thẻ</label>
+                            @Html.DropDownListFor(m => m.LOAITHE,
+                                (SelectList)ViewBag.LoaiTheList,
+                                "-- Chọn loại thẻ --",
+                                new { @class = "form-select" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Ngày bắt đầu</label>
+                            @Html.TextBoxFor(m => m.NGAYBATDAU, "{0:dd/MM/yyyy}",
+                                new { @class = "form-control", placeholder = "dd/MM/yyyy", id = "NGAYBATDAU" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Ngày kết thúc</label>
+                            @Html.TextBoxFor(m => m.NGAYKETTHUC, "{0:dd/MM/yyyy}",
+                                new { @class = "form-control", placeholder = "dd/MM/yyyy", id = "NGAYKETTHUC", @readonly = "readonly" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Phí đăng ký</label>
+                            @Html.TextBoxFor(m => m.PHIDANGKY,
+                                new { @class = "form-control", type = "number" })
+                        </div>
+
+                        <div>
+                            <label class="form-label">Trạng thái phí</label>
+                            @Html.DropDownListFor(m => m.TRANGTHAIPHI,
+                                (SelectList)ViewBag.TrangThaiPhiList,
+                                "-- Chọn trạng thái --",
+                                new { @class = "form-select" })
+                        </div>
+
+                    </div>
+
+                    <div class="action-bar">
+                        @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn-back" })
+                        <button type="submit" class="btn-save">Lưu hội viên</button>
+                    </div>
+
+                </div>
+            </div>
+        }
+
+    </div>
+    ```
+    <script>
+        function formatDateVN(date) {
+            var dd = String(date.getDate()).padStart(2, '0');
+            var mm = String(date.getMonth() + 1).padStart(2, '0');
+            var yyyy = date.getFullYear();
+            return dd + '/' + mm + '/' + yyyy;
+        }
+
+        function parseDateVN(value) {
+            if (!value) return new Date();
+
+            var parts = value.split('/');
+            if (parts.length !== 3) return new Date();
+
+            return new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+
+        function congThang(date, months) {
+            var d = new Date(date);
+            d.setMonth(d.getMonth() + months);
+            return d;
+        }
+
+        var loaiThe = document.getElementById("LOAITHE");
+        var ngayBatDau = document.getElementById("NGAYBATDAU");
+        var ngayKetThuc = document.getElementById("NGAYKETTHUC");
+        var phiDangKy = document.getElementById("PHIDANGKY");
+
+        function capNhatTheoLoaiThe() {
+            var start = parseDateVN(ngayBatDau.value);
+            var value = loaiThe.value.toLowerCase();
+
+            if (value === "thường") {
+                phiDangKy.value = 200000;
+                ngayKetThuc.value = formatDateVN(congThang(start, 3));
+            }
+            else if (value === "vip") {
+                phiDangKy.value = 750000;
+                ngayKetThuc.value = formatDateVN(congThang(start, 12));
+            }
+            else if (value === "luxury") {
+                phiDangKy.value = 1000000;
+                ngayKetThuc.value = formatDateVN(congThang(start, 12));
+            }
+        }
+
+        loaiThe.addEventListener("change", capNhatTheoLoaiThe);
+        ngayBatDau.addEventListener("change", capNhatTheoLoaiThe);
+    </script>
+</div>

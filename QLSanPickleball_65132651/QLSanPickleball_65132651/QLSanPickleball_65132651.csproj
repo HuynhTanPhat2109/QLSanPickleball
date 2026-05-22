@@ -135,10 +135,12 @@
     <Compile Include="Controllers\DatSan65132651Controller.cs" />
     <Compile Include="Controllers\DICHVU65134364Controller.cs" />
     <Compile Include="Controllers\HoaDonNV65134364Controller.cs" />
+    <Compile Include="Controllers\HOIVIEN65130311Controller.cs" />
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\NHANVIEN65134364Controller.cs" />
     <Compile Include="Controllers\PhieuDatSanNV65134364Controller.cs" />
     <Compile Include="Controllers\SAN65134364Controller.cs" />
+    <Compile Include="Controllers\SaoLuuDuLieu65130311Controller.cs" />
     <Compile Include="Controllers\THAMSO65134364Controller.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
@@ -302,6 +304,12 @@
     <Content Include="Views\THAMSO65134364\Index.cshtml" />
     <Content Include="Views\SAN65134364\CapNhatTrangThai.cshtml" />
     <Content Include="Views\PhieuDatSanNV65134364\HoTroHuySan.cshtml" />
+    <Content Include="Views\SaoLuuDuLieu65130311\Index.cshtml" />
+    <Content Include="Views\HOIVIEN65130311\Create.cshtml" />
+    <Content Include="Views\HOIVIEN65130311\Delete.cshtml" />
+    <Content Include="Views\HOIVIEN65130311\Details.cshtml" />
+    <Content Include="Views\HOIVIEN65130311\Edit.cshtml" />
+    <Content Include="Views\HOIVIEN65130311\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

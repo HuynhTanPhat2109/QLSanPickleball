@@ -1,0 +1,27 @@
+﻿@{
+    ViewBag.Title = "Sao lưu dữ liệu";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<div class="admin-card">
+    <h2>Sao lưu dữ liệu hệ thống</h2>
+
+    <br />
+
+    @using (Html.BeginForm("BackupDatabase", "SaoLuuDuLieu65130311", FormMethod.Post))
+    {
+        <button type="submit" class="btn btn-primary">
+            Sao lưu ngay
+        </button>
+    }
+
+    <br />
+    <br />
+
+    @if (ViewBag.Message != null)
+    {
+        <div class="alert alert-info">
+            @ViewBag.Message
+        </div>
+    }
+</div>

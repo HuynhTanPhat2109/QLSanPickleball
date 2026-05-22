@@ -289,12 +289,13 @@
                     <li class="admin-menu-title">Quản lý hệ thống</li>
                     <li>@Html.ActionLink("Quản lý nhân viên", "Index", "NHANVIEN65134364")</li>
                     <li>@Html.ActionLink("Quản lý khách hàng", "Index", "KHACHHANGs")</li>
-                    <li>@Html.ActionLink("Quản lý hội viên", "Index", "HOIVIENs")</li>
+                    <li>@Html.ActionLink("Quản lý hội viên", "Index", "HOIVIEN65130311")</li>
 
                     <li class="admin-menu-title">Quản lý sân</li>
                     <li>@Html.ActionLink("Danh sách sân", "Index", "SAN65134364")</li>
                     <li>@Html.ActionLink("Loại sân", "Index", "LOAISANs")</li>
                     <li>@Html.ActionLink("Bảng giá sân", "Index", "BANGGIAs")</li>
+
                 }
 
                 @if (duocVaoKhuNhanVien)
@@ -305,6 +306,7 @@
                     <li>@Html.ActionLink("Hỗ trợ hủy sân", "Index", "PhieuDatSanNV65134364", new { trangThaiPhieu = "Đã xác nhận" }, null)</li>
                     <li>@Html.ActionLink("Hóa đơn", "Index", "HoaDonNV65134364")</li>
                     <li>@Html.ActionLink("Dịch vụ sử dụng", "Index", "ChiTietDichVuDat65134364")</li>
+                    <li>@Html.ActionLink("Sao lưu dữ liệu","Index","SaoLuuDuLieu65130311")</li>
 
                     <li class="menu-note">
                         Hủy sân xử lý trong chi tiết phiếu đặt sân. Chính sách hoàn tiền sẽ làm ở bước tiếp theo.
@@ -319,6 +321,9 @@
 
                     <li class="admin-menu-title">Cấu hình</li>
                     <li>@Html.ActionLink("Tham số hệ thống", "Index", "THAMSO65134364")</li>
+
+
+
                 }
 
                 <li class="admin-menu-title">Tài khoản</li>

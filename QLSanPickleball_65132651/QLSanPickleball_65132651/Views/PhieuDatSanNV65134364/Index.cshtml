@@ -608,6 +608,8 @@
             string sdtKhach = item.KHACHHANG != null ? item.KHACHHANG.SODIENTHOAIKH : "";
             string tenNhanVien = item.NHANVIEN != null ? item.NHANVIEN.HOTENNV : "Chưa xử lý";
             string maNhom = LayMaNhomTuGhiChu(item.GHICHU);
+            DateTime thoiGianKetThuc = item.NGAYDAT.Date + item.GIOKETTHUC;
+            bool daQuaGio = DateTime.Now > thoiGianKetThuc;
 
             decimal tienDichVu = 0m;
 
@@ -686,6 +688,8 @@
                 || item.TRANGTHAIPHIEU == "Huy"
                 || item.TRANGTHAIPHIEU == "DaHuy"
                 || item.TRANGTHAITHANHTOAN == "Đã hủy"
+                || item.TRANGTHAIPHIEU == "Khách không đến"
+                | item.TRANGTHAIPHIEU == "Hủy do bảo trì"
                 || item.TRANGTHAITHANHTOAN == "Đã huỷ";
 
             <div class="booking-card">
@@ -747,43 +751,45 @@
 
                     <div class="action-box">
                         @Html.ActionLink("Chi tiết", "Details", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new { @class = "btn-action btn-detail" })
-
-                        @if (choXacNhan && !daHuy)
+                        @if (!daQuaGio)
                         {
-                            @Html.ActionLink("Xác nhận", "XacNhanThanhToan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
+                            if (choXacNhan && !daHuy)
                             {
-                                @class = "btn-action btn-confirm",
-                                onclick = "return confirm('Xác nhận thanh toán cho phiếu " + item.MAPHIEUDAT + "?');"
-                            })
-                        }
+                                @Html.ActionLink("Xác nhận", "XacNhanThanhToan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
+                                {
+                                    @class = "btn-action btn-confirm",
+                                    onclick = "return confirm('Xác nhận thanh toán cho phiếu " + item.MAPHIEUDAT + "?');"
+                                })
+                            }
 
-                        @if (daXacNhan && !daHuy)
-                        {
-                            @Html.ActionLink("Vào sân", "KhachVaoSan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
+                            if (daXacNhan && !daHuy)
                             {
-                                @class = "btn-action btn-start",
-                                onclick = "return confirm('Xác nhận khách vào sân?');"
-                            })
+                                @Html.ActionLink("Vào sân", "KhachVaoSan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
+                                {
+                                    @class = "btn-action btn-start",
+                                    onclick = "return confirm('Xác nhận khách vào sân?');"
+                                })
 
-                            @Html.ActionLink("Kết thúc", "KetThucLuotChoi", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
-                            {
-                                @class = "btn-action btn-finish",
-                                onclick = "return confirm('Kết thúc lượt chơi và chuyển sân về Trống?');"
-                            })
+                                @Html.ActionLink("Kết thúc", "KetThucLuotChoi", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
+                                {
+                                    @class = "btn-action btn-finish",
+                                    onclick = "return confirm('Kết thúc lượt chơi và chuyển sân về Trống?');"
+                                })
 
-                            @Html.ActionLink("Lập HĐ", "LapHoaDon", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
-                            {
-                                @class = "btn-action btn-invoice",
-                                onclick = "return confirm('Lập hóa đơn cho phiếu " + item.MAPHIEUDAT + "?');"
-                            })
-                        }
+                                @Html.ActionLink("Lập HĐ", "LapHoaDon", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
+                                {
+                                    @class = "btn-action btn-invoice",
+                                    onclick = "return confirm('Lập hóa đơn cho phiếu " + item.MAPHIEUDAT + "?');"
+                                })
+                            }
 
-                        @if (!daHuy && !daHoanThanh)
-                        {
-                            @Html.ActionLink("Hỗ trợ hủy", "HoTroHuySan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
+                            if (!daHuy && !daHoanThanh)
                             {
-                                @class = "btn-action btn-cancel"
-                            })
+                                @Html.ActionLink("Hỗ trợ hủy", "HoTroHuySan", "PhieuDatSanNV65134364", new { id = item.MAPHIEUDAT }, new
+                                {
+                                    @class = "btn-action btn-cancel"
+                                })
+                            }
                         }
                     </div>
                 </div>
