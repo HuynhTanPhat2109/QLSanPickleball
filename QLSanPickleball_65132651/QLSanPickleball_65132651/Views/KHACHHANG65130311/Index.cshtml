@@ -1,0 +1,256 @@
+﻿@model IEnumerable<QLSanPickleball_65132651.Models.KHACHHANG>
+
+@{
+    ViewBag.Title = "Quản lý khách hàng";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .page-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+    }
+
+        .page-head h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .btn-add {
+        background: #2563eb;
+        color: white !important;
+        padding: 10px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 900;
+    }
+
+    .stat-row {
+        display: grid;
+        grid-template-columns: repeat(4,1fr);
+        gap: 14px;
+        margin-bottom: 18px;
+    }
+
+    .stat-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 18px;
+        box-shadow: 0 8px 20px rgba(0,0,0,.05);
+    }
+
+    .stat-label {
+        color: #6b7280;
+        font-weight: 800;
+        font-size: 13px;
+    }
+
+    .stat-value {
+        font-size: 28px;
+        font-weight: 900;
+        color: #111827;
+        margin-top: 6px;
+    }
+
+    .filter-card, .table-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 8px 20px rgba(0,0,0,.05);
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr auto auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .form-label {
+        font-weight: 900;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+    }
+
+    .btn-filter {
+        background: #16a34a;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 900;
+    }
+
+    .btn-reset {
+        background: #6b7280;
+        color: white !important;
+        padding: 10px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 900;
+    }
+
+    .badge-status {
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+    .st-active {
+        background: #dcfce7;
+        color: #166534;
+    }
+
+    .st-lock {
+        background: #fee2e2;
+        color: #991b1b;
+    }
+
+    .st-gray {
+        background: #e5e7eb;
+        color: #374151;
+    }
+
+    .btn-action {
+        padding: 7px 10px;
+        border-radius: 8px;
+        color: white !important;
+        text-decoration: none;
+        font-weight: 800;
+        font-size: 13px;
+        display: inline-block;
+        margin: 2px;
+    }
+
+    .btn-detail {
+        background: #0ea5e9;
+    }
+
+    .btn-edit {
+        background: #f59e0b;
+    }
+
+    .btn-lock {
+        background: #dc2626;
+    }
+
+    .btn-unlock {
+        background: #16a34a;
+    }
+</style>
+
+<div class="page-head">
+    <h2>Quản lý khách hàng</h2>
+    @Html.ActionLink("+ Thêm khách hàng", "Create", null, new { @class = "btn-add" })
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success">@TempData["Success"]</div>
+}
+
+<div class="stat-row">
+    <div class="stat-card">
+        <div class="stat-label">Tổng khách hàng</div>
+        <div class="stat-value">@ViewBag.TongKH</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Đang hoạt động</div>
+        <div class="stat-value">@ViewBag.DangHoatDong</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Đã khóa</div>
+        <div class="stat-value">@ViewBag.BiKhoa</div>
+    </div>
+    <div class="stat-card">
+        <div class="stat-label">Có bùng lịch</div>
+        <div class="stat-value">@ViewBag.NhieuLanBung</div>
+    </div>
+</div>
+
+<div class="filter-card">
+    @using (Html.BeginForm("Index", "KHACHHANG65130311", FormMethod.Get))
+    {
+        <div class="filter-row">
+            <div>
+                <label class="form-label">Tìm kiếm</label>
+                <input name="search" value="@ViewBag.Search" class="form-control" placeholder="Mã KH, tên, SĐT, email..." />
+            </div>
+
+            <div>
+                <label class="form-label">Trạng thái</label>
+                <select name="trangThai" class="form-select">
+                    <option value="">-- Tất cả --</option>
+                    <option value="Hoạt động" @(ViewBag.TrangThai == "Hoạt động" ? "selected" : "")>Hoạt động</option>
+                    <option value="Đã khóa" @(ViewBag.TrangThai == "Đã khóa" ? "selected" : "")>Đã khóa</option>
+                </select>
+            </div>
+
+            <button class="btn-filter" type="submit">Lọc</button>
+            @Html.ActionLink("Làm mới", "Index", null, new { @class = "btn-reset" })
+        </div>
+    }
+</div>
+
+<div class="table-card">
+    <table class="table table-bordered table-hover">
+        <thead>
+            <tr>
+                <th>Mã KH</th>
+                <th>Họ tên</th>
+                <th>SĐT</th>
+                <th>Email</th>
+                <th>Số lần bùng</th>
+                <th>Trạng thái</th>
+                <th style="width:260px;">Thao tác</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                string st = item.TRANGTHAITK == "Đã khóa" ? "st-lock" : "st-active";
+
+                <tr>
+                    <td><b>@item.MAKH</b></td>
+                    <td>@item.HOTENKH</td>
+                    <td>@item.SODIENTHOAIKH</td>
+                    <td>@item.EMAILKH</td>
+                    <td><b>@item.SOLANBUNG</b></td>
+                    <td><span class="badge-status @st">@item.TRANGTHAITK</span></td>
+                    <td>
+                        @Html.ActionLink("Chi tiết", "Details", new { id = item.MAKH }, new { @class = "btn-action btn-detail" })
+                        @Html.ActionLink("Sửa", "Edit", new { id = item.MAKH }, new { @class = "btn-action btn-edit" })
+
+                        @if (item.TRANGTHAITK == "Đã khóa")
+                        {
+                            @Html.ActionLink("Mở khóa", "MoKhoa", new { id = item.MAKH }, new { @class = "btn-action btn-unlock" })
+                        }
+                        else if (item.SOLANBUNG > 3)
+                        {
+                            @Html.ActionLink("Khóa", "Khoa", "KHACHHANG65130311",
+                                new { id = item.MAKH },
+                                new { @class = "btn-action btn-lock" })
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
