@@ -1,0 +1,150 @@
+﻿@model QLSanPickleball_65132651.Models.KHACHHANG
+
+@{
+    ViewBag.Title = "Sửa khách hàng";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .form-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 24px;
+        box-shadow: 0 8px 22px rgba(0,0,0,.05);
+        max-width: 1000px;
+        margin: auto
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px
+    }
+
+    .form-label {
+        display: block;
+        font-weight: 900;
+        color: #374151;
+        margin-bottom: 6px
+    }
+
+    .form-control, .form-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px
+    }
+
+    .readonly {
+        background: #f3f4f6
+    }
+
+    .full {
+        grid-column: 1/3
+    }
+
+    .action-bar {
+        margin-top: 22px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px
+    }
+
+    .btn-save {
+        background: #f59e0b;
+        color: white;
+        border: none;
+        padding: 11px 18px;
+        border-radius: 10px;
+        font-weight: 900
+    }
+
+    .btn-back {
+        background: #6b7280;
+        color: white !important;
+        padding: 11px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 900
+    }
+
+    .btn-detail {
+        background: #0ea5e9;
+        color: white !important;
+        padding: 11px 18px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 900
+    }
+</style>
+
+<div class="form-card">
+    <h2>Sửa khách hàng</h2>
+
+    @using (Html.BeginForm())
+    {
+        @Html.AntiForgeryToken()
+        @Html.HiddenFor(m => m.MAKH)
+        @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+        <div class="form-grid">
+            <div>
+                <label class="form-label">Mã khách hàng</label>
+                <input type="text" value="@Model.MAKH" class="form-control readonly" readonly />
+            </div>
+
+            <div>
+                <label class="form-label">Họ tên</label>
+                @Html.TextBoxFor(m => m.HOTENKH, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.HOTENKH, "", new { @class = "text-danger" })
+            </div>
+
+            <div>
+                <label class="form-label">Ngày sinh</label>
+                @Html.TextBoxFor(m => m.NGAYSINH, "{0:dd/MM/yyyy}", new { @class = "form-control", type = "dd/MM/yyyy" })
+            </div>
+
+            <div>
+                <label class="form-label">Giới tính</label>
+                @Html.DropDownListFor(m => m.GIOITINH, (SelectList)ViewBag.GioiTinhList, "-- Chọn giới tính --", new { @class = "form-select" })
+            </div>
+
+            <div>
+                <label class="form-label">Số điện thoại</label>
+                @Html.TextBoxFor(m => m.SODIENTHOAIKH, new { @class = "form-control" })
+                @Html.ValidationMessageFor(m => m.SODIENTHOAIKH, "", new { @class = "text-danger" })
+            </div>
+
+            <div>
+                <label class="form-label">Email</label>
+                @Html.TextBoxFor(m => m.EMAILKH, new { @class = "form-control", type = "email" })
+                @Html.ValidationMessageFor(m => m.EMAILKH, "", new { @class = "text-danger" })
+            </div>
+
+            <div>
+                <label class="form-label">Số lần bùng</label>
+                <input type="text"
+                       class="form-control"
+                       value="@Model.SOLANBUNG"
+                       readonly />
+            </div>
+
+            <div>
+                <label class="form-label">Trạng thái tài khoản</label>
+                @Html.DropDownListFor(m => m.TRANGTHAITK, (SelectList)ViewBag.TrangThaiList, new { @class = "form-select" })
+            </div>
+
+            <div class="full">
+                <label class="form-label">Địa chỉ</label>
+                @Html.TextAreaFor(m => m.DIACHI, new { @class = "form-control", rows = "3" })
+            </div>
+        </div>
+
+        <div class="action-bar">
+            @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn-back" })
+            @Html.ActionLink("Chi tiết", "Details", new { id = Model.MAKH }, new { @class = "btn-detail" })
+            <button type="submit" class="btn-save">Lưu thay đổi</button>
+        </div>
+    }
+</div>
