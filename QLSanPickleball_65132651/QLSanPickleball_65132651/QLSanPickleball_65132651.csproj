@@ -137,6 +137,7 @@
     <Compile Include="Controllers\HoaDonNV65134364Controller.cs" />
     <Compile Include="Controllers\HOIVIEN65130311Controller.cs" />
     <Compile Include="Controllers\HomeController.cs" />
+    <Compile Include="Controllers\KHACHHANG65130311Controller.cs" />
     <Compile Include="Controllers\NHANVIEN65134364Controller.cs" />
     <Compile Include="Controllers\PhieuDatSanNV65134364Controller.cs" />
     <Compile Include="Controllers\SAN65134364Controller.cs" />
@@ -311,6 +312,11 @@
     <Content Include="Views\HOIVIEN65130311\Details.cshtml" />
     <Content Include="Views\HOIVIEN65130311\Edit.cshtml" />
     <Content Include="Views\HOIVIEN65130311\Index.cshtml" />
+    <Content Include="Views\KHACHHANG65130311\Create.cshtml" />
+    <Content Include="Views\KHACHHANG65130311\Delete.cshtml" />
+    <Content Include="Views\KHACHHANG65130311\Details.cshtml" />
+    <Content Include="Views\KHACHHANG65130311\Edit.cshtml" />
+    <Content Include="Views\KHACHHANG65130311\Index.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

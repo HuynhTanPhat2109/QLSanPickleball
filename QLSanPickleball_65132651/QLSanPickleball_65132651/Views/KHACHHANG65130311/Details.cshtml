@@ -1,0 +1,235 @@
+﻿@model QLSanPickleball_65132651.Models.KHACHHANG
+@using QLSanPickleball_65132651.Models
+@using System.Linq
+
+@{
+    ViewBag.Title = "Chi tiết khách hàng";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    var lichSu = ViewBag.LichSuDatSan as IEnumerable<PHIEUDATSAN>;
+}
+
+<style>
+    .detail-wrapper {
+        max-width: 1100px;
+        margin: 0 auto
+    }
+
+    .hero {
+        background: linear-gradient(135deg,#0f172a,#1d4ed8);
+        color: white;
+        border-radius: 20px;
+        padding: 24px;
+        margin-bottom: 18px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center
+    }
+
+        .hero h2 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 900
+        }
+
+        .hero p {
+            margin: 6px 0 0;
+            color: #bfdbfe
+        }
+
+    .card-box {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 20px;
+        margin-bottom: 18px;
+        box-shadow: 0 8px 22px rgba(0,0,0,.05)
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px
+    }
+
+    .info-item {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 14px;
+        padding: 14px
+    }
+
+    .label {
+        color: #6b7280;
+        font-weight: 900;
+        font-size: 12px;
+        text-transform: uppercase
+    }
+
+    .value {
+        color: #111827;
+        font-weight: 900;
+        font-size: 16px;
+        margin-top: 6px
+    }
+
+    .badge-status {
+        padding: 7px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 900
+    }
+
+    .st-active {
+        background: #dcfce7;
+        color: #166534
+    }
+
+    .st-lock {
+        background: #fee2e2;
+        color: #991b1b
+    }
+
+    .btn-action {
+        padding: 10px 14px;
+        border-radius: 10px;
+        color: white !important;
+        text-decoration: none;
+        font-weight: 900;
+        display: inline-block;
+        margin: 3px
+    }
+
+    .btn-back {
+        background: #6b7280
+    }
+
+    .btn-edit {
+        background: #f59e0b
+    }
+
+    .btn-reset {
+        background: #16a34a
+    }
+
+    .btn-lock {
+        background: #dc2626
+    }
+
+    .btn-unlock {
+        background: #2563eb
+    }
+
+    .table th {
+        background: #f3f4f6
+    }
+</style>
+
+<div class="detail-wrapper">
+    <div class="hero">
+        <div>
+            <h2>@Model.HOTENKH</h2>
+            <p>Mã khách hàng: @Model.MAKH</p>
+        </div>
+
+        <div>
+            @{
+                string st = Model.TRANGTHAITK == "Đã khóa" ? "st-lock" : "st-active";
+            }
+            <span class="badge-status @st">@Model.TRANGTHAITK</span>
+        </div>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div class="alert alert-success">@TempData["Success"]</div>
+    }
+
+    <div class="card-box">
+        <h3>Thông tin khách hàng</h3>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="label">Số điện thoại</div>
+                <div class="value">@Model.SODIENTHOAIKH</div>
+            </div>
+
+            <div class="info-item">
+                <div class="label">Email</div>
+                <div class="value">@Model.EMAILKH</div>
+            </div>
+
+            <div class="info-item">
+                <div class="label">Ngày sinh</div>
+                <div class="value">@String.Format("{0:dd/MM/yyyy}", Model.NGAYSINH)</div>
+            </div>
+
+            <div class="info-item">
+                <div class="label">Giới tính</div>
+                <div class="value">@Model.GIOITINH</div>
+            </div>
+
+            <div class="info-item">
+                <div class="label">Địa chỉ</div>
+                <div class="value">@Model.DIACHI</div>
+            </div>
+
+            <div class="info-item">
+                <div class="label">Số lần bùng lịch</div>
+                <div class="value">@Model.SOLANBUNG</div>
+            </div>
+        </div>
+
+        <br />
+
+        @Html.ActionLink("Quay lại", "Index", null, new { @class = "btn-action btn-back" })
+        @Html.ActionLink("Sửa", "Edit", new { id = Model.MAKH }, new { @class = "btn-action btn-edit" })
+        @Html.ActionLink("Reset bùng lịch", "ResetSoLanBung", new { id = Model.MAKH }, new { @class = "btn-action btn-reset", onclick = "return confirm('Reset số lần bùng lịch?');" })
+
+        @if (Model.TRANGTHAITK == "Đã khóa")
+        {
+            @Html.ActionLink("Mở khóa", "MoKhoa", new { id = Model.MAKH }, new { @class = "btn-action btn-unlock" })
+        }
+        else
+        {
+            @Html.ActionLink("Khóa", "Khoa", new { id = Model.MAKH }, new { @class = "btn-action btn-lock" })
+        }
+    </div>
+
+    <div class="card-box">
+        <h3>Lịch sử đặt sân</h3>
+
+        @if (lichSu != null && lichSu.Any())
+        {
+            <table class="table table-bordered table-hover">
+                <thead>
+                    <tr>
+                        <th>Mã phiếu</th>
+                        <th>Sân</th>
+                        <th>Ngày đặt</th>
+                        <th>Giờ</th>
+                        <th>Trạng thái phiếu</th>
+                        <th>Thanh toán</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var p in lichSu)
+                    {
+                        <tr>
+                            <td>@p.MAPHIEUDAT</td>
+                            <td>@(p.SAN != null ? p.SAN.TENSAN : p.MASAN)</td>
+                            <td>@p.NGAYDAT.ToString("dd/MM/yyyy")</td>
+                            <td>@p.GIOBATDAU.ToString(@"hh\:mm") - @p.GIOKETTHUC.ToString(@"hh\:mm")</td>
+                            <td>@p.TRANGTHAIPHIEU</td>
+                            <td>@p.TRANGTHAITHANHTOAN</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+        else
+        {
+            <div class="alert alert-info">Khách hàng chưa có lịch sử đặt sân.</div>
+        }
+    </div>
+</div>
