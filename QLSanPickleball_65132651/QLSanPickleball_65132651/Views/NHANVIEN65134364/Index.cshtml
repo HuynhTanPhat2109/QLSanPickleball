@@ -3,6 +3,14 @@
 @{
     ViewBag.Title = "Quản lý nhân viên";
     Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    bool laAdmin = ViewBag.LaAdmin != null && (bool)ViewBag.LaAdmin;
+    bool laQuanLy = ViewBag.LaQuanLy != null && (bool)ViewBag.LaQuanLy;
+
+    bool duocThem = ViewBag.DuocThem != null && (bool)ViewBag.DuocThem;
+    bool duocSua = ViewBag.DuocSua != null && (bool)ViewBag.DuocSua;
+    bool duocKhoa = ViewBag.DuocKhoa != null && (bool)ViewBag.DuocKhoa;
+    bool duocXoa = ViewBag.DuocXoa != null && (bool)ViewBag.DuocXoa;
 }
 
 <style>
@@ -11,14 +19,22 @@
         justify-content: space-between;
         align-items: center;
         margin-bottom: 18px;
+        gap: 12px;
+        flex-wrap: wrap;
     }
 
         .page-header h2 {
             margin: 0;
-            font-size: 24px;
-            font-weight: bold;
+            font-size: 26px;
+            font-weight: 900;
             color: #111827;
         }
+
+    .page-sub {
+        color: #6b7280;
+        font-size: 14px;
+        margin-top: 5px;
+    }
 
     .btn-add {
         background: #2563eb;
@@ -26,7 +42,8 @@
         padding: 10px 16px;
         border-radius: 8px;
         text-decoration: none;
-        font-weight: bold;
+        font-weight: 900;
+        display: inline-block;
     }
 
         .btn-add:hover {
@@ -34,6 +51,16 @@
             text-decoration: none;
             color: white;
         }
+
+    .role-note {
+        background: #eff6ff;
+        color: #1d4ed8;
+        border: 1px solid #bfdbfe;
+        padding: 12px 16px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        font-weight: 800;
+    }
 
     .filter-card {
         background: white;
@@ -52,7 +79,7 @@
     }
 
     .form-label {
-        font-weight: bold;
+        font-weight: 900;
         color: #374151;
         margin-bottom: 6px;
         display: block;
@@ -78,13 +105,9 @@
         border: none;
         padding: 10px 16px;
         border-radius: 8px;
-        font-weight: bold;
+        font-weight: 900;
         cursor: pointer;
     }
-
-        .btn-search:hover {
-            background: #15803d;
-        }
 
     .btn-reset {
         display: inline-block;
@@ -93,12 +116,14 @@
         padding: 10px 16px;
         border-radius: 8px;
         text-decoration: none;
-        font-weight: bold;
+        font-weight: 900;
     }
 
+        .btn-search:hover,
         .btn-reset:hover {
-            background: #4b5563;
+            opacity: 0.88;
             text-decoration: none;
+            color: white;
         }
 
     .table-card {
@@ -129,12 +154,42 @@
             white-space: nowrap;
         }
 
+    .employee-box {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .employee-avatar {
+        width: 46px;
+        height: 46px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        flex-shrink: 0;
+    }
+
+    .employee-name {
+        font-weight: 900;
+        color: #111827;
+    }
+
+    .employee-sub {
+        color: #6b7280;
+        font-size: 13px;
+        margin-top: 3px;
+    }
+
     .badge-role,
     .badge-status {
         padding: 6px 10px;
         border-radius: 999px;
         font-size: 12px;
-        font-weight: bold;
+        font-weight: 900;
         display: inline-block;
     }
 
@@ -172,15 +227,17 @@
         display: flex;
         gap: 6px;
         justify-content: center;
+        flex-wrap: wrap;
     }
 
     .btn-action {
-        padding: 6px 10px;
-        border-radius: 6px;
+        padding: 7px 10px;
+        border-radius: 7px;
         text-decoration: none;
         font-size: 13px;
         color: white !important;
         display: inline-block;
+        font-weight: 900;
     }
 
     .btn-detail {
@@ -216,6 +273,7 @@
         border-radius: 8px;
         margin-bottom: 15px;
         border: 1px solid #bbf7d0;
+        font-weight: 800;
     }
 
     .alert-error-custom {
@@ -225,6 +283,14 @@
         border-radius: 8px;
         margin-bottom: 15px;
         border: 1px solid #fecaca;
+        font-weight: 800;
+    }
+
+    .empty-row {
+        text-align: center;
+        color: #64748b;
+        padding: 24px;
+        font-weight: 800;
     }
 
     @@media(max-width: 1000px) {
@@ -237,7 +303,6 @@
         .page-header {
             flex-direction: column;
             align-items: flex-start;
-            gap: 12px;
         }
 
         .filter-row {
@@ -247,21 +312,33 @@
 </style>
 
 <div class="page-header">
-    @Html.ActionLink("+ Thêm nhân viên", "Create", "NHANVIEN65134364", null, new { @class = "btn-add" })
+    <div>
+        <div class="page-sub">
+            Admin có toàn quyền. Quản lý chỉ được xem chi tiết và sửa thông tin nhân viên.
+        </div>
+    </div>
+
+    @if (duocThem)
+    {
+        @Html.ActionLink("+ Thêm nhân viên", "Create", "NHANVIEN65134364", null, new { @class = "btn-add" })
+    }
 </div>
+
+@if (laQuanLy && !laAdmin)
+{
+    <div class="role-note">
+        Vai trò hiện tại: Quản lý. Bạn chỉ được xem chi tiết và sửa thông tin nhân viên, không được thêm, khóa hoặc xóa tài khoản.
+    </div>
+}
 
 @if (TempData["Success"] != null)
 {
-    <div class="alert-success-custom">
-        @TempData["Success"]
-    </div>
+    <div class="alert-success-custom">@TempData["Success"]</div>
 }
 
 @if (TempData["Error"] != null)
 {
-    <div class="alert-error-custom">
-        @TempData["Error"]
-    </div>
+    <div class="alert-error-custom">@TempData["Error"]</div>
 }
 
 <div class="filter-card">
@@ -313,10 +390,8 @@
         <thead>
             <tr>
                 <th>Mã NV</th>
-                <th>Họ tên</th>
-                <th>Số điện thoại</th>
-                <th>Email</th>
-                <th>Tên đăng nhập</th>
+                <th>Thông tin nhân viên</th>
+                <th>Tài khoản</th>
                 <th>Vai trò</th>
                 <th>Trạng thái</th>
                 <th>Chức năng</th>
@@ -339,52 +414,83 @@
                         roleClass = "role-manager";
                     }
 
-                    string statusClass = "status-off";
+                    string statusClass = "status-active";
 
-                    if (item.TRANGTHAI == "Đang hoạt động")
-                    {
-                        statusClass = "status-active";
-                    }
-                    else if (item.TRANGTHAI == "Tạm khóa")
+                    if (item.TRANGTHAI == "Tạm khóa")
                     {
                         statusClass = "status-lock";
                     }
+                    else if (item.TRANGTHAI == "Đã nghỉ việc")
+                    {
+                        statusClass = "status-off";
+                    }
+
+                    string chuCai = !string.IsNullOrWhiteSpace(item.HOTENNV)
+                        ? item.HOTENNV.Trim().Substring(0, 1).ToUpper()
+                        : "NV";
 
                     <tr>
-                        <td class="text-center">@item.MANV</td>
-                        <td>@item.HOTENNV</td>
-                        <td>@item.SODIENTHOAINV</td>
-                        <td>@item.EMAILNV</td>
-                        <td>@item.TENDANGNHAP</td>
+                        <td class="text-center">
+                            <strong>@item.MANV</strong>
+                        </td>
+
+                        <td>
+                            <div class="employee-box">
+                                <div class="employee-avatar">@chuCai</div>
+
+                                <div>
+                                    <div class="employee-name">@item.HOTENNV</div>
+                                    <div class="employee-sub">@item.SODIENTHOAINV</div>
+                                    <div class="employee-sub">@item.EMAILNV</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <td class="text-center">
+                            <strong>@item.TENDANGNHAP</strong>
+                        </td>
+
                         <td class="text-center">
                             <span class="badge-role @roleClass">@item.VAITRO</span>
                         </td>
+
                         <td class="text-center">
                             <span class="badge-status @statusClass">@item.TRANGTHAI</span>
                         </td>
+
                         <td>
                             <div class="action-group">
                                 @Html.ActionLink("Chi tiết", "Details", "NHANVIEN65134364", new { id = item.MANV }, new { @class = "btn-action btn-detail" })
-                                @Html.ActionLink("Sửa", "Edit", "NHANVIEN65134364", new { id = item.MANV }, new { @class = "btn-action btn-edit" })
 
-                                @if (item.TRANGTHAI == "Đang hoạt động")
+                                @if (duocSua)
                                 {
-                                    @Html.ActionLink("Khóa", "Khoa", "NHANVIEN65134364", new { id = item.MANV }, new
-                                    {
-                                        @class = "btn-action btn-lock",
-                                        onclick = "return confirm('Bạn có chắc muốn khóa tài khoản này không?');"
-                                    })
-                                }
-                                else
-                                {
-                                    @Html.ActionLink("Mở khóa", "MoKhoa", "NHANVIEN65134364", new { id = item.MANV }, new
-                                    {
-                                        @class = "btn-action btn-unlock",
-                                        onclick = "return confirm('Bạn có chắc muốn mở khóa tài khoản này không?');"
-                                    })
+                                    @Html.ActionLink("Sửa", "Edit", "NHANVIEN65134364", new { id = item.MANV }, new { @class = "btn-action btn-edit" })
                                 }
 
-                                @Html.ActionLink("Xóa", "Delete", "NHANVIEN65134364", new { id = item.MANV }, new { @class = "btn-action btn-delete" })
+                                @if (duocKhoa)
+                                {
+                                    if (item.TRANGTHAI == "Tạm khóa")
+                                    {
+                                        @Html.ActionLink("Mở khóa", "MoKhoaTaiKhoan", "NHANVIEN65134364", new { id = item.MANV }, new
+                                        {
+                                            @class = "btn-action btn-unlock",
+                                            onclick = "return confirm('Mở khóa tài khoản " + item.TENDANGNHAP + "?');"
+                                        })
+                                    }
+                                    else if (item.TRANGTHAI == "Đang hoạt động")
+                                    {
+                                        @Html.ActionLink("Khóa", "KhoaTaiKhoan", "NHANVIEN65134364", new { id = item.MANV }, new
+                                        {
+                                            @class = "btn-action btn-lock",
+                                            onclick = "return confirm('Khóa tài khoản " + item.TENDANGNHAP + "?');"
+                                        })
+                                    }
+                                }
+
+                                @if (duocXoa)
+                                {
+                                    @Html.ActionLink("Xóa", "Delete", "NHANVIEN65134364", new { id = item.MANV }, new { @class = "btn-action btn-delete" })
+                                }
                             </div>
                         </td>
                     </tr>
@@ -393,7 +499,7 @@
             else
             {
                 <tr>
-                    <td colspan="8" class="text-center">Không tìm thấy nhân viên nào.</td>
+                    <td colspan="6" class="empty-row">Không tìm thấy nhân viên nào.</td>
                 </tr>
             }
         </tbody>

@@ -1,0 +1,181 @@
+﻿@model QLSanPickleball_65132651.Models.BANGGIA
+
+@{
+    ViewBag.Title = "Sửa bảng giá sân";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+}
+
+<style>
+    .form-wrapper {
+        max-width: 860px;
+        margin: 0 auto;
+    }
+
+    .page-head {
+        margin-bottom: 18px;
+    }
+
+        .page-head h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .page-sub {
+        margin-top: 6px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .form-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 24px;
+        box-shadow: 0 12px 28px rgba(15,23,42,0.08);
+    }
+
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 18px;
+    }
+
+    .form-group {
+        margin-bottom: 18px;
+    }
+
+    .control-label {
+        display: block;
+        font-weight: 900;
+        color: #374151;
+        margin-bottom: 7px;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 12px 13px;
+        border: 1px solid #d1d5db;
+        border-radius: 12px;
+        outline: none;
+        background: white;
+        font-size: 14px;
+    }
+
+    .text-danger {
+        color: #dc2626;
+        font-weight: 700;
+    }
+
+    .btn-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        margin-top: 24px;
+        flex-wrap: wrap;
+    }
+
+    .btn-save,
+    .btn-back {
+        border: none;
+        padding: 11px 18px;
+        border-radius: 12px;
+        font-weight: 900;
+        color: white !important;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-save {
+        background: #f59e0b;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+        .btn-save:hover,
+        .btn-back:hover {
+            opacity: 0.88;
+            color: white;
+            text-decoration: none;
+        }
+
+    @@media(max-width: 700px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="form-wrapper">
+    <div class="page-head">
+        <div class="page-sub">Cập nhật thông tin bảng giá sân.</div>
+    </div>
+
+    <div class="form-card">
+        @using (Html.BeginForm("Edit", "BANGGIA65134364", FormMethod.Post))
+        {
+            @Html.AntiForgeryToken()
+            @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+
+            @Html.HiddenFor(model => model.MAGIA)
+
+            <div class="form-grid">
+                <div class="form-group">
+                    @Html.LabelFor(model => model.MAGIA, "Mã giá", new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.MAGIA, new { @class = "form-control", @readonly = "readonly" })
+                    @Html.ValidationMessageFor(model => model.MAGIA, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.MALOAISAN, "Loại sân", new { @class = "control-label" })
+                    @Html.DropDownList("MALOAISAN", null, "-- Chọn loại sân --", new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.MALOAISAN, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.THU, "Thứ áp dụng", new { @class = "control-label" })
+                    @Html.DropDownList("THU", (SelectList)ViewBag.ThuList, "-- Chọn thứ --", new { @class = "form-control" })
+                    @Html.ValidationMessageFor(model => model.THU, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.NGAYDIEUCHINH, "Ngày điều chỉnh", new { @class = "control-label" })
+                    <input type="date" name="NGAYDIEUCHINH" class="form-control" value="@Model.NGAYDIEUCHINH.ToString("yyyy-MM-dd")" />
+                    @Html.ValidationMessageFor(model => model.NGAYDIEUCHINH, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.GIOBATDAU, "Giờ bắt đầu", new { @class = "control-label" })
+                    <input type="time" name="GIOBATDAU" class="form-control" value="@Model.GIOBATDAU.ToString(@"hh\:mm")" />
+                    @Html.ValidationMessageFor(model => model.GIOBATDAU, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.GIOKETTHUC, "Giờ kết thúc", new { @class = "control-label" })
+                    <input type="time" name="GIOKETTHUC" class="form-control" value="@Model.GIOKETTHUC.ToString(@"hh\:mm")" />
+                    @Html.ValidationMessageFor(model => model.GIOKETTHUC, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.GIAVANGLAI, "Giá vãng lai / giờ", new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.GIAVANGLAI, new { @class = "form-control", type = "number", min = "0", step = "1000" })
+                    @Html.ValidationMessageFor(model => model.GIAVANGLAI, "", new { @class = "text-danger" })
+                </div>
+
+                <div class="form-group">
+                    @Html.LabelFor(model => model.GIACODINH, "Giá cố định / giờ", new { @class = "control-label" })
+                    @Html.TextBoxFor(model => model.GIACODINH, new { @class = "form-control", type = "number", min = "0", step = "1000" })
+                    @Html.ValidationMessageFor(model => model.GIACODINH, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="btn-row">
+                @Html.ActionLink("Quay lại", "Index", "BANGGIA65134364", null, new { @class = "btn-back" })
+                <button type="submit" class="btn-save">Cập nhật</button>
+            </div>
+        }
+    </div>
+</div>

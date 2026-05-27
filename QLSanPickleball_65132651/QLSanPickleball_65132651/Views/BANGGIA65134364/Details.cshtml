@@ -1,0 +1,188 @@
+﻿@model QLSanPickleball_65132651.Models.BANGGIA
+
+@{
+    ViewBag.Title = "Chi tiết bảng giá";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    string tenLoaiSan = Model.LOAISAN != null ? Model.LOAISAN.TENLOAISAN : Model.MALOAISAN;
+    bool duocThemSuaXoa = ViewBag.DuocThemSuaXoa != null && (bool)ViewBag.DuocThemSuaXoa;
+}
+
+<style>
+    .detail-wrapper {
+        max-width: 900px;
+        margin: 0 auto;
+    }
+
+    .hero-card {
+        background: linear-gradient(135deg, #0f172a, #1e3a8a);
+        color: white;
+        border-radius: 22px;
+        padding: 26px;
+        box-shadow: 0 14px 35px rgba(15,23,42,0.16);
+        margin-bottom: 22px;
+        display: flex;
+        justify-content: space-between;
+        gap: 18px;
+        flex-wrap: wrap;
+    }
+
+    .hero-title {
+        font-size: 28px;
+        font-weight: 900;
+    }
+
+    .hero-sub {
+        color: #bfdbfe;
+        margin-top: 7px;
+        font-weight: 700;
+        line-height: 1.5;
+    }
+
+    .hero-code {
+        background: rgba(255,255,255,0.16);
+        padding: 15px 22px;
+        border-radius: 18px;
+        font-size: 22px;
+        font-weight: 900;
+    }
+
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2,1fr);
+        gap: 16px;
+        margin-bottom: 22px;
+    }
+
+    .info-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 18px;
+        padding: 20px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+    }
+
+    .info-label {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 7px;
+    }
+
+    .info-value {
+        color: #111827;
+        font-size: 22px;
+        font-weight: 900;
+    }
+
+    .money {
+        color: #047857;
+    }
+
+    .btn-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 10px 15px;
+        border-radius: 11px;
+        color: white !important;
+        text-decoration: none;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+    .btn-edit {
+        background: #f59e0b;
+    }
+
+    .btn-delete {
+        background: #dc2626;
+    }
+
+    .btn-action:hover {
+        opacity: 0.88;
+        text-decoration: none;
+        color: white;
+    }
+
+    @@media(max-width:700px) {
+        .info-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="detail-wrapper">
+    <div class="hero-card">
+        <div>
+            <div class="hero-title">@tenLoaiSan</div>
+            <div class="hero-sub">
+                Mã giá: @Model.MAGIA <br />
+                @Model.THU • @Model.GIOBATDAU.ToString(@"hh\:mm") - @Model.GIOKETTHUC.ToString(@"hh\:mm") • Ngày điều chỉnh @Model.NGAYDIEUCHINH.ToString("dd/MM/yyyy")
+            </div>
+        </div>
+
+        <div class="hero-code">@Model.MAGIA</div>
+    </div>
+
+    <div class="info-grid">
+        <div class="info-card">
+            <div class="info-label">Mã giá</div>
+            <div class="info-value">@Model.MAGIA</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-label">Loại sân</div>
+            <div class="info-value">@tenLoaiSan</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-label">Thứ áp dụng</div>
+            <div class="info-value">@Model.THU</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-label">Ngày điều chỉnh</div>
+            <div class="info-value">@Model.NGAYDIEUCHINH.ToString("dd/MM/yyyy")</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-label">Khung giờ</div>
+            <div class="info-value">@Model.GIOBATDAU.ToString(@"hh\:mm") - @Model.GIOKETTHUC.ToString(@"hh\:mm")</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-label">Mã loại sân</div>
+            <div class="info-value">@Model.MALOAISAN</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-label">Giá vãng lai / giờ</div>
+            <div class="info-value money">@Model.GIAVANGLAI.ToString("N0") đ</div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-label">Giá cố định / giờ</div>
+            <div class="info-value money">@Model.GIACODINH.ToString("N0") đ</div>
+        </div>
+    </div>
+
+    <div class="btn-row">
+        @Html.ActionLink("Quay lại", "Index", "BANGGIA65134364", null, new { @class = "btn-action btn-back" })
+
+        @if (duocThemSuaXoa)
+        {
+            @Html.ActionLink("Sửa", "Edit", "BANGGIA65134364", new { id = Model.MAGIA }, new { @class = "btn-action btn-edit" })
+            @Html.ActionLink("Xóa", "Delete", "BANGGIA65134364", new { id = Model.MAGIA }, new { @class = "btn-action btn-delete" })
+        }
+    </div>
+</div>

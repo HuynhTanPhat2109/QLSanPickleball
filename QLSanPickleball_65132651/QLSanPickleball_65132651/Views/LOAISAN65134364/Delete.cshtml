@@ -1,0 +1,180 @@
+﻿@model QLSanPickleball_65132651.Models.LOAISAN
+
+@{
+    ViewBag.Title = "Xóa loại sân";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    int soSan = ViewBag.SoSanThuocLoai == null ? 0 : (int)ViewBag.SoSanThuocLoai;
+    int soBangGia = ViewBag.SoBangGiaThuocLoai == null ? 0 : (int)ViewBag.SoBangGiaThuocLoai;
+    bool coTheXoa = soSan == 0 && soBangGia == 0;
+}
+
+<style>
+    .delete-wrapper {
+        max-width: 760px;
+        margin: 0 auto;
+    }
+
+    .delete-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 26px;
+        box-shadow: 0 12px 28px rgba(15,23,42,0.08);
+    }
+
+    .delete-title {
+        font-size: 26px;
+        font-weight: 900;
+        color: #991b1b;
+        margin-bottom: 8px;
+    }
+
+    .delete-sub {
+        color: #6b7280;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .info-box {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 18px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 12px 0;
+        font-weight: 900;
+    }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        color: #6b7280;
+    }
+
+    .info-value {
+        color: #111827;
+    }
+
+    .warning-box {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-weight: 800;
+        margin-bottom: 18px;
+        line-height: 1.5;
+    }
+
+    .safe-box {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #bbf7d0;
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-weight: 800;
+        margin-bottom: 18px;
+    }
+
+    .btn-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-delete,
+    .btn-back {
+        border: none;
+        padding: 11px 18px;
+        border-radius: 12px;
+        font-weight: 900;
+        color: white !important;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-delete {
+        background: #dc2626;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+        .btn-delete:hover,
+        .btn-back:hover {
+            opacity: 0.88;
+            color: white;
+            text-decoration: none;
+        }
+</style>
+
+<div class="delete-wrapper">
+    <div class="delete-card">
+        <div class="delete-sub">Kiểm tra trước khi xóa loại sân khỏi hệ thống.</div>
+
+        <div class="info-box">
+            <div class="info-row">
+                <span class="info-label">Mã loại sân</span>
+                <span class="info-value">@Model.MALOAISAN</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Tên loại sân</span>
+                <span class="info-value">@Model.TENLOAISAN</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Số sân đang dùng</span>
+                <span class="info-value">@soSan</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Số bảng giá liên quan</span>
+                <span class="info-value">@soBangGia</span>
+            </div>
+        </div>
+
+        @if (coTheXoa)
+        {
+            <div class="safe-box">
+                Loại sân này chưa được sử dụng trong sân hoặc bảng giá. Bạn có thể xóa.
+            </div>
+        }
+        else
+        {
+            <div class="warning-box">
+                Không thể xóa loại sân này vì đang có sân hoặc bảng giá liên quan.
+                Hãy xóa/chuyển các dữ liệu liên quan trước.
+            </div>
+        }
+
+        <div class="btn-row">
+            @Html.ActionLink("Quay lại", "Index", "LOAISAN65134364", null, new { @class = "btn-back" })
+
+            @if (coTheXoa)
+            {
+                using (Html.BeginForm("Delete", "LOAISAN65134364", new { id = Model.MALOAISAN }, FormMethod.Post))
+                {
+                    @Html.AntiForgeryToken()
+                    <button type="submit"
+                            class="btn-delete"
+                            onclick="return confirm('Bạn có chắc muốn xóa loại sân @Model.TENLOAISAN?');">
+                        Xác nhận xóa
+                    </button>
+                }
+            }
+        </div>
+    </div>
+</div>

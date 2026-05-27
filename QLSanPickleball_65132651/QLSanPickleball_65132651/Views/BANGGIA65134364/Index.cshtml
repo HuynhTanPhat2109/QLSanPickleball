@@ -1,0 +1,382 @@
+﻿@model IEnumerable<QLSanPickleball_65132651.Models.BANGGIA>
+
+@{
+    ViewBag.Title = "Quản lý bảng giá sân";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    bool duocThemSuaXoa = ViewBag.DuocThemSuaXoa != null && (bool)ViewBag.DuocThemSuaXoa;
+}
+
+<style>
+    .page-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 18px;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+        .page-header h2 {
+            margin: 0;
+            font-size: 26px;
+            font-weight: 900;
+            color: #111827;
+        }
+
+    .page-sub {
+        margin-top: 5px;
+        color: #6b7280;
+        font-size: 14px;
+    }
+
+    .btn-add {
+        background: #2563eb;
+        color: white !important;
+        padding: 11px 17px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+        .btn-add:hover {
+            background: #1d4ed8;
+            text-decoration: none;
+            color: white;
+        }
+
+    .alert-success-custom {
+        background: #dcfce7;
+        color: #166534;
+        padding: 13px 16px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #bbf7d0;
+        font-weight: 800;
+    }
+
+    .alert-error-custom {
+        background: #fee2e2;
+        color: #991b1b;
+        padding: 13px 16px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        border: 1px solid #fecaca;
+        font-weight: 800;
+    }
+
+    .filter-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 18px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+    }
+
+    .filter-row {
+        display: grid;
+        grid-template-columns: 2fr 1fr 1fr auto auto;
+        gap: 12px;
+        align-items: end;
+    }
+
+    .form-label {
+        font-weight: 900;
+        color: #374151;
+        margin-bottom: 6px;
+        display: block;
+        font-size: 13px;
+    }
+
+    .form-control,
+    .form-select {
+        width: 100%;
+        padding: 10px 12px;
+        border: 1px solid #d1d5db;
+        border-radius: 10px;
+        outline: none;
+        background: white;
+    }
+
+    .btn-search {
+        background: #16a34a;
+        color: white;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 10px;
+        font-weight: 900;
+        cursor: pointer;
+    }
+
+    .btn-reset {
+        display: inline-block;
+        background: #6b7280;
+        color: white !important;
+        padding: 10px 16px;
+        border-radius: 10px;
+        text-decoration: none;
+        font-weight: 900;
+    }
+
+    .price-list {
+        display: grid;
+        gap: 15px;
+    }
+
+    .price-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 20px;
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(15,23,42,0.06);
+        display: grid;
+        grid-template-columns: 120px 1.2fr 1fr 1fr 1fr 180px;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .price-code {
+        width: 86px;
+        height: 68px;
+        border-radius: 18px;
+        background: linear-gradient(135deg, #2563eb, #1e40af);
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 900;
+        font-size: 18px;
+    }
+
+    .info-label {
+        color: #6b7280;
+        font-size: 12px;
+        font-weight: 900;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .main-text {
+        font-weight: 900;
+        color: #111827;
+        font-size: 16px;
+    }
+
+    .sub-text {
+        color: #6b7280;
+        font-size: 13px;
+        margin-top: 4px;
+        font-weight: 700;
+        line-height: 1.4;
+    }
+
+    .money {
+        color: #047857;
+        font-size: 20px;
+        font-weight: 900;
+    }
+
+    .badge-time,
+    .badge-thu {
+        padding: 8px 11px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 900;
+        display: inline-block;
+    }
+
+    .badge-time {
+        background: #eef2ff;
+        color: #1d4ed8;
+    }
+
+    .badge-thu {
+        background: #fef3c7;
+        color: #92400e;
+    }
+
+    .action-group {
+        display: flex;
+        gap: 7px;
+        justify-content: flex-end;
+        flex-wrap: wrap;
+    }
+
+    .btn-action {
+        padding: 8px 11px;
+        border-radius: 9px;
+        text-decoration: none;
+        font-size: 13px;
+        color: white !important;
+        display: inline-block;
+        font-weight: 900;
+    }
+
+    .btn-detail {
+        background: #0ea5e9;
+    }
+
+    .btn-edit {
+        background: #f59e0b;
+    }
+
+    .btn-delete {
+        background: #dc2626;
+    }
+
+    .btn-action:hover,
+    .btn-reset:hover {
+        opacity: 0.88;
+        text-decoration: none;
+        color: white;
+    }
+
+    .empty-card {
+        background: white;
+        border: 1px dashed #cbd5e1;
+        border-radius: 18px;
+        padding: 38px;
+        text-align: center;
+        color: #64748b;
+        font-weight: 800;
+    }
+
+    @@media(max-width: 1250px) {
+        .price-card {
+            grid-template-columns: 1fr 1fr 1fr;
+        }
+
+        .action-group {
+            justify-content: flex-start;
+        }
+    }
+
+    @@media(max-width: 900px) {
+        .filter-row {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    @@media(max-width: 700px) {
+        .price-card,
+        .filter-row {
+            grid-template-columns: 1fr;
+        }
+
+        .page-header {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+    }
+</style>
+
+<div class="page-header">
+    <div>
+        <div class="page-sub">Thiết lập giá sân theo loại sân, thứ áp dụng, khung giờ và ngày điều chỉnh.</div>
+    </div>
+
+    @if (duocThemSuaXoa)
+    {
+        @Html.ActionLink("+ Thêm bảng giá", "Create", "BANGGIA65134364", null, new { @class = "btn-add" })
+    }
+</div>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert-success-custom">@TempData["Success"]</div>
+}
+
+@if (TempData["Error"] != null)
+{
+    <div class="alert-error-custom">@TempData["Error"]</div>
+}
+
+<div class="filter-card">
+    @using (Html.BeginForm("Index", "BANGGIA65134364", FormMethod.Get))
+    {
+        <div class="filter-row">
+            <div>
+                <label class="form-label">Tìm kiếm</label>
+                <input type="text"
+                       name="search"
+                       class="form-control"
+                       value="@ViewBag.Search"
+                       placeholder="Mã giá, loại sân hoặc thứ áp dụng..." />
+            </div>
+
+            <div>
+                <label class="form-label">Loại sân</label>
+                @Html.DropDownList("maLoaiSan", (SelectList)ViewBag.LoaiSanList, "-- Tất cả --", new { @class = "form-select" })
+            </div>
+
+            <div>
+                <label class="form-label">Thứ</label>
+                @Html.DropDownList("thu", (SelectList)ViewBag.ThuList, "-- Tất cả --", new { @class = "form-select" })
+            </div>
+
+            <div>
+                <button type="submit" class="btn-search">Lọc</button>
+            </div>
+
+            <div>
+                @Html.ActionLink("Làm mới", "Index", "BANGGIA65134364", null, new { @class = "btn-reset" })
+            </div>
+        </div>
+    }
+</div>
+
+@if (Model != null && Model.Any())
+{
+    <div class="price-list">
+        @foreach (var item in Model)
+        {
+            string tenLoaiSan = item.LOAISAN != null ? item.LOAISAN.TENLOAISAN : item.MALOAISAN;
+
+            <div class="price-card">
+                <div>
+                    <div class="price-code">@item.MAGIA</div>
+                </div>
+
+                <div>
+                    <div class="info-label">Loại sân</div>
+                    <div class="main-text">@tenLoaiSan</div>
+                    <div class="sub-text">Mã loại: @item.MALOAISAN</div>
+                </div>
+
+                <div>
+                    <div class="info-label">Thứ áp dụng</div>
+                    <span class="badge-thu">@item.THU</span>
+                    <div class="sub-text">Ngày điều chỉnh: @item.NGAYDIEUCHINH.ToString("dd/MM/yyyy")</div>
+                </div>
+
+                <div>
+                    <div class="info-label">Khung giờ</div>
+                    <span class="badge-time">@item.GIOBATDAU.ToString(@"hh\:mm") - @item.GIOKETTHUC.ToString(@"hh\:mm")</span>
+                </div>
+
+                <div>
+                    <div class="info-label">Giá sân</div>
+                    <div class="money">@item.GIAVANGLAI.ToString("N0") đ</div>
+                    <div class="sub-text">Vãng lai / giờ</div>
+                    <div class="sub-text">Cố định: @item.GIACODINH.ToString("N0") đ / giờ</div>
+                </div>
+
+                <div class="action-group">
+                    @Html.ActionLink("Chi tiết", "Details", "BANGGIA65134364", new { id = item.MAGIA }, new { @class = "btn-action btn-detail" })
+
+                    @if (duocThemSuaXoa)
+                    {
+                        @Html.ActionLink("Sửa", "Edit", "BANGGIA65134364", new { id = item.MAGIA }, new { @class = "btn-action btn-edit" })
+                        @Html.ActionLink("Xóa", "Delete", "BANGGIA65134364", new { id = item.MAGIA }, new { @class = "btn-action btn-delete" })
+                    }
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="empty-card">Không tìm thấy bảng giá nào.</div>
+}

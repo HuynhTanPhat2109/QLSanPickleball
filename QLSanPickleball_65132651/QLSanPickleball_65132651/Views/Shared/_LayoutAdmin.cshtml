@@ -1,12 +1,41 @@
 ﻿@{
-    var hoTen = Session["HOTENNV"] != null ? Session["HOTENNV"].ToString() : "Admin";
-    var vaiTro = Session["VAITRO"] != null ? Session["VAITRO"].ToString() : "Quản trị";
+    var hoTen = Session["HOTENNV"] != null ? Session["HOTENNV"].ToString() : "Người dùng";
+    var vaiTro = Session["VAITRO"] != null ? Session["VAITRO"].ToString() : "Chưa xác định";
 
-    string roleHienTai = Session["VAITRO"] != null ? Session["VAITRO"].ToString() : "";
+    string roleHienTai = Session["VAITRO"] != null ? Session["VAITRO"].ToString().Trim() : "";
 
-    bool laAdminHoacQuanLy = roleHienTai == "Admin" || roleHienTai == "Quản lý";
+    bool laAdmin = roleHienTai == "Admin";
+    bool laQuanLy = roleHienTai == "Quản lý";
     bool laNhanVien = roleHienTai == "Nhân viên";
-    bool duocVaoKhuNhanVien = laAdminHoacQuanLy || laNhanVien;
+
+    // Admin và Quản lý dùng chung nhóm chức năng quản trị
+    bool duocQuanTri = laAdmin || laQuanLy;
+
+    // Admin, Quản lý, Nhân viên đều được dùng nhóm nghiệp vụ sân
+    bool duocNghiepVuNhanVien = laAdmin || laQuanLy || laNhanVien;
+
+    string tenVaiTroHienThi = "Chưa phân quyền";
+    string roleBadgeText = "Chưa có quyền";
+    string roleBadgeClass = "role-unknown";
+
+    if (laAdmin)
+    {
+        tenVaiTroHienThi = "Admin";
+        roleBadgeText = "Quản trị viên";
+        roleBadgeClass = "role-admin";
+    }
+    else if (laQuanLy)
+    {
+        tenVaiTroHienThi = "Quản lý";
+        roleBadgeText = "Quản lý hệ thống";
+        roleBadgeClass = "role-manager";
+    }
+    else if (laNhanVien)
+    {
+        tenVaiTroHienThi = "Nhân viên";
+        roleBadgeText = "Nghiệp vụ nhân viên";
+        roleBadgeClass = "role-staff";
+    }
 }
 
 <!DOCTYPE html>
@@ -87,12 +116,30 @@
         .role-badge {
             display: inline-block;
             margin-top: 10px;
-            padding: 6px 10px;
+            padding: 7px 12px;
             border-radius: 999px;
-            background: #1f2937;
-            color: #dbeafe;
             font-size: 12px;
             font-weight: 900;
+        }
+
+        .role-admin {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .role-manager {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .role-staff {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .role-unknown {
+            background: #e5e7eb;
+            color: #374151;
         }
 
         .admin-menu {
@@ -268,23 +315,15 @@
 
             <div class="admin-user">
                 <div class="name">@hoTen</div>
-                <div class="role">@vaiTro</div>
-
-                @if (laAdminHoacQuanLy)
-                {
-                    <span class="role-badge">Toàn quyền quản trị</span>
-                }
-                else if (laNhanVien)
-                {
-                    <span class="role-badge">Nghiệp vụ nhân viên</span>
-                }
+                <div class="role">@tenVaiTroHienThi</div>
+                <span class="role-badge @roleBadgeClass">@roleBadgeText</span>
             </div>
 
             <ul class="admin-menu">
                 <li class="admin-menu-title">Tổng quan</li>
                 <li>@Html.ActionLink("Dashboard", "HomeNv", "Admin65134364")</li>
 
-                @if (laAdminHoacQuanLy)
+                @if (duocQuanTri)
                 {
                     <li class="admin-menu-title">Quản lý hệ thống</li>
                     <li>@Html.ActionLink("Quản lý nhân viên", "Index", "NHANVIEN65134364")</li>
@@ -293,37 +332,33 @@
 
                     <li class="admin-menu-title">Quản lý sân</li>
                     <li>@Html.ActionLink("Danh sách sân", "Index", "SAN65134364")</li>
-                    <li>@Html.ActionLink("Loại sân", "Index", "LOAISANs")</li>
-                    <li>@Html.ActionLink("Bảng giá sân", "Index", "BANGGIAs")</li>
-
+                    <li>@Html.ActionLink("Loại sân", "Index", "LOAISAN65134364")</li>
+                    <li>@Html.ActionLink("Bảng giá sân", "Index", "BANGGIA65134364")</li>
                 }
 
-                @if (duocVaoKhuNhanVien)
+                @if (duocNghiepVuNhanVien)
                 {
-                    <li class="admin-menu-title">Nghiệp vụ nhân viên</li>
+                    <li class="admin-menu-title">Nghiệp vụ sân</li>
                     <li>@Html.ActionLink("Phiếu đặt sân", "Index", "PhieuDatSanNV65134364")</li>
                     <li>@Html.ActionLink("Cập nhật trạng thái sân", "Index", "SAN65134364")</li>
                     <li>@Html.ActionLink("Hỗ trợ hủy sân", "Index", "PhieuDatSanNV65134364", new { trangThaiPhieu = "Đã xác nhận" }, null)</li>
                     <li>@Html.ActionLink("Hóa đơn", "Index", "HoaDonNV65134364")</li>
                     <li>@Html.ActionLink("Dịch vụ sử dụng", "Index", "ChiTietDichVuDat65134364")</li>
-                    <li>@Html.ActionLink("Sao lưu dữ liệu","Index","SaoLuuDuLieu65130311")</li>
 
                     <li class="menu-note">
-                        Hủy sân xử lý trong chi tiết phiếu đặt sân. Chính sách hoàn tiền sẽ làm ở bước tiếp theo.
+                        Nhân viên chỉ thao tác nghiệp vụ đặt sân, thanh toán, hóa đơn và hỗ trợ hủy sân.
                     </li>
                 }
 
-                @if (laAdminHoacQuanLy)
+                @if (duocQuanTri)
                 {
                     <li class="admin-menu-title">Dịch vụ</li>
                     <li>@Html.ActionLink("Dịch vụ đi kèm", "Index", "DICHVU65134364")</li>
                     <li>@Html.ActionLink("Chi tiết dịch vụ đặt", "Index", "ChiTietDichVuDat65134364")</li>
 
-                    <li class="admin-menu-title">Cấu hình</li>
+                    <li class="admin-menu-title">Cấu hình & dữ liệu</li>
                     <li>@Html.ActionLink("Tham số hệ thống", "Index", "THAMSO65134364")</li>
-
-
-
+                    <li>@Html.ActionLink("Sao lưu dữ liệu", "Index", "SaoLuuDuLieu65130311")</li>
                 }
 
                 <li class="admin-menu-title">Tài khoản</li>
@@ -336,7 +371,7 @@
                 <h1>@ViewBag.Title</h1>
 
                 <div class="admin-topbar-right">
-                    <span>Xin chào, <strong>@hoTen</strong></span>
+                    <span>Xin chào, <strong>@hoTen</strong> - @tenVaiTroHienThi</span>
                     @Html.ActionLink("Đăng xuất", "Logout", "Account65132651", null, new { @class = "btn-logout" })
                 </div>
             </div>

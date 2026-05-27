@@ -11,30 +11,82 @@ namespace QLSanPickleball_65132651.Controllers
     {
         private QLSanEntities db = new QLSanEntities();
 
-        // Kiểm tra đăng nhập + quyền
-        private ActionResult KiemTraQuyen()
+        // =========================================================
+        // PHÂN QUYỀN
+        // =========================================================
+        private string LayVaiTro()
+        {
+            if (Session["VAITRO"] == null)
+            {
+                return "";
+            }
+
+            return Session["VAITRO"].ToString().Trim();
+        }
+
+        private bool LaAdmin()
+        {
+            return LayVaiTro() == "Admin";
+        }
+
+        private bool LaQuanLy()
+        {
+            string vaiTro = LayVaiTro();
+            return vaiTro == "Quản lý" || vaiTro == "Quan ly";
+        }
+
+        private ActionResult KiemTraQuyenXemVaSua()
         {
             if (Session["MANV"] == null)
             {
                 return RedirectToAction("Login", "Account65132651");
             }
 
-            string vaiTro = Session["VAITRO"] != null ? Session["VAITRO"].ToString() : "";
-
-            // Chỉ Admin hoặc Quản lý được quản lý tài khoản nhân viên
-            if (vaiTro != "Admin" && vaiTro != "Quản lý")
+            if (!LaAdmin() && !LaQuanLy())
             {
+                TempData["Error"] = "Bạn không có quyền truy cập chức năng quản lý nhân viên.";
                 return RedirectToAction("HomeNv", "Admin65134364");
             }
 
             return null;
         }
 
+        private ActionResult KiemTraQuyenAdmin()
+        {
+            if (Session["MANV"] == null)
+            {
+                return RedirectToAction("Login", "Account65132651");
+            }
+
+            if (!LaAdmin())
+            {
+                TempData["Error"] = "Chức năng này chỉ dành cho Admin.";
+                return RedirectToAction("Index");
+            }
+
+            return null;
+        }
+
+        private void GanViewBagPhanQuyen()
+        {
+            ViewBag.LaAdmin = LaAdmin();
+            ViewBag.LaQuanLy = LaQuanLy();
+            ViewBag.DuocThem = LaAdmin();
+            ViewBag.DuocSua = LaAdmin() || LaQuanLy();
+            ViewBag.DuocKhoa = LaAdmin();
+            ViewBag.DuocXoa = LaAdmin();
+        }
+
+        // =========================================================
         // GET: NHANVIEN65134364
+        // Admin + Quản lý được xem danh sách
+        // =========================================================
         public ActionResult Index(string search, string vaiTro, string trangThai)
         {
-            var check = KiemTraQuyen();
+            var check = KiemTraQuyenXemVaSua();
             if (check != null) return check;
+
+            GanViewBagPhanQuyen();
 
             var nhanViens = db.NHANVIEN.AsQueryable();
 
@@ -65,13 +117,18 @@ namespace QLSanPickleball_65132651.Controllers
             return View(nhanViens.OrderBy(n => n.MANV).ToList());
         }
 
+        // =========================================================
         // GET: NHANVIEN65134364/Details/NV01
+        // Admin + Quản lý được xem chi tiết
+        // =========================================================
         public ActionResult Details(string id)
         {
-            var check = KiemTraQuyen();
+            var check = KiemTraQuyenXemVaSua();
             if (check != null) return check;
 
-            if (id == null)
+            GanViewBagPhanQuyen();
+
+            if (string.IsNullOrWhiteSpace(id))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
@@ -86,37 +143,33 @@ namespace QLSanPickleball_65132651.Controllers
             return View(nhanVien);
         }
 
+        // =========================================================
         // GET: NHANVIEN65134364/Create
-        // GET: NHANVIEN65134364/Create
+        // Chỉ Admin được thêm
+        // =========================================================
         public ActionResult Create()
         {
-            var check = KiemTraQuyen();
+            var check = KiemTraQuyenAdmin();
             if (check != null) return check;
 
-            ViewBag.VaiTroList = new SelectList(new[]
-            {
-        "Admin",
-        "Quản lý",
-        "Nhân viên"
-    });
-
-            ViewBag.TrangThaiList = new SelectList(new[]
-            {
-        "Đang hoạt động",
-        "Tạm khóa",
-        "Đã nghỉ việc"
-    }, "Đang hoạt động");
+            GanViewBagPhanQuyen();
+            GanViewBagDanhSachLuaChon(null);
 
             return View();
         }
 
+        // =========================================================
         // POST: NHANVIEN65134364/Create
+        // Chỉ Admin được thêm
+        // =========================================================
         [HttpPost]
         [ValidateAntiForgeryToken]
         public ActionResult Create([Bind(Include = "MANV,HOTENNV,SODIENTHOAINV,EMAILNV,TENDANGNHAP,MATKHAUNV,VAITRO,TRANGTHAI")] NHANVIEN nhanVien)
         {
-            var check = KiemTraQuyen();
+            var check = KiemTraQuyenAdmin();
             if (check != null) return check;
+
+            GanViewBagPhanQuyen();
 
             if (string.IsNullOrWhiteSpace(nhanVien.MANV))
             {
@@ -139,166 +192,22 @@ namespace QLSanPickleball_65132651.Controllers
                 return RedirectToAction("Index");
             }
 
-            ViewBag.VaiTroList = new SelectList(new[]
-            {
-        "Admin",
-        "Quản lý",
-        "Nhân viên"
-    }, nhanVien.VAITRO);
-
-            ViewBag.TrangThaiList = new SelectList(new[]
-            {
-        "Đang hoạt động",
-        "Tạm khóa",
-        "Đã nghỉ việc"
-    }, nhanVien.TRANGTHAI);
-
+            GanViewBagDanhSachLuaChon(nhanVien);
             return View(nhanVien);
         }
 
+        // =========================================================
         // GET: NHANVIEN65134364/Edit/NV01
+        // Admin + Quản lý được sửa
+        // =========================================================
         public ActionResult Edit(string id)
         {
-            var check = KiemTraQuyen();
+            var check = KiemTraQuyenXemVaSua();
             if (check != null) return check;
 
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
-            }
+            GanViewBagPhanQuyen();
 
-            NHANVIEN nhanVien = db.NHANVIEN.Find(id);
-
-            if (nhanVien == null)
-            {
-                return HttpNotFound();
-            }
-
-            ViewBag.VaiTroList = new SelectList(new[]
-            {
-        "Admin",
-        "Quản lý",
-        "Nhân viên"
-    }, nhanVien.VAITRO);
-
-            ViewBag.TrangThaiList = new SelectList(new[]
-            {
-        "Đang hoạt động",
-        "Tạm khóa",
-        "Đã nghỉ việc"
-    }, nhanVien.TRANGTHAI);
-
-            return View(nhanVien);
-        }
-
-        // POST: NHANVIEN65134364/Edit/NV01
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "MANV,HOTENNV,SODIENTHOAINV,EMAILNV,TENDANGNHAP,MATKHAUNV,VAITRO,TRANGTHAI")] NHANVIEN nhanVien)
-        {
-            var check = KiemTraQuyen();
-            if (check != null) return check;
-
-            KiemTraDuLieuNhanVien(nhanVien, false);
-
-            if (ModelState.IsValid)
-            {
-                db.Entry(nhanVien).State = System.Data.Entity.EntityState.Modified;
-                db.SaveChanges();
-
-                TempData["Success"] = "Cập nhật tài khoản nhân viên thành công!";
-                return RedirectToAction("Index");
-            }
-
-            ViewBag.VaiTroList = new SelectList(new[]
-            {
-        "Admin",
-        "Quản lý",
-        "Nhân viên"
-    }, nhanVien.VAITRO);
-
-            ViewBag.TrangThaiList = new SelectList(new[]
-            {
-        "Đang hoạt động",
-        "Tạm khóa",
-        "Đã nghỉ việc"
-    }, nhanVien.TRANGTHAI);
-
-            return View(nhanVien);
-        }
-
-        // GET: NHANVIEN65134364/Delete/NV01
-        // GET: NHANVIEN65134364/Delete/NV01
-        public ActionResult Delete(string id)
-        {
-            var check = KiemTraQuyen();
-            if (check != null) return check;
-
-            if (id == null)
-            {
-                return new HttpStatusCodeResult(System.Net.HttpStatusCode.BadRequest);
-            }
-
-            NHANVIEN nhanVien = db.NHANVIEN.Find(id);
-
-            if (nhanVien == null)
-            {
-                return HttpNotFound();
-            }
-
-            return View(nhanVien);
-        }
-
-        // POST: NHANVIEN65134364/Delete/NV01
-        [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public ActionResult DeleteConfirmed(string id)
-        {
-            var check = KiemTraQuyen();
-            if (check != null) return check;
-
-            NHANVIEN nhanVien = db.NHANVIEN.Find(id);
-
-            if (nhanVien == null)
-            {
-                return HttpNotFound();
-            }
-
-            // Không cho xóa chính tài khoản đang đăng nhập
-            if (Session["MANV"] != null && Session["MANV"].ToString() == id)
-            {
-                TempData["Error"] = "Bạn không thể xóa chính tài khoản đang đăng nhập!";
-                return RedirectToAction("Index");
-            }
-
-            // Nếu nhân viên đã phát sinh dữ liệu thì không xóa cứng, chỉ chuyển sang Tạm khóa
-            bool coPhieuDat = db.PHIEUDATSAN.Any(p => p.MANV == id);
-            bool coHoaDon = db.HOADON.Any(h => h.MANV == id);
-            bool coHoiVien = db.HOIVIEN.Any(hv => hv.MANV == id);
-
-            if (coPhieuDat || coHoaDon || coHoiVien)
-            {
-                nhanVien.TRANGTHAI = "Tạm khóa";
-                db.SaveChanges();
-
-                TempData["Error"] = "Nhân viên đã có dữ liệu liên quan nên không thể xóa. Hệ thống đã chuyển tài khoản sang Tạm khóa.";
-                return RedirectToAction("Index");
-            }
-
-            db.NHANVIEN.Remove(nhanVien);
-            db.SaveChanges();
-
-            TempData["Success"] = "Xóa nhân viên thành công!";
-            return RedirectToAction("Index");
-        }
-
-        // GET: NHANVIEN65134364/Khoa/NV01
-        public ActionResult Khoa(string id)
-        {
-            var check = KiemTraQuyen();
-            if (check != null) return check;
-
-            if (id == null)
+            if (string.IsNullOrWhiteSpace(id))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
@@ -310,26 +219,178 @@ namespace QLSanPickleball_65132651.Controllers
                 return HttpNotFound();
             }
 
-            if (Session["MANV"] != null && Session["MANV"].ToString() == id)
+            GanViewBagDanhSachLuaChon(nhanVien);
+
+            return View(nhanVien);
+        }
+
+        // =========================================================
+        // POST: NHANVIEN65134364/Edit/NV01
+        // Admin + Quản lý được sửa
+        // Quản lý không được tự nâng quyền / đổi trạng thái tài khoản
+        // =========================================================
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public ActionResult Edit([Bind(Include = "MANV,HOTENNV,SODIENTHOAINV,EMAILNV,TENDANGNHAP,MATKHAUNV,VAITRO,TRANGTHAI")] NHANVIEN nhanVien)
+        {
+            var check = KiemTraQuyenXemVaSua();
+            if (check != null) return check;
+
+            GanViewBagPhanQuyen();
+
+            NHANVIEN nhanVienCu = db.NHANVIEN.AsNoTracking().FirstOrDefault(n => n.MANV == nhanVien.MANV);
+
+            if (nhanVienCu == null)
             {
-                TempData["Error"] = "Bạn không thể khóa chính tài khoản đang đăng nhập!";
+                return HttpNotFound();
+            }
+
+            // Quản lý chỉ được sửa thông tin cơ bản.
+            // Không được đổi vai trò và trạng thái để tránh vượt quyền.
+            if (LaQuanLy() && !LaAdmin())
+            {
+                nhanVien.VAITRO = nhanVienCu.VAITRO;
+                nhanVien.TRANGTHAI = nhanVienCu.TRANGTHAI;
+            }
+
+            if (string.IsNullOrWhiteSpace(nhanVien.MATKHAUNV))
+            {
+                nhanVien.MATKHAUNV = nhanVienCu.MATKHAUNV;
+            }
+
+            KiemTraDuLieuNhanVien(nhanVien, false);
+
+            if (ModelState.IsValid)
+            {
+                db.Entry(nhanVien).State = EntityState.Modified;
+                db.SaveChanges();
+
+                TempData["Success"] = "Cập nhật thông tin nhân viên thành công!";
+                return RedirectToAction("Index");
+            }
+
+            GanViewBagDanhSachLuaChon(nhanVien);
+            return View(nhanVien);
+        }
+
+        // =========================================================
+        // GET: NHANVIEN65134364/Delete/NV01
+        // Chỉ Admin được xóa
+        // =========================================================
+        public ActionResult Delete(string id)
+        {
+            var check = KiemTraQuyenAdmin();
+            if (check != null) return check;
+
+            GanViewBagPhanQuyen();
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            NHANVIEN nhanVien = db.NHANVIEN.Find(id);
+
+            if (nhanVien == null)
+            {
+                return HttpNotFound();
+            }
+
+            return View(nhanVien);
+        }
+
+        // =========================================================
+        // POST: NHANVIEN65134364/Delete/NV01
+        // Chỉ Admin được xóa
+        // =========================================================
+        [HttpPost, ActionName("Delete")]
+        [ValidateAntiForgeryToken]
+        public ActionResult DeleteConfirmed(string id)
+        {
+            var check = KiemTraQuyenAdmin();
+            if (check != null) return check;
+
+            NHANVIEN nhanVien = db.NHANVIEN.Find(id);
+
+            if (nhanVien == null)
+            {
+                return HttpNotFound();
+            }
+
+            string maDangDangNhap = Session["MANV"] != null ? Session["MANV"].ToString() : "";
+
+            if (nhanVien.MANV == maDangDangNhap)
+            {
+                TempData["Error"] = "Bạn không thể xóa chính tài khoản đang đăng nhập.";
+                return RedirectToAction("Index");
+            }
+
+            bool daCoPhieuDat = db.PHIEUDATSAN.Any(p => p.MANV == id);
+            bool daCoHoaDon = db.HOADON.Any(h => h.MANV == id);
+            bool daCoHoiVien = db.HOIVIEN.Any(h => h.MANV == id);
+
+            if (daCoPhieuDat || daCoHoaDon || daCoHoiVien)
+            {
+                nhanVien.TRANGTHAI = "Đã nghỉ việc";
+                db.SaveChanges();
+
+                TempData["Error"] = "Nhân viên đã phát sinh dữ liệu nên không thể xóa. Hệ thống đã chuyển sang trạng thái Đã nghỉ việc.";
+                return RedirectToAction("Index");
+            }
+
+            db.NHANVIEN.Remove(nhanVien);
+            db.SaveChanges();
+
+            TempData["Success"] = "Xóa nhân viên thành công!";
+            return RedirectToAction("Index");
+        }
+
+        // =========================================================
+        // GET: NHANVIEN65134364/KhoaTaiKhoan/NV01
+        // Chỉ Admin được khóa
+        // =========================================================
+        public ActionResult KhoaTaiKhoan(string id)
+        {
+            var check = KiemTraQuyenAdmin();
+            if (check != null) return check;
+
+            if (string.IsNullOrWhiteSpace(id))
+            {
+                return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
+            }
+
+            NHANVIEN nhanVien = db.NHANVIEN.Find(id);
+
+            if (nhanVien == null)
+            {
+                return HttpNotFound();
+            }
+
+            string maDangDangNhap = Session["MANV"] != null ? Session["MANV"].ToString() : "";
+
+            if (nhanVien.MANV == maDangDangNhap)
+            {
+                TempData["Error"] = "Bạn không thể khóa chính tài khoản đang đăng nhập.";
                 return RedirectToAction("Index");
             }
 
             nhanVien.TRANGTHAI = "Tạm khóa";
             db.SaveChanges();
 
-            TempData["Success"] = "Khóa tài khoản nhân viên thành công!";
+            TempData["Success"] = "Đã khóa tài khoản nhân viên!";
             return RedirectToAction("Index");
         }
 
-        // GET: NHANVIEN65134364/MoKhoa/NV01
-        public ActionResult MoKhoa(string id)
+        // =========================================================
+        // GET: NHANVIEN65134364/MoKhoaTaiKhoan/NV01
+        // Chỉ Admin được mở khóa
+        // =========================================================
+        public ActionResult MoKhoaTaiKhoan(string id)
         {
-            var check = KiemTraQuyen();
+            var check = KiemTraQuyenAdmin();
             if (check != null) return check;
 
-            if (id == null)
+            if (string.IsNullOrWhiteSpace(id))
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
@@ -344,8 +405,28 @@ namespace QLSanPickleball_65132651.Controllers
             nhanVien.TRANGTHAI = "Đang hoạt động";
             db.SaveChanges();
 
-            TempData["Success"] = "Mở khóa tài khoản nhân viên thành công!";
+            TempData["Success"] = "Đã mở khóa tài khoản nhân viên!";
             return RedirectToAction("Index");
+        }
+
+        // =========================================================
+        // HÀM PHỤ
+        // =========================================================
+        private void GanViewBagDanhSachLuaChon(NHANVIEN nhanVien)
+        {
+            ViewBag.VaiTroList = new SelectList(new[]
+            {
+                "Admin",
+                "Quản lý",
+                "Nhân viên"
+            }, nhanVien != null ? nhanVien.VAITRO : "Nhân viên");
+
+            ViewBag.TrangThaiList = new SelectList(new[]
+            {
+                "Đang hoạt động",
+                "Tạm khóa",
+                "Đã nghỉ việc"
+            }, nhanVien != null ? nhanVien.TRANGTHAI : "Đang hoạt động");
         }
 
         private string TaoMaNhanVienMoi()
@@ -356,15 +437,14 @@ namespace QLSanPickleball_65132651.Controllers
                 .Select(n => n.MANV)
                 .FirstOrDefault();
 
-            if (string.IsNullOrEmpty(maCuoi))
+            if (string.IsNullOrWhiteSpace(maCuoi))
             {
                 return "NV01";
             }
 
+            string soCuoi = maCuoi.Replace("NV", "");
             int so = 0;
-            string phanSo = maCuoi.Replace("NV", "");
-
-            int.TryParse(phanSo, out so);
+            int.TryParse(soCuoi, out so);
             so++;
 
             return "NV" + so.ToString("00");
@@ -372,6 +452,11 @@ namespace QLSanPickleball_65132651.Controllers
 
         private void KiemTraDuLieuNhanVien(NHANVIEN nhanVien, bool laThemMoi)
         {
+            if (string.IsNullOrWhiteSpace(nhanVien.MANV))
+            {
+                ModelState.AddModelError("MANV", "Mã nhân viên không được để trống.");
+            }
+
             if (string.IsNullOrWhiteSpace(nhanVien.HOTENNV))
             {
                 ModelState.AddModelError("HOTENNV", "Họ tên nhân viên không được để trống.");
@@ -389,6 +474,10 @@ namespace QLSanPickleball_65132651.Controllers
             if (string.IsNullOrWhiteSpace(nhanVien.EMAILNV))
             {
                 ModelState.AddModelError("EMAILNV", "Email không được để trống.");
+            }
+            else if (!nhanVien.EMAILNV.Contains("@"))
+            {
+                ModelState.AddModelError("EMAILNV", "Email không hợp lệ.");
             }
 
             if (string.IsNullOrWhiteSpace(nhanVien.TENDANGNHAP))
@@ -411,13 +500,13 @@ namespace QLSanPickleball_65132651.Controllers
                 ModelState.AddModelError("TRANGTHAI", "Vui lòng chọn trạng thái.");
             }
 
-            bool trungSDT = db.NHANVIEN.Any(n =>
-                n.SODIENTHOAINV == nhanVien.SODIENTHOAINV &&
+            bool trungTenDangNhap = db.NHANVIEN.Any(n =>
+                n.TENDANGNHAP == nhanVien.TENDANGNHAP &&
                 (laThemMoi || n.MANV != nhanVien.MANV));
 
-            if (trungSDT)
+            if (trungTenDangNhap)
             {
-                ModelState.AddModelError("SODIENTHOAINV", "Số điện thoại này đã tồn tại.");
+                ModelState.AddModelError("TENDANGNHAP", "Tên đăng nhập này đã tồn tại.");
             }
 
             bool trungEmail = db.NHANVIEN.Any(n =>
@@ -429,13 +518,23 @@ namespace QLSanPickleball_65132651.Controllers
                 ModelState.AddModelError("EMAILNV", "Email này đã tồn tại.");
             }
 
-            bool trungTenDangNhap = db.NHANVIEN.Any(n =>
-                n.TENDANGNHAP == nhanVien.TENDANGNHAP &&
+            bool trungSdt = db.NHANVIEN.Any(n =>
+                n.SODIENTHOAINV == nhanVien.SODIENTHOAINV &&
                 (laThemMoi || n.MANV != nhanVien.MANV));
 
-            if (trungTenDangNhap)
+            if (trungSdt)
             {
-                ModelState.AddModelError("TENDANGNHAP", "Tên đăng nhập này đã tồn tại.");
+                ModelState.AddModelError("SODIENTHOAINV", "Số điện thoại này đã tồn tại.");
+            }
+
+            if (laThemMoi)
+            {
+                bool trungMa = db.NHANVIEN.Any(n => n.MANV == nhanVien.MANV);
+
+                if (trungMa)
+                {
+                    ModelState.AddModelError("MANV", "Mã nhân viên này đã tồn tại.");
+                }
             }
         }
 

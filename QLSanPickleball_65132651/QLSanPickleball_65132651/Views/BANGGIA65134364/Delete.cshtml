@@ -1,0 +1,171 @@
+﻿@model QLSanPickleball_65132651.Models.BANGGIA
+
+@{
+    ViewBag.Title = "Xóa bảng giá";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+
+    string tenLoaiSan = Model.LOAISAN != null ? Model.LOAISAN.TENLOAISAN : Model.MALOAISAN;
+}
+
+<style>
+    .delete-wrapper {
+        max-width: 780px;
+        margin: 0 auto;
+    }
+
+    .delete-card {
+        background: white;
+        border: 1px solid #e5e7eb;
+        border-radius: 22px;
+        padding: 26px;
+        box-shadow: 0 12px 28px rgba(15,23,42,0.08);
+    }
+
+    .delete-title {
+        font-size: 26px;
+        font-weight: 900;
+        color: #991b1b;
+        margin-bottom: 8px;
+    }
+
+    .delete-sub {
+        color: #6b7280;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .info-box {
+        background: #f9fafb;
+        border: 1px solid #e5e7eb;
+        border-radius: 16px;
+        padding: 18px;
+        margin-bottom: 18px;
+    }
+
+    .info-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 12px 0;
+        font-weight: 900;
+    }
+
+        .info-row:last-child {
+            border-bottom: none;
+        }
+
+    .info-label {
+        color: #6b7280;
+    }
+
+    .info-value {
+        color: #111827;
+        text-align: right;
+    }
+
+    .warning-box {
+        background: #fef2f2;
+        color: #991b1b;
+        border: 1px solid #fecaca;
+        border-radius: 14px;
+        padding: 14px 16px;
+        font-weight: 800;
+        margin-bottom: 18px;
+        line-height: 1.5;
+    }
+
+    .btn-row {
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .btn-delete,
+    .btn-back {
+        border: none;
+        padding: 11px 18px;
+        border-radius: 12px;
+        font-weight: 900;
+        color: white !important;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-delete {
+        background: #dc2626;
+    }
+
+    .btn-back {
+        background: #6b7280;
+    }
+
+        .btn-delete:hover,
+        .btn-back:hover {
+            opacity: 0.88;
+            color: white;
+            text-decoration: none;
+        }
+</style>
+
+<div class="delete-wrapper">
+    <div class="delete-card">
+        <div class="delete-sub">Bạn có chắc muốn xóa bảng giá này khỏi hệ thống không?</div>
+
+        <div class="info-box">
+            <div class="info-row">
+                <span class="info-label">Mã giá</span>
+                <span class="info-value">@Model.MAGIA</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Loại sân</span>
+                <span class="info-value">@tenLoaiSan</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Thứ áp dụng</span>
+                <span class="info-value">@Model.THU</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Ngày điều chỉnh</span>
+                <span class="info-value">@Model.NGAYDIEUCHINH.ToString("dd/MM/yyyy")</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Khung giờ</span>
+                <span class="info-value">@Model.GIOBATDAU.ToString(@"hh\:mm") - @Model.GIOKETTHUC.ToString(@"hh\:mm")</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Giá vãng lai</span>
+                <span class="info-value">@Model.GIAVANGLAI.ToString("N0") đ</span>
+            </div>
+
+            <div class="info-row">
+                <span class="info-label">Giá cố định</span>
+                <span class="info-value">@Model.GIACODINH.ToString("N0") đ</span>
+            </div>
+        </div>
+
+        <div class="warning-box">
+            Lưu ý: Bảng giá được dùng để tính tiền đặt sân. Chỉ nên xóa nếu bảng giá nhập sai hoặc không còn sử dụng.
+        </div>
+
+        <div class="btn-row">
+            @Html.ActionLink("Quay lại", "Index", "BANGGIA65134364", null, new { @class = "btn-back" })
+
+            @using (Html.BeginForm("Delete", "BANGGIA65134364", new { id = Model.MAGIA }, FormMethod.Post))
+            {
+                @Html.AntiForgeryToken()
+                <button type="submit"
+                        class="btn-delete"
+                        onclick="return confirm('Bạn có chắc muốn xóa bảng giá @Model.MAGIA?');">
+                    Xác nhận xóa
+                </button>
+            }
+        </div>
+    </div>
+</div>

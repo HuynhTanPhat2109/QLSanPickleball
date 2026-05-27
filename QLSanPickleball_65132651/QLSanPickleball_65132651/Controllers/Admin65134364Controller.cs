@@ -12,26 +12,111 @@ namespace QLSanPickleball_65132651.Controllers
     {
         private QLSanEntities db = new QLSanEntities();
 
-        // GET: Admin65134364/HomeNv
-        public ActionResult HomeNv()
+        // =========================================================
+        // HÀM LẤY VAI TRÒ
+        // =========================================================
+        private string LayVaiTro()
         {
-            // Kiểm tra đăng nhập
+            if (Session["VAITRO"] == null)
+            {
+                return "";
+            }
+
+            return Session["VAITRO"].ToString().Trim();
+        }
+
+        private bool LaAdmin()
+        {
+            return LayVaiTro() == "Admin";
+        }
+
+        private bool LaQuanLy()
+        {
+            string vaiTro = LayVaiTro();
+
+            return vaiTro == "Quản lý" || vaiTro == "Quan ly";
+        }
+
+        private bool LaNhanVien()
+        {
+            return LayVaiTro() == "Nhân viên";
+        }
+
+        private bool DuocQuanTri()
+        {
+            return LaAdmin() || LaQuanLy();
+        }
+
+        private bool DuocVaoHeThongNhanVien()
+        {
+            return LaAdmin() || LaQuanLy() || LaNhanVien();
+        }
+
+        private string TenVaiTroHienThi()
+        {
+            if (LaAdmin())
+            {
+                return "Admin";
+            }
+
+            if (LaQuanLy())
+            {
+                return "Quản lý";
+            }
+
+            if (LaNhanVien())
+            {
+                return "Nhân viên";
+            }
+
+            return "Chưa phân quyền";
+        }
+
+        private ActionResult KiemTraDangNhapVaVaiTro()
+        {
             if (Session["MANV"] == null)
             {
                 return RedirectToAction("Login", "Account65132651");
             }
 
-            // Kiểm tra quyền Admin / Quản lý / Nhân viên
-            string vaiTro = Session["VAITRO"] != null ? Session["VAITRO"].ToString() : "";
-
-            if (vaiTro != "Admin" && vaiTro != "Quản lý" && vaiTro != "Nhân viên")
+            if (!DuocVaoHeThongNhanVien())
             {
                 return RedirectToAction("Index", "Home");
             }
 
-            // ==============================
+            return null;
+        }
+
+        // =========================================================
+        // DASHBOARD ADMIN / QUẢN LÝ / NHÂN VIÊN
+        // =========================================================
+        // GET: Admin65134364/HomeNv
+        public ActionResult HomeNv()
+        {
+            var check = KiemTraDangNhapVaVaiTro();
+
+            if (check != null)
+            {
+                return check;
+            }
+
+            string vaiTro = LayVaiTro();
+
+            ViewBag.VaiTro = vaiTro;
+            ViewBag.TenVaiTroHienThi = TenVaiTroHienThi();
+
+            ViewBag.LaAdmin = LaAdmin();
+            ViewBag.LaQuanLy = LaQuanLy();
+            ViewBag.LaNhanVien = LaNhanVien();
+
+            ViewBag.DuocQuanTri = DuocQuanTri();
+            ViewBag.DuocNghiepVuNhanVien = DuocVaoHeThongNhanVien();
+
+            // =====================================================
             // THỐNG KÊ TỔNG QUAN
-            // ==============================
+            // Admin / Quản lý dùng đầy đủ
+            // Nhân viên vẫn có dữ liệu để dashboard không lỗi
+            // =====================================================
             ViewBag.TongNhanVien = db.NHANVIEN.Count();
             ViewBag.TongKhachHang = db.KHACHHANG.Count();
             ViewBag.TongSan = db.SAN.Count();
@@ -40,20 +125,63 @@ namespace QLSanPickleball_65132651.Controllers
             ViewBag.TongPhieuDat = db.PHIEUDATSAN.Count();
             ViewBag.TongHoaDon = db.HOADON.Count();
 
-            // ==============================
+            // =====================================================
             // TRẠNG THÁI SÂN
-            // Chỉ hiển thị sân trống và bảo trì
-            // ==============================
-            ViewBag.SanTrong = db.SAN.Count(s => s.TRANGTHAISAN == "Trống");
+            // Hệ mới chỉ dùng Hoạt động / Bảo trì
+            // Có cộng thêm trạng thái cũ để tránh dữ liệu cũ bị lệch
+            // =====================================================
+            ViewBag.SanHoatDong = db.SAN.Count(s =>
+                s.TRANGTHAISAN == "Hoạt động" ||
+                s.TRANGTHAISAN == "Trống" ||
+                s.TRANGTHAISAN == "Đang đặt" ||
+                s.TRANGTHAISAN == "Đang sử dụng"
+            );
+
             ViewBag.SanBaoTri = db.SAN.Count(s => s.TRANGTHAISAN == "Bảo trì");
 
-            // ==============================
+            // Giữ lại tên cũ nếu View HomeNv của b còn dùng
+            ViewBag.SanTrong = ViewBag.SanHoatDong;
+            ViewBag.SanDangDat = 0;
+            ViewBag.SanDangSuDung = 0;
+
+            // =====================================================
+            // THỐNG KÊ PHIẾU THEO TRẠNG THÁI
+            // =====================================================
+            ViewBag.PhieuChoXacNhan = db.PHIEUDATSAN.Count(p =>
+                p.TRANGTHAIPHIEU == "Chờ xác nhận" ||
+                p.TRANGTHAIPHIEU == "Chờ duyệt" ||
+                p.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản"
+            );
+
+            ViewBag.PhieuDaXacNhan = db.PHIEUDATSAN.Count(p =>
+                p.TRANGTHAIPHIEU == "Đã xác nhận" ||
+                p.TRANGTHAIPHIEU == "Đang sử dụng"
+            );
+
+            ViewBag.PhieuHoanThanh = db.PHIEUDATSAN.Count(p =>
+                p.TRANGTHAIPHIEU == "Hoàn thành"
+            );
+
+            ViewBag.PhieuDaHuy = db.PHIEUDATSAN.Count(p =>
+                p.TRANGTHAIPHIEU == "Đã hủy" ||
+                p.TRANGTHAIPHIEU == "Đã huỷ" ||
+                p.TRANGTHAIPHIEU == "Hủy" ||
+                p.TRANGTHAIPHIEU == "Huy" ||
+                p.TRANGTHAIPHIEU == "DaHuy" ||
+                p.TRANGTHAIPHIEU == "Hủy do bảo trì" ||
+                p.TRANGTHAITHANHTOAN == "Hoàn cọc 100%" ||
+                p.TRANGTHAITHANHTOAN == "Hoàn cọc 50%" ||
+                p.TRANGTHAITHANHTOAN == "Hoàn cọc 20%" ||
+                p.TRANGTHAITHANHTOAN == "Không hoàn cọc"
+            );
+
+            // =====================================================
             // DOANH THU NGÀY / TUẦN / THÁNG / NĂM
-            // ==============================
+            // =====================================================
             DateTime homNay = DateTime.Today;
             DateTime ngayMai = homNay.AddDays(1);
 
-            int soNgayLechDauTuan = ((int)homNay.DayOfWeek + 6) % 7; // Thứ 2 là đầu tuần
+            int soNgayLechDauTuan = ((int)homNay.DayOfWeek + 6) % 7;
             DateTime dauTuan = homNay.AddDays(-soNgayLechDauTuan);
             DateTime dauTuanSau = dauTuan.AddDays(7);
 
@@ -72,9 +200,9 @@ namespace QLSanPickleball_65132651.Controllers
                 ? db.HOADON.Sum(h => h.TONGTHANHTOAN)
                 : 0m;
 
-            // ==============================
+            // =====================================================
             // BIỂU ĐỒ DOANH THU 7 NGÀY GẦN NHẤT
-            // ==============================
+            // =====================================================
             List<string> labels7Ngay = new List<string>();
             List<decimal> data7Ngay = new List<decimal>();
 
@@ -87,9 +215,9 @@ namespace QLSanPickleball_65132651.Controllers
                 data7Ngay.Add(TinhDoanhThu(ngay, ngayKeTiep));
             }
 
-            // ==============================
-            // BIỂU ĐỒ DOANH THU 12 THÁNG TRONG NĂM
-            // ==============================
+            // =====================================================
+            // BIỂU ĐỒ DOANH THU 12 THÁNG
+            // =====================================================
             List<string> labelsThang = new List<string>();
             List<decimal> dataThang = new List<decimal>();
 
@@ -110,21 +238,67 @@ namespace QLSanPickleball_65132651.Controllers
             ViewBag.LabelsThang = serializer.Serialize(labelsThang);
             ViewBag.DataThang = serializer.Serialize(dataThang);
 
-            // ==============================
-            // PHIẾU ĐẶT SÂN MỚI NHẤT
-            // ==============================
+            // =====================================================
+            // BIỂU ĐỒ TRÒN TRẠNG THÁI PHIẾU
+            // Nếu view HomeNv có dùng chart tròn thì lấy dữ liệu này
+            // =====================================================
+            List<string> labelsTrangThaiPhieu = new List<string>
+            {
+                "Chờ xác nhận",
+                "Đã xác nhận",
+                "Hoàn thành",
+                "Đã hủy"
+            };
+
+            List<int> dataTrangThaiPhieu = new List<int>
+            {
+                ViewBag.PhieuChoXacNhan,
+                ViewBag.PhieuDaXacNhan,
+                ViewBag.PhieuHoanThanh,
+                ViewBag.PhieuDaHuy
+            };
+
+            ViewBag.LabelsTrangThaiPhieu = serializer.Serialize(labelsTrangThaiPhieu);
+            ViewBag.DataTrangThaiPhieu = serializer.Serialize(dataTrangThaiPhieu);
+
+            // =====================================================
+            // PHIẾU ĐẶT SÂN MỚI / CẦN XỬ LÝ
+            // Sắp theo nghiệp vụ: chờ xác nhận trước, rồi mới tới các phiếu khác
+            // =====================================================
             var phieuDatMoi = db.PHIEUDATSAN
                 .Include(p => p.KHACHHANG)
                 .Include(p => p.SAN)
                 .Include(p => p.NHANVIEN)
-                .OrderByDescending(p => p.NGAYDAT)
-                .ThenByDescending(p => p.GIOBATDAU)
+                .OrderBy(p =>
+                    p.TRANGTHAIPHIEU == "Chờ xác nhận" ||
+                    p.TRANGTHAIPHIEU == "Chờ duyệt" ||
+                    p.TRANGTHAITHANHTOAN == "Chờ xác nhận chuyển khoản" ? 1 :
+
+                    p.TRANGTHAIPHIEU == "Đã xác nhận" ||
+                    p.TRANGTHAIPHIEU == "Đang sử dụng" ? 2 :
+
+                    p.TRANGTHAIPHIEU == "Hoàn thành" ? 3 :
+
+                    p.TRANGTHAIPHIEU == "Đã hủy" ||
+                    p.TRANGTHAIPHIEU == "Đã huỷ" ||
+                    p.TRANGTHAIPHIEU == "Hủy" ||
+                    p.TRANGTHAIPHIEU == "Huy" ||
+                    p.TRANGTHAIPHIEU == "DaHuy" ||
+                    p.TRANGTHAIPHIEU == "Hủy do bảo trì" ? 4 :
+
+                    5
+                )
+                .ThenByDescending(p => p.NGAYDAT)
+                .ThenBy(p => p.GIOBATDAU)
                 .Take(5)
                 .ToList();
 
             return View(phieuDatMoi);
         }
 
+        // =========================================================
+        // HÀM TÍNH DOANH THU
+        // =========================================================
         private decimal TinhDoanhThu(DateTime tuNgay, DateTime denNgay)
         {
             var query = db.HOADON
