@@ -825,6 +825,8 @@ namespace QLSanPickleball_65132651.Controllers
                 string maKhachDangNhap = LayMaKhachHangDangNhap();
                 bool laVangLai = string.IsNullOrEmpty(maKhachDangNhap);
 
+                string maKhachHangGanVaoPhieu = "";
+
                 if (laVangLai)
                 {
                     if (string.IsNullOrWhiteSpace(tenKhach))
@@ -837,21 +839,19 @@ namespace QLSanPickleball_65132651.Controllers
                         return Json(new { success = false, message = "Vui lòng nhập số điện thoại khách hàng." });
                     }
 
+                    sdtKhach = sdtKhach.Trim();
+                    tenKhach = tenKhach.Trim();
+
                     if (!System.Text.RegularExpressions.Regex.IsMatch(sdtKhach, @"^[0-9]{10}$"))
                     {
                         return Json(new { success = false, message = "Số điện thoại phải gồm đúng 10 chữ số." });
                     }
 
-                    sdtKhach = sdtKhach.Trim();
-                    tenKhach = tenKhach.Trim();
-
                     var khTonTai = db.KHACHHANG.FirstOrDefault(k => k.SODIENTHOAIKH == sdtKhach);
-
-                    string maKhachHang;
 
                     if (khTonTai != null)
                     {
-                        maKhachHang = khTonTai.MAKH;
+                        maKhachHangGanVaoPhieu = khTonTai.MAKH;
 
                         khTonTai.HOTENKH = tenKhach;
 
@@ -867,42 +867,37 @@ namespace QLSanPickleball_65132651.Controllers
                     }
                     else
                     {
-                        maKhachHang = "KV" + DateTime.Now.ToString("HHmmssff");
+                        maKhachHangGanVaoPhieu = "KV" + DateTime.Now.ToString("HHmmssff");
 
                         KHACHHANG khMoi = new KHACHHANG
                         {
-                            MAKH = maKhachHang,
+                            MAKH = maKhachHangGanVaoPhieu,
                             HOTENKH = tenKhach,
                             NGAYSINH = DateTime.Today,
                             GIOITINH = "Khác",
                             DIACHI = "",
                             SODIENTHOAIKH = sdtKhach,
-                            EMAILKH = maKhachHang.ToLower() + "@khachvanglai.com",
-
-                            // Mật khẩu mặc định hợp lệ: có chữ hoa, chữ thường, số, ký tự đặc biệt
+                            EMAILKH = maKhachHangGanVaoPhieu.ToLower() + "@khachvanglai.com",
                             MATKHAUKH = "Kvl@123456",
-
                             SOLANBUNG = 0,
                             TRANGTHAITK = "Hoạt động"
                         };
 
                         db.KHACHHANG.Add(khMoi);
                     }
-
-                    db.SaveChanges();
                 }
                 else
                 {
-                    foreach (var p in dsPhieu)
-                    {
-                        if (string.IsNullOrEmpty(p.MAKH))
-                        {
-                            p.MAKH = maKhachDangNhap;
-                        }
-                    }
-
-                    db.SaveChanges();
+                    maKhachHangGanVaoPhieu = maKhachDangNhap;
                 }
+
+                // GÁN KHÁCH HÀNG VÀO TOÀN BỘ PHIẾU TRONG NHÓM
+                foreach (var p in dsPhieu)
+                {
+                    p.MAKH = maKhachHangGanVaoPhieu;
+                }
+
+                db.SaveChanges();
 
                 foreach (var p in dsPhieu)
                 {
@@ -1030,7 +1025,24 @@ namespace QLSanPickleball_65132651.Controllers
                 }
             }
 
-            decimal tongThanhToan = tienSan + tienDichVu;
+            string maKhachHang = danhSachPhieu
+            .Where(p => !string.IsNullOrWhiteSpace(p.MAKH))
+            .Select(p => p.MAKH)
+            .FirstOrDefault();
+
+            int phanTramGiamGia = TinhPhanTramGiamGiaHoiVien(maKhachHang);
+
+            decimal tienGiamGia = tienSan * phanTramGiamGia / 100m;
+
+            decimal tongThanhToan = tienSan + tienDichVu - tienGiamGia;
+
+            if (tongThanhToan < 0)
+            {
+                tongThanhToan = 0;
+            }
+
+            ViewBag.PhanTramGiamGia = phanTramGiamGia;
+            ViewBag.TienGiamGia = tienGiamGia;
 
             ViewBag.MaNhomDatSan = id;
             ViewBag.DanhSachPhieuDat = danhSachPhieu
@@ -1051,6 +1063,81 @@ namespace QLSanPickleball_65132651.Controllers
 
             TempData.Remove("Success");
             return View();
+        }
+
+        private int TinhPhanTramGiamGiaHoiVien(string maKhachHang)
+        {
+            if (string.IsNullOrWhiteSpace(maKhachHang))
+            {
+                return 0;
+            }
+
+            DateTime homNay = DateTime.Today;
+
+            var hoiVien = db.HOIVIEN
+                .Where(h => h.MAKH == maKhachHang
+                    && h.NGAYBATDAU <= homNay
+                    && h.NGAYKETTHUC >= homNay)
+                .OrderByDescending(h => h.NGAYBATDAU)
+                .FirstOrDefault();
+
+            if (hoiVien == null)
+            {
+                return 0;
+            }
+
+            // Kiểm tra trạng thái phí hội viên
+            // Chỉ giảm giá khi hội viên đã đóng phí / đã thanh toán phí
+            if (!string.IsNullOrWhiteSpace(hoiVien.TRANGTHAIPHI))
+            {
+                string trangThaiPhi = hoiVien.TRANGTHAIPHI.Trim().ToLower();
+
+                bool daDongPhi =
+                    trangThaiPhi.Contains("đã") ||
+                    trangThaiPhi.Contains("da") ||
+                    trangThaiPhi.Contains("đã đóng") ||
+                    trangThaiPhi.Contains("da dong") ||
+                    trangThaiPhi.Contains("đã thanh toán") ||
+                    trangThaiPhi.Contains("Đã thanh toán") ||
+                    trangThaiPhi.Contains("hoàn tất") ||
+                    trangThaiPhi.Contains("hoan tat");
+
+                if (!daDongPhi)
+                {
+                    return 0;
+                }
+            }
+            else
+            {
+                return 0;
+            }
+
+            string loaiThe = "";
+
+            if (!string.IsNullOrWhiteSpace(hoiVien.LOAITHE))
+            {
+                loaiThe = hoiVien.LOAITHE.Trim().ToLower();
+            }
+
+            if (loaiThe.Contains("luxury"))
+            {
+                return 40;
+            }
+
+            if (loaiThe.Contains("vip"))
+            {
+                return 30;
+            }
+
+            if (loaiThe.Contains("thường") ||
+                loaiThe.Contains("thuong") ||
+                loaiThe.Contains("hội viên") ||
+                loaiThe.Contains("hoi vien"))
+            {
+                return 20;
+            }
+
+            return 0;
         }
 
         [HttpPost]

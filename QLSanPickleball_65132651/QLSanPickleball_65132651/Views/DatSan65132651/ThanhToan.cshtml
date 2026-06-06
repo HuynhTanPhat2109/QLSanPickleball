@@ -362,11 +362,19 @@
                     <span>Tiền sân</span>
                     <strong>@tienSan.ToString("N0")đ</strong>
                 </div>
-                
+
                 <div class="money-row">
                     <span>Tiền dịch vụ</span>
                     <strong>@tienDichVu.ToString("N0")đ</strong>
                 </div>
+
+                @if (ViewBag.PhanTramGiamGia != null && ViewBag.PhanTramGiamGia > 0)
+                {
+                    <p class="text-success">
+                        Giảm giá hội viên (@ViewBag.PhanTramGiamGia%):
+                        -@String.Format("{0:N0}", ViewBag.TienGiamGia) đ
+                    </p>
+                }
 
                 <div class="money-row">
                     <span>Tổng thanh toán</span>
